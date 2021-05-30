@@ -101,6 +101,9 @@ func Locally(repo Repo, path string) {
 }
 
 func BackupGitea(r Repo, d Gitea) {
+	if d.Url == "" {
+		d.Url = "https://gitea.com/"
+	}
 	fmt.Printf("mirroring %s to %s\n", blue(r.Name), d.Url)
 	giteaclient, err := gitea.NewClient(d.Url)
 	if err != nil {
