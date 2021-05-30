@@ -71,7 +71,7 @@ func Locally(repo Repo, path string) {
 				}
 			}
 		} else {
-			fmt.Printf("pulling %s\n", green(repo.Name))
+			fmt.Printf("opening %s locally\n", green(repo.Name))
 			r, err := git.Open(repo.Name)
 			if err != nil {
 				if x == tries {
@@ -83,6 +83,14 @@ func Locally(repo Repo, path string) {
 					continue
 				}
 			}
+			fmt.Printf("fetching %s\n", green(repo.Name))
+			err = r.Fetch(git.FetchOptions{})
+			if err != nil {
+				fmt.Printf("retry %s from %s\n", red(x), red(tries))
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			fmt.Printf("pulling %s\n", green(repo.Name))
 			err = r.Pull(git.PullOptions{All: true, Branch: repo.Defaultbranch})
 			if err != nil {
 				if x == tries {
