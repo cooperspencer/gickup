@@ -2,9 +2,7 @@ package main
 
 // Gitea
 type Gitea struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
+	GenRepo
 }
 
 // Destination
@@ -35,30 +33,38 @@ type Source struct {
 	Gitea  []Gitea  `yaml:"gitea"`
 }
 
+// Generell Repo
+type GenRepo struct {
+	Github
+	Url string `yaml:"url"`
+}
+
 // Gogs
 type Gogs struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
+	GenRepo
 }
 
 // Gitlab
 type Gitlab struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
+	GenRepo
 }
 
 // Github
 type Github struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
+	Token    string `yaml:"token"`
+	User     string `yaml:"user"`
+	SSH      bool   `yaml:"ssh"`
+	SSHKey   string `yaml:"sshkey"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 // Repo
 type Repo struct {
 	Name          string
 	Url           string
+	SshUrl        string
 	Token         string
 	Defaultbranch string
+	Origin        Github
 }

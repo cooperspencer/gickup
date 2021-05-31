@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"time"
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/alecthomas/kong"
-	git "github.com/gogs/git-module"
 	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/github"
 	"github.com/gookit/color"
@@ -18,6 +18,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	"gopkg.in/yaml.v2"
 )
 
@@ -49,59 +53,92 @@ func ReadConfigfile(configfile string) *Conf {
 	return &t
 }
 
-func Locally(repo Repo, path string) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err := os.MkdirAll(path, 0777)
+func Locally(repo Repo, l Local) {
+	if _, err := os.Stat(l.Path); os.IsNotExist(err) {
+		err := os.MkdirAll(l.Path, 0777)
 		if err != nil {
-			log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
+			log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 		}
 	}
-	os.Chdir(path)
+	os.Chdir(l.Path)
 	tries := 5
-
+	var err error
+	var auth transport.AuthMethod
+	if repo.Origin.SSH {
+		if repo.Origin.SSHKey == "" {
+			home := os.Getenv("HOME")
+			repo.Origin.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+		auth, err = ssh.NewPublicKeysFromFile("git", repo.Origin.SSHKey, "")
+		if err != nil {
+			panic(err)
+		}
+	} else if repo.Token != "" {
+		auth = &http.BasicAuth{
+			Username: "xyz",
+			Password: repo.Token,
+		}
+	} else if repo.Origin.Username != "" && repo.Origin.Password != "" {
+		auth = &http.BasicAuth{
+			Username: repo.Origin.Username,
+			Password: repo.Origin.Password,
+		}
+	} else {
+		log.Panic().Str("stage", "locally").Str("path", l.Path).Msg("User/Password/Token or private key were not provided!")
+	}
 	for x := 1; x <= tries; x++ {
 		if _, err := os.Stat(repo.Name); os.IsNotExist(err) {
-			log.Info().Str("stage", "locally").Str("path", path).Msgf("cloning %s", green(repo.Name))
-			err := git.Clone(repo.Url, repo.Name, git.CloneOptions{Quiet: false, Timeout: 5 * time.Minute})
+			log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("cloning %s", green(repo.Name))
+
+			url := repo.Url
+			if repo.Origin.SSH {
+				url = repo.SshUrl
+			}
+
+			_, err = git.PlainClone(repo.Name, false, &git.CloneOptions{
+				URL:          url,
+				Auth:         auth,
+				SingleBranch: false,
+			})
+
 			if err != nil {
 				if x == tries {
-					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
+					log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 				} else {
-					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
+					if strings.Contains(err.Error(), "remote repository is empty") {
+						log.Warn().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+						break
+					}
+					log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", red(x), red(tries))
 					time.Sleep(5 * time.Second)
 					continue
 				}
 			}
 		} else {
-			log.Info().Str("stage", "locally").Str("path", path).Msgf("opening %s locally", green(repo.Name))
-			r, err := git.Open(repo.Name)
+			log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", green(repo.Name))
+			r, err := git.PlainOpen(repo.Name)
 			if err != nil {
-				if x == tries {
-					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
-				} else {
-					os.RemoveAll(repo.Name)
-					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
-					time.Sleep(5 * time.Second)
-					continue
-				}
+				log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 			}
-			log.Info().Str("stage", "locally").Str("path", path).Msgf("fetching %s", green(repo.Name))
-			err = r.Fetch(git.FetchOptions{})
+			w, err := r.Worktree()
 			if err != nil {
-				log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
-				time.Sleep(5 * time.Second)
-				continue
+				log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 			}
-			log.Info().Str("stage", "locally").Str("path", path).Msgf("pulling %s", green(repo.Name))
-			err = r.Pull(git.PullOptions{All: true, Branch: repo.Defaultbranch})
+
+			log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("pulling %s", green(repo.Name))
+			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
 			if err != nil {
-				if x == tries {
-					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
+				if strings.Contains(err.Error(), "already up-to-date") {
+					log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 				} else {
-					os.RemoveAll(repo.Name)
-					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
-					time.Sleep(5 * time.Second)
-					continue
+					if x == tries {
+						log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					} else {
+						os.RemoveAll(repo.Name)
+						log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", red(x), red(tries))
+						time.Sleep(5 * time.Second)
+						continue
+					}
 				}
 			}
 		}
@@ -195,7 +232,7 @@ func Backup(repos []Repo, conf *Conf) {
 	for _, r := range repos {
 		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
 		for _, d := range conf.Destination.Local {
-			Locally(r, d.Path)
+			Locally(r, d)
 		}
 		for _, d := range conf.Destination.Gitea {
 			BackupGitea(r, d)
@@ -241,7 +278,7 @@ func getGithub(conf *Conf) []Repo {
 		}
 
 		for _, r := range githubrepos {
-			repos = append(repos, Repo{Name: r.GetName(), Url: r.GetCloneURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch()})
+			repos = append(repos, Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo})
 		}
 	}
 	return repos
@@ -279,7 +316,7 @@ func getGitea(conf *Conf) []Repo {
 		}
 
 		for _, r := range gitearepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, Token: repo.Token, Defaultbranch: r.DefaultBranch})
+			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
 		}
 	}
 	return repos
@@ -296,7 +333,7 @@ func getGogs(conf *Conf) []Repo {
 		}
 
 		for _, r := range gogsrepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, Token: repo.Token, Defaultbranch: r.DefaultBranch})
+			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
 		}
 	}
 	return repos
@@ -339,7 +376,7 @@ func getGitlab(conf *Conf) []Repo {
 			}
 		}
 		for _, r := range gitlabrepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch})
+			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
 		}
 	}
 	return repos
