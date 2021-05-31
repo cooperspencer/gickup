@@ -12,6 +12,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v35 v35.2.0 // indirect
 	github.com/gookit/color v1.4.2
+	github.com/rs/zerolog v1.22.0 // indirect
 	github.com/xanzy/go-gitlab v0.50.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288
 	gopkg.in/yaml.v2 v2.4.0
