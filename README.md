@@ -18,18 +18,34 @@ source:
     - token: blabla
       user: blabla
       url: bla.bla.com
+      username: bla
+      password: bla
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
   gitea:
     - token: blabla
       user: blabla
       url: bla.bla.com
+      username: bla
+      password: bla
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
   gogs:
     - token: blabla
       user: blabla
       url: bla.bla.com
+      username: bla
+      password: bla
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
   gitlab:
     - token: blabla
       user: blabla
       url: bla.bla.com
+      username: bla
+      password: bla
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
 destination:
   gitea:
     - token: blabla
