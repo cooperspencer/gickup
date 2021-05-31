@@ -14,6 +14,8 @@ import (
 	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/github"
 	"github.com/gookit/color"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
@@ -33,7 +35,7 @@ func ReadConfigfile(configfile string) *Conf {
 	cfgdata, err := ioutil.ReadFile(configfile)
 
 	if err != nil {
-		panic("Cannot open config file from " + red(configfile))
+		log.Panic().Str("stage", "readconfig").Str("file", configfile).Msgf("Cannot open config file from %s", red(configfile))
 	}
 
 	t := Conf{}
@@ -41,7 +43,7 @@ func ReadConfigfile(configfile string) *Conf {
 	err = yaml.Unmarshal([]byte(cfgdata), &t)
 
 	if err != nil {
-		panic("Cannot map yml config file to interface, possible syntax error")
+		log.Panic().Str("stage", "readconfig").Str("file", configfile).Msg("Cannot map yml config file to interface, possible syntax error")
 	}
 
 	return &t
@@ -51,7 +53,7 @@ func Locally(repo Repo, path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.MkdirAll(path, 0777)
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
 		}
 	}
 	os.Chdir(path)
@@ -59,45 +61,45 @@ func Locally(repo Repo, path string) {
 
 	for x := 1; x <= tries; x++ {
 		if _, err := os.Stat(repo.Name); os.IsNotExist(err) {
-			fmt.Printf("cloning %s\n", green(repo.Name))
+			log.Info().Str("stage", "locally").Str("path", path).Msgf("cloning %s", green(repo.Name))
 			err := git.Clone(repo.Url, repo.Name, git.CloneOptions{Quiet: false, Timeout: 5 * time.Minute})
 			if err != nil {
 				if x == tries {
-					panic(err)
+					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
 				} else {
-					fmt.Printf("retry %s from %s\n", red(x), red(tries))
+					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
 					time.Sleep(5 * time.Second)
 					continue
 				}
 			}
 		} else {
-			fmt.Printf("opening %s locally\n", green(repo.Name))
+			log.Info().Str("stage", "locally").Str("path", path).Msgf("opening %s locally", green(repo.Name))
 			r, err := git.Open(repo.Name)
 			if err != nil {
 				if x == tries {
-					panic(err)
+					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
 				} else {
 					os.RemoveAll(repo.Name)
-					fmt.Printf("retry %s from %s\n", red(x), red(tries))
+					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
 					time.Sleep(5 * time.Second)
 					continue
 				}
 			}
-			fmt.Printf("fetching %s\n", green(repo.Name))
+			log.Info().Str("stage", "locally").Str("path", path).Msgf("fetching %s", green(repo.Name))
 			err = r.Fetch(git.FetchOptions{})
 			if err != nil {
-				fmt.Printf("retry %s from %s\n", red(x), red(tries))
+				log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			fmt.Printf("pulling %s\n", green(repo.Name))
+			log.Info().Str("stage", "locally").Str("path", path).Msgf("pulling %s", green(repo.Name))
 			err = r.Pull(git.PullOptions{All: true, Branch: repo.Defaultbranch})
 			if err != nil {
 				if x == tries {
-					panic(err)
+					log.Panic().Str("stage", "locally").Str("path", path).Msg(err.Error())
 				} else {
 					os.RemoveAll(repo.Name)
-					fmt.Printf("retry %s from %s\n", red(x), red(tries))
+					log.Warn().Str("stage", "locally").Str("path", path).Msgf("retry %s from %s", red(x), red(tries))
 					time.Sleep(5 * time.Second)
 					continue
 				}
@@ -112,38 +114,38 @@ func BackupGitea(r Repo, d Gitea) {
 	if d.Url == "" {
 		d.Url = "https://gitea.com/"
 	}
-	fmt.Printf("mirroring %s to %s\n", blue(r.Name), d.Url)
+	log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirroring %s to %s", blue(r.Name), d.Url)
 	giteaclient, err := gitea.NewClient(d.Url)
 	if err != nil {
-		panic(err)
+		log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 	}
 	giteaclient.SetBasicAuth(d.Token, "")
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
-		panic(err)
+		log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 	}
 	_, _, err = giteaclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
 		_, _, err := giteaclient.MigrateRepo(gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthToken: r.Token})
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 		}
 	}
 }
 
 func BackupGogs(r Repo, d Gogs) {
-	fmt.Printf("mirroring %s to %s\n", blue(r.Name), d.Url)
+	log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirroring %s to %s", blue(r.Name), d.Url)
 	gogsclient := gogs.NewClient(d.Url, d.Token)
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
-		panic(err)
+		log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 	}
 	_, err = gogsclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
 		_, err := gogsclient.MigrateRepo(gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Token})
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 		}
 	}
 }
@@ -157,16 +159,16 @@ func BackupGitlab(r Repo, d Gitlab) {
 	} else {
 		gitlabclient, err = gitlab.NewClient(d.Token, gitlab.WithBaseURL(d.Url))
 	}
-	fmt.Printf("mirroring %s to %s\n", blue(r.Name), d.Url)
+	log.Info().Str("stage", "gitlab").Str("url", d.Url).Msgf("mirroring %s to %s", blue(r.Name), d.Url)
 	if err != nil {
-		panic(err)
+		log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 	}
 
 	True := true
 	opt := gitlab.ListProjectsOptions{Search: &r.Name, Owned: &True}
 	projects, _, err := gitlabclient.Projects.ListProjects(&opt)
 	if err != nil {
-		panic(err)
+		log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 	}
 
 	found := false
@@ -184,16 +186,15 @@ func BackupGitlab(r Repo, d Gitlab) {
 		opts := &gitlab.CreateProjectOptions{Mirror: &True, ImportURL: &r.Url, Name: &r.Name}
 		_, _, err := gitlabclient.Projects.CreateProject(opts)
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 		}
 	}
 }
 
 func Backup(repos []Repo, conf *Conf) {
 	for _, r := range repos {
-		fmt.Println(r.Url)
+		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
 		for _, d := range conf.Destination.Local {
-			fmt.Printf("cloning %s to local\n", blue(r.Name))
 			Locally(r, d.Path)
 		}
 		for _, d := range conf.Destination.Gitea {
@@ -211,7 +212,7 @@ func Backup(repos []Repo, conf *Conf) {
 func getGithub(conf *Conf) []Repo {
 	repos := []Repo{}
 	for _, repo := range conf.Source.Github {
-		fmt.Printf("github.com: grabbing the repositories from %s\n", repo.User)
+		log.Info().Str("stage", "github").Str("url", "https://github.com").Msgf("grabbing the repositories from %s", repo.User)
 		client := &github.Client{}
 		opt := &github.RepositoryListOptions{}
 		opt.PerPage = 50
@@ -230,7 +231,7 @@ func getGithub(conf *Conf) []Repo {
 			}
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
-				panic(err)
+				log.Panic().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
 			}
 			if len(repos) == 0 {
 				break
@@ -252,7 +253,7 @@ func getGitea(conf *Conf) []Repo {
 		if repo.Url == "" {
 			repo.Url = "https://gitea.com"
 		}
-		fmt.Printf("%s: grabbing repositories from %s\n", repo.Url, repo.User)
+		log.Info().Str("stage", "gitea").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		opt := gitea.ListReposOptions{}
 		opt.PageSize = 50
 		i := 0
@@ -261,14 +262,14 @@ func getGitea(conf *Conf) []Repo {
 			opt.Page = i
 			client, err := gitea.NewClient(repo.Url)
 			if err != nil {
-				panic(err)
+				log.Panic().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
 			if repo.Token != "" {
 				client.SetBasicAuth(repo.Token, "")
 			}
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
-				panic(err)
+				log.Panic().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
 			if len(repos) == 0 {
 				break
@@ -287,11 +288,11 @@ func getGitea(conf *Conf) []Repo {
 func getGogs(conf *Conf) []Repo {
 	repos := []Repo{}
 	for _, repo := range conf.Source.Gogs {
-		fmt.Printf("%s: grabbing repositories from %s\n", repo.Url, repo.User)
+		log.Info().Str("stage", "gogs").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		client := gogs.NewClient(repo.Url, repo.Token)
 		gogsrepos, err := client.ListUserRepos(repo.User)
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		for _, r := range gogsrepos {
@@ -307,16 +308,16 @@ func getGitlab(conf *Conf) []Repo {
 		if repo.Url == "" {
 			repo.Url = "https://gitlab.com"
 		}
-		fmt.Printf("%s: grabbing repositories from %s\n", repo.Url, repo.User)
+		log.Info().Str("stage", "gitlab").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		gitlabrepos := []*gitlab.Project{}
 		client, err := gitlab.NewClient(repo.Token, gitlab.WithBaseURL(repo.Url))
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
 		opt := &gitlab.ListProjectsOptions{}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
 		if err != nil {
-			panic(err)
+			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		opt.PerPage = 50
@@ -326,7 +327,7 @@ func getGitlab(conf *Conf) []Repo {
 				for {
 					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
 					if err != nil {
-						panic(err)
+						log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 					}
 					if len(projects) == 0 {
 						break
@@ -345,8 +346,11 @@ func getGitlab(conf *Conf) []Repo {
 }
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	kong.Parse(&cli)
-	fmt.Printf("Reading %s\n", green(cli.Configfile))
+	log.Info().Str("file", cli.Configfile).Msgf("Reading %s", green(cli.Configfile))
 	conf := ReadConfigfile(cli.Configfile)
 
 	// Github
