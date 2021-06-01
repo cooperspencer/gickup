@@ -22,10 +22,11 @@ type Conf struct {
 
 // Source
 type Source struct {
-	Gogs   []GenRepo `yaml:"gogs"`
-	Gitlab []GenRepo `yaml:"gitlab"`
-	Github []GenRepo `yaml:"github"`
-	Gitea  []GenRepo `yaml:"gitea"`
+	Gogs      []GenRepo `yaml:"gogs"`
+	Gitlab    []GenRepo `yaml:"gitlab"`
+	Github    []GenRepo `yaml:"github"`
+	Gitea     []GenRepo `yaml:"gitea"`
+	BitBucket []GenRepo `yaml:"bitbucket"`
 }
 
 // Generell Repo

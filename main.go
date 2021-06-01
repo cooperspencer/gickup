@@ -14,6 +14,7 @@ import (
 	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/github"
 	"github.com/gookit/color"
+	"github.com/ktrysmt/go-bitbucket"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
@@ -161,7 +162,11 @@ func BackupGitea(r Repo, d GenRepo) {
 	}
 	_, _, err = giteaclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
-		_, _, err := giteaclient.MigrateRepo(gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthToken: r.Token})
+		opts := gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthToken: r.Token}
+		if r.Token == "" {
+			opts = gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthUsername: r.Origin.User, AuthPassword: r.Origin.Password}
+		}
+		_, _, err := giteaclient.MigrateRepo(opts)
 		if err != nil {
 			log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 		}
@@ -178,7 +183,11 @@ func BackupGogs(r Repo, d GenRepo) {
 	}
 	_, err = gogsclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
-		_, err := gogsclient.MigrateRepo(gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Token})
+		opts := gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Token}
+		if r.Token == "" {
+			opts = gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Origin.User, AuthPassword: r.Origin.Password}
+		}
+		_, err := gogsclient.MigrateRepo(opts)
 		if err != nil {
 			log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 		}
@@ -217,6 +226,9 @@ func BackupGitlab(r Repo, d GenRepo) {
 		if r.Token != "" {
 			splittedurl := strings.Split(r.Url, "//")
 			r.Url = fmt.Sprintf("%s//%s@%s", splittedurl[0], r.Token, splittedurl[1])
+			if r.Token == "" {
+				r.Url = fmt.Sprintf("%s//%s:%s@%s", splittedurl[0], r.Origin.User, r.Origin.Password, splittedurl[1])
+			}
 		}
 		opts := &gitlab.CreateProjectOptions{Mirror: &True, ImportURL: &r.Url, Name: &r.Name}
 		_, _, err := gitlabclient.Projects.CreateProject(opts)
@@ -380,6 +392,28 @@ func getGitlab(conf *Conf) []Repo {
 	return repos
 }
 
+func getBitbucket(conf *Conf) []Repo {
+	repos := []Repo{}
+	for _, repo := range conf.Source.BitBucket {
+		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
+		if repo.Url == "" {
+			repo.Url = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
+		} else {
+			client.SetApiBaseURL(repo.Url)
+		}
+		log.Info().Str("stage", "bitbucket").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
+
+		repositories, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
+		if err != nil {
+			log.Panic().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+		}
+		for _, r := range repositories.Items {
+			repos = append(repos, Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo})
+		}
+	}
+	return repos
+}
+
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
@@ -402,5 +436,9 @@ func main() {
 
 	// Gitlab
 	repos = getGitlab(conf)
+	Backup(repos, conf)
+
+	//Bitbucket
+	repos = getBitbucket(conf)
 	Backup(repos, conf)
 }

@@ -46,6 +46,13 @@ source:
       password: bla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+  bitbucket:
+    - user: blabla
+      url: blabla
+      username: blabla
+      password: blabla
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
 destination:
   gitea:
     - token: blabla
