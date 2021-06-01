@@ -4,6 +4,7 @@ You can clone/mirror repositories from:
 - Gitlab
 - Gitea
 - Gogs
+- Bitbucket
 
 You can clone/mirror them to:
 - Gitlab
