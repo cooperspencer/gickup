@@ -145,7 +145,7 @@ func Locally(repo Repo, l Local) {
 	}
 }
 
-func BackupGitea(r Repo, d Gitea) {
+func BackupGitea(r Repo, d GenRepo) {
 	if d.Url == "" {
 		d.Url = "https://gitea.com/"
 	}
@@ -168,7 +168,7 @@ func BackupGitea(r Repo, d Gitea) {
 	}
 }
 
-func BackupGogs(r Repo, d Gogs) {
+func BackupGogs(r Repo, d GenRepo) {
 	log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirroring %s to %s", blue(r.Name), d.Url)
 	gogsclient := gogs.NewClient(d.Url, d.Token)
 
@@ -185,7 +185,7 @@ func BackupGogs(r Repo, d Gogs) {
 	}
 }
 
-func BackupGitlab(r Repo, d Gitlab) {
+func BackupGitlab(r Repo, d GenRepo) {
 	gitlabclient := &gitlab.Client{}
 	var err error
 	if d.Url == "" {
@@ -314,7 +314,7 @@ func getGitea(conf *Conf) []Repo {
 		}
 
 		for _, r := range gitearepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
+			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
 	return repos
@@ -331,7 +331,7 @@ func getGogs(conf *Conf) []Repo {
 		}
 
 		for _, r := range gogsrepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
+			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
 	return repos
@@ -374,7 +374,7 @@ func getGitlab(conf *Conf) []Repo {
 			}
 		}
 		for _, r := range gitlabrepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo.Github})
+			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
 	return repos
