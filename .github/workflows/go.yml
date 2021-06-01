@@ -24,11 +24,10 @@ jobs:
     - name: Test
       run: go test -v ./...
       
-    - name: Generate build files
-      uses: thatisuday/go-cross-build@v1
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.3
       with:
-        platforms: 'linux/amd64, linux/arm, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64'
-        package: ''
-        name: 'gickup'
-        compress: 'true'
-        dest: 'dist'
+      # Artifact name
+        name: gickup
+        # A file, directory or wildcard pattern that describes what to upload
+        path: gickup
