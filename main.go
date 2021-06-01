@@ -83,8 +83,6 @@ func Locally(repo Repo, l Local) {
 			Username: repo.Origin.Username,
 			Password: repo.Origin.Password,
 		}
-	} else {
-		log.Panic().Str("stage", "locally").Str("path", l.Path).Msg("User/Password/Token or private key were not provided!")
 	}
 	for x := 1; x <= tries; x++ {
 		if _, err := os.Stat(repo.Name); os.IsNotExist(err) {
