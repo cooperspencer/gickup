@@ -23,3 +23,11 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+      
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.3
+      with:
+      # Artifact name
+        name: gickup
+        # A file, directory or wildcard pattern that describes what to upload
+        path: gickup
