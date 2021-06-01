@@ -1,19 +1,12 @@
 package main
 
-// Gitea
-type Gitea struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
-}
-
 // Destination
 type Destination struct {
-	Gitlab []Gitlab `yaml:"gitlab"`
-	Local  []Local  `yaml:"local"`
-	Github []Github `yaml:"github"`
-	Gitea  []Gitea  `yaml:"gitea"`
-	Gogs   []Gogs   `yaml:"gogs"`
+	Gitlab []GenRepo `yaml:"gitlab"`
+	Local  []Local   `yaml:"local"`
+	Github []GenRepo `yaml:"github"`
+	Gitea  []GenRepo `yaml:"gitea"`
+	Gogs   []GenRepo `yaml:"gogs"`
 }
 
 // Local
@@ -29,36 +22,29 @@ type Conf struct {
 
 // Source
 type Source struct {
-	Gogs   []Gogs   `yaml:"gogs"`
-	Gitlab []Gitlab `yaml:"gitlab"`
-	Github []Github `yaml:"github"`
-	Gitea  []Gitea  `yaml:"gitea"`
+	Gogs   []GenRepo `yaml:"gogs"`
+	Gitlab []GenRepo `yaml:"gitlab"`
+	Github []GenRepo `yaml:"github"`
+	Gitea  []GenRepo `yaml:"gitea"`
 }
 
-// Gogs
-type Gogs struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
-}
-
-// Gitlab
-type Gitlab struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
-	Url   string `yaml:"url"`
-}
-
-// Github
-type Github struct {
-	Token string `yaml:"token"`
-	User  string `yaml:"user"`
+// Generell Repo
+type GenRepo struct {
+	Token    string `yaml:"token"`
+	User     string `yaml:"user"`
+	SSH      bool   `yaml:"ssh"`
+	SSHKey   string `yaml:"sshkey"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Url      string `yaml:"url"`
 }
 
 // Repo
 type Repo struct {
 	Name          string
 	Url           string
+	SshUrl        string
 	Token         string
 	Defaultbranch string
+	Origin        GenRepo
 }

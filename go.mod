@@ -15,5 +15,6 @@ require (
 	github.com/rs/zerolog v1.22.0 // indirect
 	github.com/xanzy/go-gitlab v0.50.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288
+	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
