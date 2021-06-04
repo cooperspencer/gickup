@@ -6,7 +6,7 @@ require (
 	code.gitea.io/sdk/gitea v0.14.0 // indirect
 	gitea.com/gitea/go-sdk v0.0.0-20210527220201-42fed7165c7a // indirect
 	github.com/alecthomas/kong v0.2.16
-	github.com/go-git/go-git/v5 v5.4.1 // indirect
+	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/gogs/git-module v1.1.5 // indirect
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85 // indirect
 	github.com/google/go-github v17.0.0+incompatible
