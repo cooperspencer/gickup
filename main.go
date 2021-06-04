@@ -11,6 +11,10 @@ import (
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/alecthomas/kong"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/github"
 	"github.com/gookit/color"
@@ -19,10 +23,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	"gopkg.in/yaml.v2"
 )
 

@@ -31,6 +31,8 @@ github.com/go-git/go-billy/v5 v5.3.1/go.mod h1:pmpqyWchKfYfrkb/UVH4otLvyi/5gJlGI
 github.com/go-git/go-git-fixtures/v4 v4.2.1/go.mod h1:K8zd3kDUAykwTdDCr+I0per6Y6vMiRR/nnVTBtavnB0=
 github.com/go-git/go-git/v5 v5.4.1 h1:2RJXJuTMac944e419pJJJ3mOJBcr3A3M6SN6wQKZ/Gs=
 github.com/go-git/go-git/v5 v5.4.1/go.mod h1:gQ1kArt6d+n+BGd+/B/I74HwRTLhth2+zti4ihgckDc=
+github.com/go-git/go-git/v5 v5.4.2 h1:BXyZu9t0VkbiHtqrsvdq39UDhGJTl1h55VW6CSC4aY4=
+github.com/go-git/go-git/v5 v5.4.2/go.mod h1:gQ1kArt6d+n+BGd+/B/I74HwRTLhth2+zti4ihgckDc=
 github.com/gogs/git-module v1.1.5 h1:PIVEGKW3rPbzP6CWrlPk6qol/3WKpoEOWeRd2itrnvo=
 github.com/gogs/git-module v1.1.5/go.mod h1:oN37FFStFjdnTJXsSbhIHKJXh2YeDsEcXPATVz/oeuQ=
 github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85 h1:UjoPNDAQ5JPCjlxoJd6K8ALZqSDDhk2ymieAZOVaDg0=
