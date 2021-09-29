@@ -357,6 +357,7 @@ func getGitlab(conf *Conf) []Repo {
 		}
 		log.Info().Str("stage", "gitlab").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		gitlabrepos := []*gitlab.Project{}
+		gitlabgrouprepos := []*gitlab.Project{}
 		client, err := gitlab.NewClient(repo.Token, gitlab.WithBaseURL(repo.Url))
 		if err != nil {
 			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
@@ -386,6 +387,30 @@ func getGitlab(conf *Conf) []Repo {
 			}
 		}
 		for _, r := range gitlabrepos {
+			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+		}
+		groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
+		if err != nil {
+			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+		}
+		gopt := &gitlab.ListGroupProjectsOptions{}
+		gopt.PerPage = 50
+		i = 0
+		for _, group := range groups {
+			for {
+				projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
+				if err != nil {
+					log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+				}
+				if len(projects) == 0 {
+					break
+				}
+				gitlabgrouprepos = append(gitlabgrouprepos, projects...)
+				i++
+				gopt.Page = i
+			}
+		}
+		for _, r := range gitlabgrouprepos {
 			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
