@@ -393,25 +393,30 @@ func getGitlab(conf *Conf) []Repo {
 		if err != nil {
 			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
-		gopt := &gitlab.ListGroupProjectsOptions{}
-		gopt.PerPage = 50
-		i = 0
-		for _, group := range groups {
-			for {
-				projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
-				if err != nil {
-					log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+
+		visibilities := []gitlab.VisibilityValue{gitlab.PrivateVisibility, gitlab.PublicVisibility, gitlab.InternalVisibility}
+
+		for _, visibility := range visibilities {
+			gopt := &gitlab.ListGroupProjectsOptions{Visibility: gitlab.Visibility(visibility)}
+			gopt.PerPage = 50
+			i = 0
+			for _, group := range groups {
+				for {
+					projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
+					if err != nil {
+						log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+					}
+					if len(projects) == 0 {
+						break
+					}
+					gitlabgrouprepos = append(gitlabgrouprepos, projects...)
+					i++
+					gopt.Page = i
 				}
-				if len(projects) == 0 {
-					break
-				}
-				gitlabgrouprepos = append(gitlabgrouprepos, projects...)
-				i++
-				gopt.Page = i
 			}
-		}
-		for _, r := range gitlabgrouprepos {
-			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			for _, r := range gitlabgrouprepos {
+				repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			}
 		}
 	}
 	return repos
