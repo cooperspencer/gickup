@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -429,7 +430,11 @@ func getBitbucket(conf *Conf) []Repo {
 		if repo.Url == "" {
 			repo.Url = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
 		} else {
-			client.SetApiBaseURL(repo.Url)
+			bitbucketUrl, err := url.Parse(repo.Url)
+			if err != nil {
+				log.Panic().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+			}
+			client.SetApiBaseURL(*bitbucketUrl)
 		}
 		log.Info().Str("stage", "bitbucket").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 
