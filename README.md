@@ -23,6 +23,9 @@ source:
       password: bla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos foo and bar
+        - foo
+        - bar
   gitea:
     - token: blabla
       user: blabla
@@ -31,6 +34,9 @@ source:
       password: bla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos foo and bar
+        - foo
+        - bar
   gogs:
     - token: blabla
       user: blabla
@@ -39,6 +45,9 @@ source:
       password: bla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos foo and bar
+        - foo
+        - bar
   gitlab:
     - token: blabla
       user: blabla
@@ -47,6 +56,9 @@ source:
       password: bla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos foo and bar
+        - foo
+        - bar
   bitbucket:
     - user: blabla
       url: blabla
@@ -54,6 +66,9 @@ source:
       password: blabla
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos foo and bar
+        - foo
+        - bar
 destination:
   gitea:
     - token: blabla

@@ -31,13 +31,14 @@ type Source struct {
 
 // Generell Repo
 type GenRepo struct {
-	Token    string `yaml:"token"`
-	User     string `yaml:"user"`
-	SSH      bool   `yaml:"ssh"`
-	SSHKey   string `yaml:"sshkey"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Url      string `yaml:"url"`
+	Token    string   `yaml:"token"`
+	User     string   `yaml:"user"`
+	SSH      bool     `yaml:"ssh"`
+	SSHKey   string   `yaml:"sshkey"`
+	Username string   `yaml:"username"`
+	Password string   `yaml:"password"`
+	Url      string   `yaml:"url"`
+	Exclude  []string `yaml:"exclude"`
 }
 
 // Repo

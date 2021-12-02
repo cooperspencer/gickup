@@ -55,6 +55,14 @@ func ReadConfigfile(configfile string) *Conf {
 	return &t
 }
 
+func GetExcludedMap(excludes []string) map[string]bool {
+	excludemap := make(map[string]bool)
+	for _, exclude := range excludes {
+		excludemap[exclude] = true
+	}
+	return excludemap
+}
+
 func Locally(repo Repo, l Local) {
 	if _, err := os.Stat(l.Path); os.IsNotExist(err) {
 		err := os.MkdirAll(l.Path, 0777)
@@ -288,7 +296,12 @@ func getGithub(conf *Conf) []Repo {
 			i++
 		}
 
+		exclude := GetExcludedMap(repo.Exclude)
+
 		for _, r := range githubrepos {
+			if exclude[*r.Name] {
+				continue
+			}
 			repos = append(repos, Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo})
 		}
 	}
@@ -326,7 +339,12 @@ func getGitea(conf *Conf) []Repo {
 			i++
 		}
 
+		exclude := GetExcludedMap(repo.Exclude)
+
 		for _, r := range gitearepos {
+			if exclude[r.Name] {
+				continue
+			}
 			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
@@ -343,7 +361,12 @@ func getGogs(conf *Conf) []Repo {
 			log.Panic().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
 		}
 
+		exclude := GetExcludedMap(repo.Exclude)
+
 		for _, r := range gogsrepos {
+			if exclude[r.Name] {
+				continue
+			}
 			repos = append(repos, Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 	}
@@ -387,7 +410,13 @@ func getGitlab(conf *Conf) []Repo {
 				}
 			}
 		}
+
+		exclude := GetExcludedMap(repo.Exclude)
+
 		for _, r := range gitlabrepos {
+			if exclude[r.Name] {
+				continue
+			}
 			repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 		}
 		groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
@@ -416,6 +445,9 @@ func getGitlab(conf *Conf) []Repo {
 				}
 			}
 			for _, r := range gitlabgrouprepos {
+				if exclude[r.Name] {
+					continue
+				}
 				repos = append(repos, Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 			}
 		}
@@ -442,7 +474,13 @@ func getBitbucket(conf *Conf) []Repo {
 		if err != nil {
 			log.Panic().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
 		}
+
+		exclude := GetExcludedMap(repo.Exclude)
+
 		for _, r := range repositories.Items {
+			if exclude[r.Name] {
+				continue
+			}
 			repos = append(repos, Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo})
 		}
 	}

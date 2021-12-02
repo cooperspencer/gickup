@@ -20,19 +20,8 @@ jobs:
       with:
         go-version: 1.17
 
-    - name: Build
-      run: go build -v ./...
-
     - name: Test
       run: go test -v ./...
-      
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2.2.3
-      with:
-      # Artifact name
-        name: gickup
-        # A file, directory or wildcard pattern that describes what to upload
-        path: gickup
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
@@ -43,3 +32,9 @@ jobs:
         args: release --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: gickup
+        path: dist/*
