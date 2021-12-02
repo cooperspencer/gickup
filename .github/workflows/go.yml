@@ -31,3 +31,12 @@ jobs:
         name: gickup
         # A file, directory or wildcard pattern that describes what to upload
         path: gickup
+    - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
