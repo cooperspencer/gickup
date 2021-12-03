@@ -339,21 +339,20 @@ func getGithub(conf *Conf) []Repo {
 	for _, repo := range conf.Source.Github {
 		log.Info().Str("stage", "github").Str("url", "https://github.com").Msgf("grabbing the repositories from %s", repo.User)
 		client := &github.Client{}
-		opt := &github.RepositoryListOptions{}
-		opt.PerPage = 50
-		i := 0
+		opt := &github.RepositoryListOptions{ListOptions: github.ListOptions{PerPage: 50}}
+		i := 1
 		githubrepos := []*github.Repository{}
+		if repo.Token == "" {
+			client = github.NewClient(nil)
+		} else {
+			ts := oauth2.StaticTokenSource(
+				&oauth2.Token{AccessToken: repo.Token},
+			)
+			tc := oauth2.NewClient(context.TODO(), ts)
+			client = github.NewClient(tc)
+		}
 		for {
 			opt.Page = i
-			if repo.Token == "" {
-				client = github.NewClient(nil)
-			} else {
-				ts := oauth2.StaticTokenSource(
-					&oauth2.Token{AccessToken: repo.Token},
-				)
-				tc := oauth2.NewClient(context.TODO(), ts)
-				client = github.NewClient(tc)
-			}
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
 				log.Panic().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
