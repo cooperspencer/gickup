@@ -31,8 +31,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type versionFlag bool
+
+func (v versionFlag) BeforeApply() error {
+	fmt.Println("v0.9.3-1")
+	os.Exit(0)
+	return nil
+}
+
 var cli struct {
 	Configfile string `arg required name:"conf" help:"path to the configfile." type:"existingfile"`
+	Version    versionFlag
 }
 
 var (
@@ -365,11 +374,16 @@ func getGithub(conf *Conf) []Repo {
 		}
 
 		exclude := GetExcludedMap(repo.Exclude)
+		excludeorgs := GetExcludedMap(repo.ExcludeOrgs)
 
 		for _, r := range githubrepos {
 			if exclude[*r.Name] {
 				continue
 			}
+			if excludeorgs[r.GetOwner().GetLogin()] {
+				continue
+			}
+
 			repos = append(repos, Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo})
 		}
 	}
@@ -559,7 +573,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	kong.Parse(&cli)
+	kong.Parse(&cli, kong.Name("gickup"), kong.Description("a tool to backup all your favorite repos"))
 	log.Info().Str("file", cli.Configfile).Msgf("Reading %s", green(cli.Configfile))
 	conf := ReadConfigfile(cli.Configfile)
 

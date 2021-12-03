@@ -26,6 +26,9 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      excludeorgs:
+        - foo
+        - bar
   gitea:
     - token: blabla
       user: blabla
