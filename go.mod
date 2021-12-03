@@ -19,15 +19,14 @@ require (
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/ktrysmt/go-bitbucket v0.9.27
 	github.com/mattn/go-colorable v0.1.11 // indirect
+	github.com/melbahja/goph v1.3.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/rs/zerolog v1.25.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/xanzy/go-gitlab v0.51.1
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20211008194852-3b03d305991f // indirect
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
-	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect

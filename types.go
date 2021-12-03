@@ -50,3 +50,10 @@ type Repo struct {
 	Defaultbranch string
 	Origin        GenRepo
 }
+
+// Site
+type Site struct {
+	Url  string
+	User string
+	Port int
+}
