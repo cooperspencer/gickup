@@ -19,7 +19,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/gogs/go-gogs-client"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v41/github"
 	"github.com/gookit/color"
 	"github.com/ktrysmt/go-bitbucket"
 	"github.com/melbahja/goph"
