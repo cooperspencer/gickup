@@ -1,3 +1,4 @@
+[![Build and Publish](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg)](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml)
 # GICKUP
 You can clone/mirror repositories from:
 - Github
@@ -12,82 +13,28 @@ You can clone/mirror them to:
 - Gogs
 - Local
 
-## Example Config
-```yaml
-source:
-  github:
-    - token: blabla
-      user: blabla
-      url: bla.bla.com
-      username: bla
-      password: bla
-      ssh: true # can be true or false
-      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-      exclude: # this excludes the repos foo and bar
-        - foo
-        - bar
-      excludeorgs:
-        - foo
-        - bar
-  gitea:
-    - token: blabla
-      user: blabla
-      url: bla.bla.com
-      username: bla
-      password: bla
-      ssh: true # can be true or false
-      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-      exclude: # this excludes the repos foo and bar
-        - foo
-        - bar
-  gogs:
-    - token: blabla
-      user: blabla
-      url: bla.bla.com
-      username: bla
-      password: bla
-      ssh: true # can be true or false
-      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-      exclude: # this excludes the repos foo and bar
-        - foo
-        - bar
-  gitlab:
-    - token: blabla
-      user: blabla
-      url: bla.bla.com
-      username: bla
-      password: bla
-      ssh: true # can be true or false
-      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-      exclude: # this excludes the repos foo and bar
-        - foo
-        - bar
-  bitbucket:
-    - user: blabla
-      url: blabla
-      username: blabla
-      password: blabla
-      ssh: true # can be true or false
-      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-      exclude: # this excludes the repos foo and bar
-        - foo
-        - bar
-destination:
-  gitea:
-    - token: blabla
-      url: bla.bla.com
-  gogs:
-    - token: blabla
-      url: bla.bla.com
-  gitlab:
-    - token: blabla
-      url: bla.bla.com
-  local:
-    - path: /some/path/gickup
-```
+## How to make an Configuration file?
+[Here is an example](https://github.com/cooperspencer/gickup/blob/main/config.example.yml)
 
-## How to run
+## How to run the Binary version
 `./gickup path-to-config.yml`
 
-## Compile
+## How to run the Docker image
+```bash
+mkdir gickup
+wget https://raw.githubusercontent.com/cooperspencer/gickup/main/docker-compose.yml
+nano config.yml # Make here your config
+docker-compose up
+```
+## Compile the Binary version
 `go build .`
+
+## Compile the Docker Image
+```bash
+git clone https://github.com/cooperspencer/gickup.git
+cd gickup
+nano docker-compose.yml # Uncomment the Build
+nano config.yml # Make here your config
+docker-compose build
+docker-compose up
+```
