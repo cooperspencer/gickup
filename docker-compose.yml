@@ -1,0 +1,8 @@
+version: "3"
+services:
+  runner:
+    build: .
+    # image: cooperspencer/gickup:latest # TODO: Enable the Build in Docker Hub
+    volumes:
+      - ${PWD}/config.yml:/gickup/config.yml
+    command: ["./gickup/app", "/gickup/config.yml"]
