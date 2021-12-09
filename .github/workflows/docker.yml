@@ -50,6 +50,7 @@ jobs:
             ghcr.io/buddyspencer/gickup:latest
           # build on feature branches, push only on main branch
           push: ${{ github.ref == 'refs/heads/main' }}
+          platforms: linux/amd64, linux/arm64, linux/arm/v7, linux/arm/v6
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
