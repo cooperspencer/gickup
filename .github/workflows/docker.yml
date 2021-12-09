@@ -38,6 +38,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
+            type=raw,value=latest
       # setup Docker buld action
       - name: Set up Docker Buildx
         id: buildx
