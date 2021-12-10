@@ -58,3 +58,6 @@ type Site struct {
 	User string
 	Port int
 }
+
+type versionFlag bool
+type dryrunFlag bool
