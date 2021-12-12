@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -252,7 +253,6 @@ func Locally(repo Repo, l Local) {
 				log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("%s is a file", red(repo.Name))
 			}
 		}
-
 		x = 5
 	}
 }
@@ -356,9 +356,18 @@ func BackupGitlab(r Repo, d GenRepo) {
 }
 
 func Backup(repos []Repo, conf *Conf) {
+	checkedpath := false
 	for _, r := range repos {
 		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
-		for _, d := range conf.Destination.Local {
+		for i, d := range conf.Destination.Local {
+			if !checkedpath {
+				path, err := filepath.Abs(d.Path)
+				if err != nil {
+					log.Panic().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())
+				}
+				conf.Destination.Local[i].Path = path
+				checkedpath = true
+			}
 			Locally(r, d)
 		}
 		for _, d := range conf.Destination.Gitea {
