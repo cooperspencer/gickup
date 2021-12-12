@@ -25,6 +25,7 @@ type Local struct {
 type Conf struct {
 	Source      Source      `yaml:"source"`
 	Destination Destination `yaml:"destination"`
+	Cron        string      `yaml:"cron"`
 }
 
 // Source
