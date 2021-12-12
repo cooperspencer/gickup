@@ -35,7 +35,7 @@ import (
 type versionFlag bool
 
 func (v versionFlag) BeforeApply() error {
-	fmt.Println("v0.9.4")
+	fmt.Println("v0.9.5")
 	os.Exit(0)
 	return nil
 }
