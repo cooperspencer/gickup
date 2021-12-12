@@ -38,3 +38,11 @@ nano config.yml # Make here your config
 docker-compose build
 docker-compose up
 ```
+
+## Distribution Packages
+|Distribution|Package|Maintainer|
+|---|---|---|
+|Arch|[gickup](https://aur.archlinux.org/packages/gickup/)|[zhulik](https://github.com/zhulik)|
+
+## Issues
+The mirroring to Gitlab doesn't work, or at least I can't test it properly because I have no access to a Gitlab EE instance.
