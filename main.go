@@ -20,29 +20,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type versionFlag bool
-
-func (v versionFlag) BeforeApply() error {
-	fmt.Println("v0.9.5")
-	os.Exit(0)
-	return nil
-}
-
-type dryrunFlag bool
-
-func (v dryrunFlag) BeforeApply() error {
-	dry = true
-	return nil
-}
-
 var cli struct {
-	Configfile string `arg requitypes.Red name:"conf" help:"path to the configfile." type:"existingfile"`
-	Version    versionFlag
-	Dry        dryrunFlag `flag name:"dryrun" help:"make a dry-run."`
+	Configfile string `arg name:"conf" help:"path to the configfile." default:"conf.yml" type:"existingfile"`
+	Version    bool   `flag name:"version" help:"show version."`
+	Dry        bool   `flag name:"dryrun" help:"make a dry-run."`
 }
 
 var (
-	dry = false
+	version = "v0.9.5"
 )
 
 func ReadConfigfile(configfile string) *types.Conf {
@@ -76,16 +61,16 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 				conf.Destination.Local[i].Path = path
 				checkedpath = true
 			}
-			local.Locally(r, d, dry)
+			local.Locally(r, d, cli.Dry)
 		}
 		for _, d := range conf.Destination.Gitea {
-			gitea.Backup(r, d, dry)
+			gitea.Backup(r, d, cli.Dry)
 		}
 		for _, d := range conf.Destination.Gogs {
-			gogs.Backup(r, d, dry)
+			gogs.Backup(r, d, cli.Dry)
 		}
 		for _, d := range conf.Destination.Gitlab {
-			gitlab.Backup(r, d, dry)
+			gitlab.Backup(r, d, cli.Dry)
 		}
 	}
 }
@@ -96,30 +81,34 @@ func main() {
 
 	kong.Parse(&cli, kong.Name("gickup"), kong.Description("a tool to backup all your favorite repos"))
 
-	if dry {
-		log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
+	if cli.Version {
+		fmt.Println(version)
+	} else {
+		if cli.Dry {
+			log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
+		}
+
+		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
+		conf := ReadConfigfile(cli.Configfile)
+
+		// Github
+		repos := github.Get(conf)
+		Backup(repos, conf)
+
+		// Gitea
+		repos = gitea.Get(conf)
+		Backup(repos, conf)
+
+		// Gogs
+		repos = gogs.Get(conf)
+		Backup(repos, conf)
+
+		// Gitlab
+		repos = gitlab.Get(conf)
+		Backup(repos, conf)
+
+		//Bitbucket
+		repos = bitbucket.Get(conf)
+		Backup(repos, conf)
 	}
-
-	log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
-	conf := ReadConfigfile(cli.Configfile)
-
-	// Github
-	repos := github.Get(conf)
-	Backup(repos, conf)
-
-	// Gitea
-	repos = gitea.Get(conf)
-	Backup(repos, conf)
-
-	// Gogs
-	repos = gogs.Get(conf)
-	Backup(repos, conf)
-
-	// Gitlab
-	repos = gitlab.Get(conf)
-	Backup(repos, conf)
-
-	//Bitbucket
-	repos = bitbucket.Get(conf)
-	Backup(repos, conf)
 }
