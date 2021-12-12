@@ -272,7 +272,7 @@ func BackupGitea(r Repo, d GenRepo) {
 		log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 	}
 	if !dry {
-		_, _, err = giteaclient.GetRepo(user.UserName, r.Name)
+		repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
 		if err != nil {
 			opts := gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthToken: r.Token}
 			if r.Token == "" {
@@ -281,6 +281,16 @@ func BackupGitea(r Repo, d GenRepo) {
 			_, _, err := giteaclient.MigrateRepo(opts)
 			if err != nil {
 				log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+			}
+			log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirrored %s to %s", blue(r.Name), d.Url)
+		} else {
+			if repo.Mirror {
+				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", blue(r.Name))
+				_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
+				if err != nil {
+					log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+				}
+				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("successfully synced %s.", blue(r.Name))
 			}
 		}
 	}
@@ -295,7 +305,7 @@ func BackupGogs(r Repo, d GenRepo) {
 		log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 	}
 	if !dry {
-		_, err = gogsclient.GetRepo(user.UserName, r.Name)
+		repo, err := gogsclient.GetRepo(user.UserName, r.Name)
 		if err != nil {
 			opts := gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Token}
 			if r.Token == "" {
@@ -304,6 +314,15 @@ func BackupGogs(r Repo, d GenRepo) {
 			_, err := gogsclient.MigrateRepo(opts)
 			if err != nil {
 				log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+			}
+		} else {
+			if repo.Mirror {
+				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", blue(r.Name))
+				err := gogsclient.MirrorSync(user.UserName, repo.Name)
+				if err != nil {
+					log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+				}
+				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("successfully synced %s.", blue(r.Name))
 			}
 		}
 	}
