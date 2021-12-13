@@ -29,7 +29,7 @@ var cli struct {
 }
 
 var (
-	version = "v0.9.5"
+	version = "unknown"
 )
 
 func ReadConfigfile(configfile string) *types.Conf {

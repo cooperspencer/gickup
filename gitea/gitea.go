@@ -77,13 +77,20 @@ func Get(conf *types.Conf) []types.Repo {
 			i++
 		}
 
-		exclude := types.GetExcludedMap(repo.Exclude)
+		include := types.GetMap(repo.Include)
+		exclude := types.GetMap(repo.Exclude)
 
 		for _, r := range gitearepos {
+			if include[r.Name] {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				continue
+			}
 			if exclude[r.Name] {
 				continue
 			}
-			repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			if len(repo.Include) == 0 {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			}
 		}
 	}
 	return repos

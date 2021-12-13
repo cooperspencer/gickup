@@ -28,13 +28,20 @@ func Get(conf *types.Conf) []types.Repo {
 			log.Fatal().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
 		}
 
-		exclude := types.GetExcludedMap(repo.Exclude)
+		include := types.GetMap(repo.Include)
+		exclude := types.GetMap(repo.Exclude)
 
 		for _, r := range repositories.Items {
+			if include[r.Name] {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo})
+				continue
+			}
 			if exclude[r.Name] {
 				continue
 			}
-			repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo})
+			if len(include) == 0 {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo})
+			}
 		}
 	}
 	return repos
