@@ -121,7 +121,7 @@ func main() {
 		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
 		conf := ReadConfigfile(cli.Configfile)
 
-		if conf.Cron != "" {
+		if conf.HasValidCronSpec() {
 			log.Info().Str("cron", conf.Cron).Msg("running in cron mode")
 			c := cron.New()
 			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
