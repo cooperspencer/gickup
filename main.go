@@ -12,6 +12,7 @@ import (
 	"gickup/gitlab"
 	"gickup/gogs"
 	"gickup/local"
+	"gickup/logger"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
@@ -96,6 +97,8 @@ func RunBackup(conf *types.Conf) {
 	//Bitbucket
 	repos = bitbucket.Get(conf)
 	Backup(repos, conf)
+
+	conf.HasValidCronSpec()
 }
 
 func PlaysForever() {
@@ -106,8 +109,7 @@ func PlaysForever() {
 }
 
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02T15:04:05Z07:00"})
 
 	kong.Parse(&cli, kong.Name("gickup"), kong.Description("a tool to backup all your favorite repos"))
 
@@ -121,8 +123,9 @@ func main() {
 		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
 		conf := ReadConfigfile(cli.Configfile)
 
+		log.Logger = logger.CreateLogger(conf.Log)
+
 		if conf.HasValidCronSpec() {
-			log.Info().Str("cron", conf.Cron).Msg("running in cron mode")
 			c := cron.New()
 			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
 			c.Start()

@@ -29,6 +29,18 @@ type Conf struct {
 	Source      Source      `yaml:"source"`
 	Destination Destination `yaml:"destination"`
 	Cron        string      `yaml:"cron"`
+	Log         Logging     `yaml:"log"`
+}
+
+type Logging struct {
+	Timeformat  string      `yaml:"timeformat"`
+	FileLogging FileLogging `yaml:"file-logging"`
+}
+
+type FileLogging struct {
+	Dir    string `yaml:"dir"`
+	File   string `yaml:"file"`
+	MaxAge int    `yaml:"maxage"`
 }
 
 func (conf Conf) MissingCronSpec() bool {
@@ -54,7 +66,7 @@ func (conf Conf) HasValidCronSpec() bool {
 
 	if parsedSched != nil {
 		nextRun := parsedSched.Next(time.Now()).String()
-		log.Info().Str("next", nextRun).Msg("Next cron run")
+		log.Info().Str("next", nextRun).Str("cron", conf.Cron).Msg("Next cron run")
 	}
 
 	return parsedSched != nil

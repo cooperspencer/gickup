@@ -68,3 +68,12 @@ destination:
       url: bla.bla.com
   local:
     - path: /some/path/gickup
+
+cron: 0 22 * * *
+
+log:
+  timeformat: 2006-01-02 15:04:05
+  file-logging:
+    dir: log
+    file: gickup.log
+    maxage: 7 # keep logs for 7 days
