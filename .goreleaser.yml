@@ -18,3 +18,10 @@ builds:
         goarch: 386
       - goos: windows
         goarch: arm
+
+archives:
+  -
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
