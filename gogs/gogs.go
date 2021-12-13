@@ -13,7 +13,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
-		log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 	}
 	if !dry {
 		repo, err := gogsclient.GetRepo(user.UserName, r.Name)
@@ -24,14 +24,14 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			}
 			_, err := gogsclient.MigrateRepo(opts)
 			if err != nil {
-				log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 			}
 		} else {
 			if repo.Mirror {
 				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
 				err := gogsclient.MirrorSync(user.UserName, repo.Name)
 				if err != nil {
-					log.Panic().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+					log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
 				}
 				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("successfully synced %s.", types.Blue(r.Name))
 			}
@@ -46,7 +46,7 @@ func Get(conf *types.Conf) []types.Repo {
 		client := gogs.NewClient(repo.Url, repo.Token)
 		gogsrepos, err := client.ListUserRepos(repo.User)
 		if err != nil {
-			log.Panic().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		exclude := types.GetExcludedMap(repo.Exclude)

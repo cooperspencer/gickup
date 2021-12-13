@@ -20,14 +20,14 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	}
 	log.Info().Str("stage", "gitlab").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
 	if err != nil {
-		log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 	}
 
 	True := true
 	opt := gitlab.ListProjectsOptions{Search: &r.Name, Owned: &True}
 	projects, _, err := gitlabclient.Projects.ListProjects(&opt)
 	if err != nil {
-		log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 	}
 
 	found := false
@@ -49,7 +49,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			opts := &gitlab.CreateProjectOptions{Mirror: &True, ImportURL: &r.Url, Name: &r.Name}
 			_, _, err := gitlabclient.Projects.CreateProject(opts)
 			if err != nil {
-				log.Panic().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "gitlab").Str("url", d.Url).Msg(err.Error())
 			}
 		}
 	}
@@ -66,12 +66,12 @@ func Get(conf *types.Conf) []types.Repo {
 		gitlabgrouprepos := []*gitlab.Project{}
 		client, err := gitlab.NewClient(repo.Token, gitlab.WithBaseURL(repo.Url))
 		if err != nil {
-			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
 		opt := &gitlab.ListProjectsOptions{}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
 		if err != nil {
-			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		opt.PerPage = 50
@@ -81,7 +81,7 @@ func Get(conf *types.Conf) []types.Repo {
 				for {
 					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
 					if err != nil {
-						log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+						log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 					}
 					if len(projects) == 0 {
 						break
@@ -103,7 +103,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
 		if err != nil {
-			log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		visibilities := []gitlab.VisibilityValue{gitlab.PrivateVisibility, gitlab.PublicVisibility, gitlab.InternalVisibility}
@@ -116,7 +116,7 @@ func Get(conf *types.Conf) []types.Repo {
 				for {
 					projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
 					if err != nil {
-						log.Panic().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+						log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 					}
 					if len(projects) == 0 {
 						break

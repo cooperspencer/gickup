@@ -14,12 +14,12 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
 	giteaclient, err := gitea.NewClient(d.Url)
 	if err != nil {
-		log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 	}
 	giteaclient.SetBasicAuth(d.Token, "")
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
-		log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 	}
 	if !dry {
 		repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
@@ -30,7 +30,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			}
 			_, _, err := giteaclient.MigrateRepo(opts)
 			if err != nil {
-				log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 			}
 			log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirrored %s to %s", types.Blue(r.Name), d.Url)
 		} else {
@@ -38,7 +38,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
 				_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
 				if err != nil {
-					log.Panic().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+					log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
 				}
 				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("successfully synced %s.", types.Blue(r.Name))
 			}
@@ -61,14 +61,14 @@ func Get(conf *types.Conf) []types.Repo {
 			opt.Page = i
 			client, err := gitea.NewClient(repo.Url)
 			if err != nil {
-				log.Panic().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
 			if repo.Token != "" {
 				client.SetBasicAuth(repo.Token, "")
 			}
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
-				log.Panic().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
 			if len(repos) == 0 {
 				break

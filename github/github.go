@@ -30,7 +30,7 @@ func Get(conf *types.Conf) []types.Repo {
 			opt.Page = i
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
-				log.Panic().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
+				log.Fatal().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
 			}
 			if len(repos) == 0 {
 				break

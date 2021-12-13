@@ -23,7 +23,7 @@ import (
 )
 
 var cli struct {
-	Configfile string `arg name:"conf" help:"path to the configfile." default:"conf.yml" type:"existingfile"`
+	Configfile string `arg name:"conf" help:"path to the configfile." default:"conf.yml"`
 	Version    bool   `flag name:"version" help:"show version."`
 	Dry        bool   `flag name:"dryrun" help:"make a dry-run."`
 }
@@ -36,7 +36,7 @@ func ReadConfigfile(configfile string) *types.Conf {
 	cfgdata, err := ioutil.ReadFile(configfile)
 
 	if err != nil {
-		log.Panic().Str("stage", "readconfig").Str("file", configfile).Msgf("Cannot open config file from %s", types.Red(configfile))
+		log.Fatal().Str("stage", "readconfig").Str("file", configfile).Msgf("Cannot open config file from %s", types.Red(configfile))
 	}
 
 	t := types.Conf{}
@@ -44,7 +44,7 @@ func ReadConfigfile(configfile string) *types.Conf {
 	err = yaml.Unmarshal([]byte(cfgdata), &t)
 
 	if err != nil {
-		log.Panic().Str("stage", "readconfig").Str("file", configfile).Msg("Cannot map yml config file to interface, possible syntax error")
+		log.Fatal().Str("stage", "readconfig").Str("file", configfile).Msg("Cannot map yml config file to interface, possible syntax error")
 	}
 
 	return &t
@@ -58,7 +58,7 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 			if !checkedpath {
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
-					log.Panic().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())
+					log.Fatal().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())
 				}
 				conf.Destination.Local[i].Path = path
 				checkedpath = true

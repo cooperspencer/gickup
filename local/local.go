@@ -22,7 +22,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 	if os.IsNotExist(err) && !dry {
 		err := os.MkdirAll(l.Path, 0777)
 		if err != nil {
-			log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+			log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 		}
 		stat, _ = os.Stat(l.Path)
 	}
@@ -66,11 +66,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 					site := types.Site{}
 					err := site.GetValues(url)
 					if err != nil {
-						log.Panic().Str("stage", "locally").Msg(err.Error())
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
 					}
 					auth, err := goph.Key(repo.Origin.SSHKey, "")
 					if err != nil {
-						log.Panic().Str("stage", "locally").Msg(err.Error())
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
 					}
 					_, err = goph.NewConn(&goph.Config{
 						User:     site.User,
@@ -80,7 +80,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 						Callback: VerifyHost,
 					})
 					if err != nil {
-						log.Panic().Str("stage", "locally").Msg(err.Error())
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
 					}
 				}
 
@@ -92,7 +92,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 				if err != nil {
 					if x == tries {
-						log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+						log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 					} else {
 						if strings.Contains(err.Error(), "remote repository is empty") {
 							log.Warn().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
@@ -109,11 +109,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", types.Green(repo.Name))
 				r, err := git.PlainOpen(repo.Name)
 				if err != nil {
-					log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 				}
 				w, err := r.Worktree()
 				if err != nil {
-					log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 				}
 
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("pulling %s", types.Green(repo.Name))
@@ -124,7 +124,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 							log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 						} else {
 							if x == tries {
-								log.Panic().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+								log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 							} else {
 								os.RemoveAll(repo.Name)
 								log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
