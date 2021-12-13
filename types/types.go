@@ -39,7 +39,7 @@ func ParseCronSpec(spec string) cron.Schedule {
 	sched, err := cron.ParseStandard(spec)
 
 	if err != nil {
-		log.Panic().Str("spec", spec).Msg(err.Error())
+		log.Error().Str("spec", spec).Msg(err.Error())
 	}
 
 	return sched
