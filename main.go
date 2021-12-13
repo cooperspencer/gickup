@@ -12,9 +12,11 @@ import (
 	"gickup/gitlab"
 	"gickup/gogs"
 	"gickup/local"
+	"gickup/logger"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
@@ -75,9 +77,39 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 	}
 }
 
+func RunBackup(conf *types.Conf) {
+	// Github
+	repos := github.Get(conf)
+	Backup(repos, conf)
+
+	// Gitea
+	repos = gitea.Get(conf)
+	Backup(repos, conf)
+
+	// Gogs
+	repos = gogs.Get(conf)
+	Backup(repos, conf)
+
+	// Gitlab
+	repos = gitlab.Get(conf)
+	Backup(repos, conf)
+
+	//Bitbucket
+	repos = bitbucket.Get(conf)
+	Backup(repos, conf)
+
+	conf.HasValidCronSpec()
+}
+
+func PlaysForever() {
+	wait := make(chan struct{})
+	for {
+		<-wait
+	}
+}
+
 func main() {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02T15:04:05Z07:00"})
 
 	kong.Parse(&cli, kong.Name("gickup"), kong.Description("a tool to backup all your favorite repos"))
 
@@ -91,24 +123,15 @@ func main() {
 		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
 		conf := ReadConfigfile(cli.Configfile)
 
-		// Github
-		repos := github.Get(conf)
-		Backup(repos, conf)
+		log.Logger = logger.CreateLogger(conf.Log)
 
-		// Gitea
-		repos = gitea.Get(conf)
-		Backup(repos, conf)
-
-		// Gogs
-		repos = gogs.Get(conf)
-		Backup(repos, conf)
-
-		// Gitlab
-		repos = gitlab.Get(conf)
-		Backup(repos, conf)
-
-		//Bitbucket
-		repos = bitbucket.Get(conf)
-		Backup(repos, conf)
+		if conf.HasValidCronSpec() {
+			c := cron.New()
+			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
+			c.Start()
+			PlaysForever()
+		} else {
+			RunBackup(conf)
+		}
 	}
 }
