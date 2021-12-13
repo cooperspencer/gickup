@@ -17,7 +17,7 @@ func Get(conf *types.Conf) []types.Repo {
 		} else {
 			bitbucketUrl, err := url.Parse(repo.Url)
 			if err != nil {
-				log.Panic().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
 			}
 			client.SetApiBaseURL(*bitbucketUrl)
 		}
@@ -25,7 +25,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		repositories, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
 		if err != nil {
-			log.Panic().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
 		}
 
 		exclude := types.GetExcludedMap(repo.Exclude)
