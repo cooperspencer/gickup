@@ -3,8 +3,11 @@ package types
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gookit/color"
+	"github.com/robfig/cron/v3"
+	"github.com/rs/zerolog/log"
 )
 
 // Destination
@@ -26,6 +29,35 @@ type Conf struct {
 	Source      Source      `yaml:"source"`
 	Destination Destination `yaml:"destination"`
 	Cron        string      `yaml:"cron"`
+}
+
+func (conf Conf) MissingCronSpec() bool {
+	return conf.Cron == ""
+}
+
+func ParseCronSpec(spec string) cron.Schedule {
+	sched, err := cron.ParseStandard(spec)
+
+	if err != nil {
+		log.Panic().Str("spec", spec).Msg(err.Error())
+	}
+
+	return sched
+}
+
+func (conf Conf) HasValidCronSpec() bool {
+	if conf.MissingCronSpec() {
+		return false
+	}
+
+	parsedSched := ParseCronSpec(conf.Cron)
+
+	if parsedSched != nil {
+		nextRun := parsedSched.Next(time.Now()).String()
+		log.Info().Str("next", nextRun).Msg("Next cron run")
+	}
+
+	return parsedSched != nil
 }
 
 // Source
