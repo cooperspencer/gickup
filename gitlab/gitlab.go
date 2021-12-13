@@ -93,13 +93,20 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 		}
 
-		exclude := types.GetExcludedMap(repo.Exclude)
+		include := types.GetMap(repo.Include)
+		exclude := types.GetMap(repo.Exclude)
 
 		for _, r := range gitlabrepos {
+			if include[r.Name] {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				continue
+			}
 			if exclude[r.Name] {
 				continue
 			}
-			repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			if len(include) == 0 {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			}
 		}
 		groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
 		if err != nil {
@@ -127,10 +134,16 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 			for _, r := range gitlabgrouprepos {
+				if include[r.Name] {
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+					continue
+				}
 				if exclude[r.Name] {
 					continue
 				}
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				if len(include) == 0 {
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				}
 			}
 		}
 	}

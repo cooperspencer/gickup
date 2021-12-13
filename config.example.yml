@@ -10,6 +10,8 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      include:
+        - foobar
       excludeorgs:
         - foo
         - bar
@@ -24,6 +26,8 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      include:
+        - foobar
   gogs:
     - token: blabla
       user: blabla
@@ -35,6 +39,8 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      include:
+        - foobar
   gitlab:
     - token: blabla
       user: blabla
@@ -46,6 +52,8 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      include:
+        - foobar
   bitbucket:
     - user: blabla
       url: blabla
@@ -56,6 +64,8 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
+      include:
+        - foobar
 destination:
   gitea:
     - token: blabla

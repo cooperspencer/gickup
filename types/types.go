@@ -92,6 +92,7 @@ type GenRepo struct {
 	Url         string   `yaml:"url"`
 	Exclude     []string `yaml:"exclude"`
 	ExcludeOrgs []string `yaml:"excludeorgs"`
+	Include     []string `yaml:"include"`
 }
 
 // Repo
@@ -140,7 +141,7 @@ var (
 	Blue  = color.FgBlue.Render
 )
 
-func GetExcludedMap(excludes []string) map[string]bool {
+func GetMap(excludes []string) map[string]bool {
 	excludemap := make(map[string]bool)
 	for _, exclude := range excludes {
 		excludemap[exclude] = true
