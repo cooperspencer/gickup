@@ -57,9 +57,9 @@ func Get(conf *types.Conf) []types.Repo {
 		opt.PageSize = 50
 		i := 0
 		gitearepos := []*gitea.Repository{}
+		client, err := gitea.NewClient(repo.Url)
 		for {
 			opt.Page = i
-			client, err := gitea.NewClient(repo.Url)
 			if err != nil {
 				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
@@ -79,8 +79,51 @@ func Get(conf *types.Conf) []types.Repo {
 
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
+		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gitearepos {
+			if include[r.Name] {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				continue
+			}
+			if exclude[r.Name] {
+				continue
+			}
+			if len(repo.Include) == 0 {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			}
+		}
+		orgopt := gitea.ListOptions{Page: 1, PageSize: 50}
+		orgs := []*gitea.Organization{}
+		for {
+			o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
+			if err != nil {
+				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+			}
+			if len(o) == 0 {
+				break
+			}
+			orgs = append(orgs, o...)
+			orgopt.Page++
+		}
+
+		orgopt.Page = 1
+		orgrepos := []*gitea.Repository{}
+		for _, org := range orgs {
+			if excludeorgs[org.UserName] {
+				continue
+			}
+			o, _, err := client.ListOrgRepos(org.UserName, gitea.ListOrgReposOptions{orgopt})
+			if err != nil {
+				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+			}
+			if len(o) == 0 {
+				break
+			}
+			orgrepos = append(orgrepos, o...)
+			orgopt.Page++
+		}
+		for _, r := range orgrepos {
 			if include[r.Name] {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 				continue

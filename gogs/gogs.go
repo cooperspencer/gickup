@@ -51,6 +51,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
+		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gogsrepos {
 			if include[r.Name] {
@@ -61,6 +62,37 @@ func Get(conf *types.Conf) []types.Repo {
 				continue
 			}
 			if len(include) == 0 {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+			}
+		}
+		orgs, err := client.ListUserOrgs(repo.User)
+		if err != nil {
+			log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+		}
+
+		orgrepos := []*gogs.Repository{}
+		for _, org := range orgs {
+			if excludeorgs[org.UserName] {
+				continue
+			}
+			o, err := client.ListOrgRepos(org.UserName)
+			if err != nil {
+				log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+			}
+			if len(o) == 0 {
+				break
+			}
+			orgrepos = append(orgrepos, o...)
+		}
+		for _, r := range orgrepos {
+			if include[r.Name] {
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				continue
+			}
+			if exclude[r.Name] {
+				continue
+			}
+			if len(repo.Include) == 0 {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 			}
 		}

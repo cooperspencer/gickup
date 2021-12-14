@@ -109,7 +109,8 @@ func PlaysForever() {
 }
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02T15:04:05Z07:00"})
+	timeformat := "2006-01-02T15:04:05Z07:00"
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: timeformat})
 
 	kong.Parse(&cli, kong.Name("gickup"), kong.Description("a tool to backup all your favorite repos"))
 
@@ -122,6 +123,9 @@ func main() {
 
 		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
 		conf := ReadConfigfile(cli.Configfile)
+		if conf.Log.Timeformat == "" {
+			conf.Log.Timeformat = timeformat
+		}
 
 		log.Logger = logger.CreateLogger(conf.Log)
 

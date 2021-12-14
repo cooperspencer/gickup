@@ -92,7 +92,6 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 		}
-
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 
@@ -108,18 +107,26 @@ func Get(conf *types.Conf) []types.Repo {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
 			}
 		}
-		groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
-		if err != nil {
-			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
-		}
+		if repo.Token != "" {
+			groups := []*gitlab.Group{}
+			i = 1
+			for {
+				g, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{ListOptions: gitlab.ListOptions{Page: i, PerPage: 50}})
+				if err != nil {
+					log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+				}
+				if len(g) == 0 {
+					break
+				}
+				groups = append(groups, g...)
+				i++
+			}
 
-		visibilities := []gitlab.VisibilityValue{gitlab.PrivateVisibility, gitlab.PublicVisibility, gitlab.InternalVisibility}
-
-		for _, visibility := range visibilities {
-			gopt := &gitlab.ListGroupProjectsOptions{Visibility: gitlab.Visibility(visibility)}
-			gopt.PerPage = 50
-			i = 0
+			gopt := &gitlab.ListGroupProjectsOptions{}
 			for _, group := range groups {
+				i = 1
+				gopt.PerPage = 50
+				gopt.Page = i
 				for {
 					projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
 					if err != nil {
