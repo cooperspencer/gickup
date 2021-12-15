@@ -1,14 +1,14 @@
 source:
   github:
-    - token: blabla
-      user: blabla # the user you want to clone the repositories from.
+    - token: some-token
+      user: some-user # the user you want to clone the repositories from.
       # if you want to get everything from your user, leave out the user parameter and just use the token.
       # for the clone process, either use:
       # - username + password
       # - sshkey
       # - token
-      username: bla # user is used to clone the repo with
-      password: bla
+      username: your-user # user is used to clone the repo with
+      password: your-password
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
       exclude: # this excludes the repos "foo" and "bar"
@@ -20,16 +20,16 @@ source:
         - foo
         - bar
   gitea:
-    - token: blabla
-      user: blabla # the user you want to clone the repositories from.
-      url: bla.bla.com
+    - token: some-token
+      user: some-user # the user you want to clone the repositories from.
+      url: http(s)://url-to-gitea # if empty, it uses https://gitea.com
       # if you want to get everything from your user, leave out the user parameter and just use the token.
       # for the clone process, either use:
       # - username + password
       # - sshkey
       # - token
-      username: bla # user is used to clone the repo with
-      password: bla
+      username: your-user # user is used to clone the repo with
+      password: your-password
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
     exclude: # this excludes the repos "foo" and "bar"
@@ -41,31 +41,52 @@ source:
         - foo
         - bar
   gogs:
-    - token: blabla
-        user: blabla # the user you want to clone the repositories from.
-        url: bla.bla.com
-        # if you want to get everything from your user, leave out the user parameter and just use the token.
-        # for the clone process, either use:
-        # - username + password
-        # - sshkey
-        # - token
-        username: bla # user is used to clone the repo with
-        password: bla
-        ssh: true # can be true or false
-        sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-    exclude: # this excludes the repos "foo" and "bar"
-      - foo
-      - bar
+    - token: some-token
+      user: some-user # the user you want to clone the repositories from.
+      url: http(s)://url-to-gogs # no default value
+      # if you want to get everything from your user, leave out the user parameter and just use the token.
+      # for the clone process, either use:
+      # - username + password
+      # - sshkey
+      # - token
+      username: your-user # user is used to clone the repo with
+      password: your-password
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos "foo" and "bar"
+        - foo
+        - bar
+      include: # this includes the repo "foobar"
+        - foobar
+      excludeorgs: # this excludes repos from the organizations "foo" and "bar"
+        - foo
+        - bar
+  gitlab:
+    - token: some-token
+      user: some-user # the user you want to clone the repositories from.
+      url: http(s)://url-to-gitlab # if empty, it uses https://gitlab.com
+      # if you want to get everything from your user, leave out the user parameter and just use the token.
+      # for the clone process, either use:
+      # - username + password
+      # - sshkey
+      # - token
+      username: your-user # user is used to clone the repo with
+      password: your-password
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+      exclude: # this excludes the repos "foo" and "bar"
+        - foo
+        - bar
       include: # this includes the repo "foobar"
         - foobar
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
   bitbucket:
-    - user: blabla # the user you want to clone the repositories from.
-      url: blabla
-      username: blabla # user is used to clone the repo with
-      password: blabla
+    - user: some-user # the user you want to clone the repositories from.
+      url: http(s)://url-to-bitbucket # if empty, it uses https://bitbucket.org
+      username: your-user # user is used to clone the repo with
+      password: your-password
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
       exclude: # this excludes the repos foo and bar
@@ -75,14 +96,14 @@ source:
         - foobar
 destination:
   gitea:
-    - token: blabla
-      url: bla.bla.com
+    - token: some-token
+      url: http(s)://url-to-gitea
   gogs:
-    - token: blabla
-      url: bla.bla.com
+    - token: some-token
+      url: http(s)://url-to-gogs
   gitlab:
-    - token: blabla
-      url: bla.bla.com
+    - token: some-token
+      url: http(s)://url-to-gitlab
   local:
     - path: /some/path/gickup
 
