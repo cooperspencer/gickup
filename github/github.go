@@ -26,6 +26,15 @@ func Get(conf *types.Conf) []types.Repo {
 			tc := oauth2.NewClient(context.TODO(), ts)
 			client = github.NewClient(tc)
 		}
+		if repo.Token != "" {
+			user, _, err := client.Users.Get(context.TODO(), "")
+			if err != nil {
+				log.Fatal().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
+			}
+			if repo.User == user.GetLogin() {
+				repo.User = ""
+			}
+		}
 		for {
 			opt.Page = i
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
