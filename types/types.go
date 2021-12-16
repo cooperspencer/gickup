@@ -21,7 +21,8 @@ type Destination struct {
 
 // Local
 type Local struct {
-	Path string `yaml:"path"`
+	Path       string `yaml:"path"`
+	Structured bool   `yaml:"structured"`
 }
 
 // Conf
@@ -103,6 +104,8 @@ type Repo struct {
 	Token         string
 	Defaultbranch string
 	Origin        GenRepo
+	Owner         string
+	Hoster        string
 }
 
 // Site
@@ -110,6 +113,19 @@ type Site struct {
 	Url  string
 	User string
 	Port int
+}
+
+func GetHost(url string) string {
+	if strings.Contains(url, "http://") {
+		url = strings.Split(url, "http://")[1]
+	}
+	if strings.Contains(url, "https://") {
+		url = strings.Split(url, "https://")[1]
+	}
+	if strings.Contains(url, "/") {
+		url = strings.Split(url, "/")[0]
+	}
+	return url
 }
 
 func (s *Site) GetValues(url string) error {

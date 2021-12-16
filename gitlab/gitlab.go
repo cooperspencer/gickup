@@ -97,14 +97,14 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range gitlabrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				continue
 			}
 			if exclude[r.Name] {
 				continue
 			}
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 			}
 		}
 		if repo.Token != "" {
@@ -142,14 +142,14 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 			for _, r := range gitlabgrouprepos {
 				if include[r.Name] {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 					continue
 				}
 				if exclude[r.Name] {
 					continue
 				}
 				if len(include) == 0 {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo})
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 			}
 		}

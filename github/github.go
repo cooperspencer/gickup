@@ -54,7 +54,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range githubrepos {
 			if include[*r.Name] {
-				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo})
+				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
 				continue
 			}
 			if exclude[*r.Name] {
@@ -64,7 +64,7 @@ func Get(conf *types.Conf) []types.Repo {
 				continue
 			}
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo})
+				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
 			}
 		}
 	}

@@ -18,6 +18,9 @@ import (
 )
 
 func Locally(repo types.Repo, l types.Local, dry bool) {
+	if l.Structured {
+		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
+	}
 	stat, err := os.Stat(l.Path)
 	if os.IsNotExist(err) && !dry {
 		err := os.MkdirAll(l.Path, 0777)

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strings"
 
 	"gickup/bitbucket"
 	"gickup/gitea"
@@ -56,6 +58,13 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
+				usr, _ := user.Current()
+				dir := usr.HomeDir
+				if d.Path == "~" {
+					d.Path = dir
+				} else if strings.HasPrefix(d.Path, "~/") {
+					d.Path = filepath.Join(dir, d.Path[2:])
+				}
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
 					log.Fatal().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())

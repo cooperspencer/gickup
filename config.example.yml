@@ -106,6 +106,7 @@ destination:
       url: http(s)://url-to-gitlab
   local:
     - path: /some/path/gickup
+      structured: true # checks repos out like hostersite/user|organization/repo
 
 cron: 0 22 * * * # optional
 # https://crontab.guru/
