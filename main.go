@@ -62,27 +62,37 @@ func GetUserHome() (string, error) {
 	return usr.HomeDir, nil
 }
 
+func SubstituteHomeForTildeInPath(path string) string {
+	if !strings.HasPrefix(path, "~") {
+		return path
+	} else {
+		if path == "~" {
+			userHome, err := GetUserHome()
+			if err != nil {
+				log.Fatal().Str("stage", "local ~ substitution").Str("path", path).Msg(err.Error())
+			} else {
+				return userHome
+			}
+		} else if strings.HasPrefix(path, "~/") {
+			userHome, err := GetUserHome()
+			if err != nil {
+				log.Fatal().Str("stage", "local ~/ substitution").Str("path", path).Msg(err.Error())
+			} else {
+				return filepath.Join(userHome, path[2:])
+			}
+		}
+	}
+	// in any other strange case
+	return path
+}
+
 func Backup(repos []types.Repo, conf *types.Conf) {
 	checkedpath := false
 	for _, r := range repos {
 		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
-				if d.Path == "~" {
-					userHome, err := GetUserHome()
-					if err != nil {
-						d.Path = userHome
-					} else {
-						log.Fatal().Str("stage", "local ~ substitution").Str("path", d.Path).Msg(err.Error())
-					}
-				} else if strings.HasPrefix(d.Path, "~/") {
-					userHome, err := GetUserHome()
-					if err != nil {
-						d.Path = filepath.Join(userHome, d.Path[2:])
-					} else {
-						log.Fatal().Str("stage", "local ~/ substitution").Str("path", d.Path).Msg(err.Error())
-					}
-				}
+				d.Path = SubstituteHomeForTildeInPath(d.Path)
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
 					log.Fatal().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())
