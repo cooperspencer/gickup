@@ -52,18 +52,36 @@ func ReadConfigfile(configfile string) *types.Conf {
 	return &t
 }
 
+func GetUserHome() (string, error) {
+	usr, err := user.Current()
+
+	if err != nil {
+		return "", err
+	}
+
+	return usr.HomeDir, nil
+}
+
 func Backup(repos []types.Repo, conf *types.Conf) {
 	checkedpath := false
 	for _, r := range repos {
 		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
-				usr, _ := user.Current()
-				dir := usr.HomeDir
 				if d.Path == "~" {
-					d.Path = dir
+					userHome, err := GetUserHome()
+					if err != nil {
+						d.Path = userHome
+					} else {
+						log.Fatal().Str("stage", "local ~ substitution").Str("path", d.Path).Msg(err.Error())
+					}
 				} else if strings.HasPrefix(d.Path, "~/") {
-					d.Path = filepath.Join(dir, d.Path[2:])
+					userHome, err := GetUserHome()
+					if err != nil {
+						d.Path = filepath.Join(userHome, d.Path[2:])
+					} else {
+						log.Fatal().Str("stage", "local ~/ substitution").Str("path", d.Path).Msg(err.Error())
+					}
 				}
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
