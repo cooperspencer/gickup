@@ -141,15 +141,23 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 			for _, r := range gitlabgrouprepos {
+				owner := ""
+				if r.Owner == nil {
+					splUrl := strings.Split(r.HTTPURLToRepo, "/")
+					owner = splUrl[len(splUrl)-2]
+				} else {
+					owner = r.Owner.Username
+				}
+
 				if include[r.Name] {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: owner, Hoster: types.GetHost(repo.Url)})
 					continue
 				}
 				if exclude[r.Name] {
 					continue
 				}
 				if len(include) == 0 {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: owner, Hoster: types.GetHost(repo.Url)})
 				}
 			}
 		}
