@@ -32,9 +32,9 @@ source:
       password: your-password
       ssh: true # can be true or false
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
-    exclude: # this excludes the repos "foo" and "bar"
-      - foo
-      - bar
+      exclude: # this excludes the repos "foo" and "bar"
+        - foo
+        - bar
       include: # this includes the repo "foobar"
         - foobar
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
