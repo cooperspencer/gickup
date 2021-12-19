@@ -3,6 +3,7 @@ package gitlab
 import (
 	"fmt"
 	"gickup/types"
+	"path"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -63,7 +64,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		log.Info().Str("stage", "gitlab").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		gitlabrepos := []*gitlab.Project{}
-		gitlabgrouprepos := []*gitlab.Project{}
+		gitlabgrouprepos := map[string][]*gitlab.Project{}
 		client, err := gitlab.NewClient(repo.Token, gitlab.WithBaseURL(repo.Url))
 		if err != nil {
 			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
@@ -135,29 +136,29 @@ func Get(conf *types.Conf) []types.Repo {
 					if len(projects) == 0 {
 						break
 					}
-					gitlabgrouprepos = append(gitlabgrouprepos, projects...)
+					splfullpath := strings.Split(group.FullPath, "/")
+					fullpath := path.Join(splfullpath...)
+					if _, ok := gitlabgrouprepos[fullpath]; !ok {
+						gitlabgrouprepos[fullpath] = []*gitlab.Project{}
+					}
+
+					gitlabgrouprepos[fullpath] = append(gitlabgrouprepos[fullpath], projects...)
 					i++
 					gopt.Page = i
 				}
 			}
-			for _, r := range gitlabgrouprepos {
-				owner := ""
-				if r.Owner == nil {
-					splUrl := strings.Split(r.HTTPURLToRepo, "/")
-					owner = splUrl[len(splUrl)-2]
-				} else {
-					owner = r.Owner.Username
-				}
-
-				if include[r.Name] {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: owner, Hoster: types.GetHost(repo.Url)})
-					continue
-				}
-				if exclude[r.Name] {
-					continue
-				}
-				if len(include) == 0 {
-					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: owner, Hoster: types.GetHost(repo.Url)})
+			for k, gr := range gitlabgrouprepos {
+				for _, r := range gr {
+					if include[r.Name] {
+						repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						continue
+					}
+					if exclude[r.Name] {
+						continue
+					}
+					if len(include) == 0 {
+						repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+					}
 				}
 			}
 		}
