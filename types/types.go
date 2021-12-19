@@ -31,6 +31,11 @@ type Conf struct {
 	Destination Destination `yaml:"destination"`
 	Cron        string      `yaml:"cron"`
 	Log         Logging     `yaml:"log"`
+	Metrics     Metrics     `yaml:"metrics"`
+}
+
+type Metrics struct {
+	InfluxDb2 InfluxDb2Config `yaml:"influxdb2"`
 }
 
 type Logging struct {
