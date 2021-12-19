@@ -82,8 +82,19 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("%s is a file", types.Red(repo.Name))
 			} else {
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", types.Green(repo.Name))
+				r, err := git.PlainOpen(repo.Name)
+				if err != nil {
+					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+				}
+				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("fetching %s", types.Green(repo.Name))
+				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Tags: git.AllTags, Force: true})
+				if err != nil {
+					if !strings.Contains(err.Error(), "already up-to-date") {
+						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					}
+				}
 
-				err := updateRepository(repo.Name, auth, dry)
+				err = updateRepository(repo.Name, auth, dry)
 
 				if err != nil {
 					if strings.Contains(err.Error(), "already up-to-date") {
