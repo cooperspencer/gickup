@@ -107,6 +107,7 @@ destination:
   local:
     - path: /some/path/gickup
       structured: true # checks repos out like hostersite/user|organization/repo
+      working: true # do not remove and clone the repo again if the pull fails
 
 cron: 0 22 * * * # optional
 # https://crontab.guru/

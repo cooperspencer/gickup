@@ -23,6 +23,7 @@ type Destination struct {
 type Local struct {
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
+	Working    bool   `yaml:"working"`
 }
 
 // Conf

@@ -114,10 +114,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				if err != nil {
 					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 				}
-				w, err := r.Worktree()
+				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("fetching %s", types.Green(repo.Name))
+				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Tags: git.AllTags, Force: true})
 				if err != nil {
-					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					if !strings.Contains(err.Error(), "already up-to-date") {
+						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					}
 				}
+				w, err := r.Worktree()
 
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("pulling %s", types.Green(repo.Name))
 				if !dry {
@@ -126,13 +130,17 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 						if strings.Contains(err.Error(), "already up-to-date") {
 							log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 						} else {
-							if x == tries {
-								log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+							if l.Working {
+								log.Error().Str("stage", "locally").Str("path", l.Path).Err(err)
 							} else {
-								os.RemoveAll(repo.Name)
-								log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
-								time.Sleep(5 * time.Second)
-								continue
+								if x == tries {
+									log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+								} else {
+									os.RemoveAll(repo.Name)
+									log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+									time.Sleep(5 * time.Second)
+									continue
+								}
 							}
 						}
 					}
