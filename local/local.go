@@ -62,25 +62,53 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 		if os.IsNotExist(err) {
 			log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("cloning %s", types.Green(repo.Name))
 
-			err := cloneRepository(repo, auth, dry)
-
-			if err != nil {
-				if x == tries {
-					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
-				} else {
-					if strings.Contains(err.Error(), "remote repository is empty") {
-						log.Warn().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
-						break
+			if !dry {
+				url := repo.Url
+				if repo.Origin.SSH {
+					url = repo.SshUrl
+					site := types.Site{}
+					err := site.GetValues(url)
+					if err != nil {
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
 					}
-					log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
-					time.Sleep(5 * time.Second)
-					continue
+					auth, err := goph.Key(repo.Origin.SSHKey, "")
+					if err != nil {
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
+					}
+					_, err = goph.NewConn(&goph.Config{
+						User:     site.User,
+						Addr:     site.Url,
+						Port:     uint(site.Port),
+						Auth:     auth,
+						Callback: VerifyHost,
+					})
+					if err != nil {
+						log.Fatal().Str("stage", "locally").Msg(err.Error())
+					}
+				}
+
+				_, err = git.PlainClone(repo.Name, false, &git.CloneOptions{
+					URL:          url,
+					Auth:         auth,
+					SingleBranch: false,
+				})
+
+				if err != nil {
+					if x == tries {
+						log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					} else {
+						if strings.Contains(err.Error(), "remote repository is empty") {
+							log.Warn().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+							break
+						}
+						log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+						time.Sleep(5 * time.Second)
+						continue
+					}
 				}
 			}
 		} else {
-			if !stat.IsDir() {
-				log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("%s is a file", types.Red(repo.Name))
-			} else {
+			if stat.IsDir() {
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", types.Green(repo.Name))
 				r, err := git.PlainOpen(repo.Name)
 				if err != nil {
@@ -93,90 +121,36 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 					}
 				}
+				w, err := r.Worktree()
 
-				err = updateRepository(repo.Name, auth, dry)
-
-				if err != nil {
-					if strings.Contains(err.Error(), "already up-to-date") {
-						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
-					} else {
-						if x == tries {
-							log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("pulling %s", types.Green(repo.Name))
+				if !dry {
+					err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+					if err != nil {
+						if strings.Contains(err.Error(), "already up-to-date") {
+							log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 						} else {
-							os.RemoveAll(repo.Name)
-							log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
-							time.Sleep(5 * time.Second)
-							continue
+							if l.Working {
+								log.Error().Str("stage", "locally").Str("path", l.Path).Err(err)
+							} else {
+								if x == tries {
+									log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+								} else {
+									os.RemoveAll(repo.Name)
+									log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+									time.Sleep(5 * time.Second)
+									continue
+								}
+							}
 						}
 					}
 				}
+			} else {
+				log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("%s is a file", types.Red(repo.Name))
 			}
 		}
 		x = 5
 	}
-}
-
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool) error {
-	r, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return err
-	}
-
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-
-	if !dry {
-		log.Info().Str("stage", "locally").Msgf("pulling %s", types.Green(repoPath))
-		err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
-	}
-	return err
-}
-
-func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool) error {
-	if !dry {
-		url := repo.Url
-		if repo.Origin.SSH {
-			url = repo.SshUrl
-			site := types.Site{}
-			err := site.GetValues(url)
-			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
-			}
-
-			sshAuth, err := goph.Key(repo.Origin.SSHKey, "")
-			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
-			}
-
-			err = testSshConnection(site, sshAuth)
-			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
-			}
-		}
-
-		_, err := git.PlainClone(repo.Name, false, &git.CloneOptions{
-			URL:          url,
-			Auth:         auth,
-			SingleBranch: false,
-		})
-
-		return err
-	}
-	return nil
-}
-
-func testSshConnection(site types.Site, sshAuth goph.Auth) error {
-	_, err := goph.NewConn(&goph.Config{
-		User:     site.User,
-		Addr:     site.Url,
-		Port:     uint(site.Port),
-		Auth:     sshAuth,
-		Callback: VerifyHost,
-	})
-
-	return err
 }
 
 func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
