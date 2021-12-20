@@ -103,20 +103,27 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 				checkedpath = true
 			}
 			local.Locally(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
 		}
 		for _, d := range conf.Destination.Gitea {
 			gitea.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 		}
 		for _, d := range conf.Destination.Gogs {
 			gogs.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
 		}
 		for _, d := range conf.Destination.Gitlab {
 			gitlab.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
 		}
+		prometheus.SourceBackupsComplete.WithLabelValues(r.Name).Inc()
 	}
 }
 
 func RunBackup(conf *types.Conf) {
+	prometheus.JobsStarted.Inc()
+
 	// Github
 	repos := github.Get(conf)
 	Backup(repos, conf)
@@ -137,7 +144,7 @@ func RunBackup(conf *types.Conf) {
 	repos = bitbucket.Get(conf)
 	Backup(repos, conf)
 
-	conf.HasValidCronSpec()
+	prometheus.JobsComplete.Inc()
 }
 
 func PlaysForever() {
@@ -168,7 +175,13 @@ func main() {
 
 		log.Logger = logger.CreateLogger(conf.Log)
 
-		log.Info().Int("sources", conf.Source.Count()).Int("destinations", conf.Destination.Count()).Msg("Configuration loaded")
+		// one pair per source-destination
+		pairs := conf.Source.Count() * conf.Destination.Count()
+		log.Info().
+			Int("sources", conf.Source.Count()).
+			Int("destinations", conf.Destination.Count()).
+			Int("pairs", pairs).
+			Msg("Configuration loaded")
 
 		if conf.HasAllInfluxDB2Conf() {
 			influx.Setup(conf.Metrics.InfluxDb2)
@@ -183,7 +196,6 @@ func main() {
 			c := cron.New()
 			c.AddFunc(conf.Cron, func() {
 				RunBackup(conf)
-				prometheus.JobsRun.Inc()
 			})
 			c.Start()
 
