@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"gickup/types"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 )
+
+var dotGitRx = regexp.MustCompile(`\.git$`)
 
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	gitlabclient := &gitlab.Client{}
@@ -98,14 +101,31 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range gitlabrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				}
+
+				if r.WikiEnabled {
+					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				}
+
 				continue
 			}
 			if exclude[r.Name] {
 				continue
 			}
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+					repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				}
+
+				if r.WikiEnabled {
+					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+				}
 			}
 		}
 		if repo.Token != "" {
@@ -150,14 +170,30 @@ func Get(conf *types.Conf) []types.Repo {
 			for k, gr := range gitlabgrouprepos {
 				for _, r := range gr {
 					if include[r.Name] {
-						repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+							repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						}
+
+						if r.WikiEnabled {
+							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+							repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						}
 						continue
 					}
 					if exclude[r.Name] {
 						continue
 					}
 					if len(include) == 0 {
-						repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+							repos = append(repos, types.Repo{Name: r.Name, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						}
+
+						if r.WikiEnabled {
+							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+							repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						}
 					}
 				}
 			}
