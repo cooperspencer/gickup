@@ -19,6 +19,14 @@ type Destination struct {
 	Gogs   []GenRepo `yaml:"gogs"`
 }
 
+func (dest Destination) Count() int {
+	return len(dest.Gogs) +
+		len(dest.Gitea) +
+		len(dest.Local) +
+		len(dest.Github) +
+		len(dest.Gitlab)
+}
+
 // Local
 type Local struct {
 	Path       string `yaml:"path"`
@@ -34,8 +42,21 @@ type Conf struct {
 	Metrics     Metrics     `yaml:"metrics"`
 }
 
+type InfluxDb2Config struct {
+	Bucket string `yaml:"bucket"`
+	Org    string `yaml:"org"`
+	Token  string `yaml:"token"`
+	Url    string `yaml:"url"`
+}
+
+type PrometheusConfig struct {
+	ListenAddr string `yaml:"listen_addr"`
+	Endpoint   string `yaml:"endpoint"`
+}
+
 type Metrics struct {
-	InfluxDb2 InfluxDb2Config `yaml:"influxdb2"`
+	InfluxDb2  InfluxDb2Config  `yaml:"influxdb2"`
+	Prometheus PrometheusConfig `aml:"prometheus"`
 }
 
 type Logging struct {
@@ -47,6 +68,41 @@ type FileLogging struct {
 	Dir    string `yaml:"dir"`
 	File   string `yaml:"file"`
 	MaxAge int    `yaml:"maxage"`
+}
+
+func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
+	allEmpty := true
+
+	for key, value := range theMap {
+		thisOneIsEmpty := value == ""
+		if !allEmpty && thisOneIsEmpty {
+			log.Fatal().Str("expectedButMissing", key).Msg(
+				"A configuration value is expected but not present. Ensure all required configuration is present.")
+		}
+		if !thisOneIsEmpty {
+			allEmpty = false
+		}
+	}
+
+	return true
+}
+
+func (conf Conf) HasAllPrometheusConf() bool {
+	checks := map[string]string{
+		"listenaddr": conf.Metrics.Prometheus.ListenAddr,
+		"endpoint":   conf.Metrics.Prometheus.Endpoint,
+	}
+	return CheckAllValuesOrNone("prometheus", checks)
+}
+
+func (conf Conf) HasAllInfluxDB2Conf() bool {
+	checks := map[string]string{
+		"bucket": conf.Metrics.InfluxDb2.Bucket,
+		"org":    conf.Metrics.InfluxDb2.Org,
+		"token":  conf.Metrics.InfluxDb2.Token,
+		"url":    conf.Metrics.InfluxDb2.Url,
+	}
+	return CheckAllValuesOrNone("influxdb2", checks)
 }
 
 func (conf Conf) MissingCronSpec() bool {
@@ -85,6 +141,14 @@ type Source struct {
 	Github    []GenRepo `yaml:"github"`
 	Gitea     []GenRepo `yaml:"gitea"`
 	BitBucket []GenRepo `yaml:"bitbucket"`
+}
+
+func (source Source) Count() int {
+	return len(source.Gogs) +
+		len(source.Gitea) +
+		len(source.BitBucket) +
+		len(source.Github) +
+		len(source.Gitlab)
 }
 
 // Generell Repo

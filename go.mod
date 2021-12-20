@@ -20,6 +20,7 @@ require (
 	github.com/ktrysmt/go-bitbucket v0.9.32
 	github.com/melbahja/goph v1.3.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.26.0
 	github.com/sergi/go-diff v1.2.0 // indirect

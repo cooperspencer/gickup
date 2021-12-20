@@ -15,6 +15,8 @@ import (
 	"gickup/gogs"
 	"gickup/local"
 	"gickup/logger"
+	"gickup/metrics/influx"
+	prometheus "gickup/metrics/prometheus"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
@@ -166,11 +168,30 @@ func main() {
 
 		log.Logger = logger.CreateLogger(conf.Log)
 
+		log.Info().Int("sources", conf.Source.Count()).Int("destinations", conf.Destination.Count()).Msg("Configuration loaded")
+
+		if conf.HasAllInfluxDB2Conf() {
+			influx.Setup(conf.Metrics.InfluxDb2)
+		}
+
+		if conf.HasAllPrometheusConf() {
+			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
+			prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
+		}
+
 		if conf.HasValidCronSpec() {
 			c := cron.New()
-			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
+			c.AddFunc(conf.Cron, func() {
+				RunBackup(conf)
+				prometheus.JobsRun.Inc()
+			})
 			c.Start()
-			PlaysForever()
+
+			if conf.HasAllPrometheusConf() {
+				prometheus.Serve(conf.Metrics.Prometheus)
+			} else {
+				PlaysForever()
+			}
 		} else {
 			RunBackup(conf)
 		}
