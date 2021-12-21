@@ -17,13 +17,13 @@ You can clone/mirror them to:
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/config.example.yml)
 
 ## How to run the Binary version
-`./gickup path-to-config.yml`
+`./gickup path-to-conf.yml`
 
 ## How to run the Docker image
 ```bash
 mkdir gickup
 wget https://raw.githubusercontent.com/cooperspencer/gickup/main/docker-compose.yml
-nano config.yml # Make here your config
+nano conf.yml # Make your config here
 docker-compose up
 ```
 ## Compile the Binary version
@@ -34,7 +34,7 @@ docker-compose up
 git clone https://github.com/cooperspencer/gickup.git
 cd gickup
 nano docker-compose.yml # Uncomment the Build
-nano config.yml # Make here your config
+nano conf.yml # Make your config here
 docker-compose build
 docker-compose up
 ```
