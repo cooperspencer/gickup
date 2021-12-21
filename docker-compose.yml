@@ -4,5 +4,5 @@ services:
     # build: . # If you want to Build the Image locally (You need the complete Repo on your PC)
     image: buddyspencer/gickup:latest
     volumes:
-      - ${PWD}/config.yml:/gickup/config.yml
-    command: ["./gickup/app", "/gickup/config.yml"]
+      - ${PWD}/conf.yml:/gickup/conf.yml
+    command: ["./gickup/app", "/gickup/conf.yml"]
