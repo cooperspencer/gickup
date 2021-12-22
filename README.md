@@ -14,7 +14,7 @@ You can clone/mirror them to:
 - Local
 
 ## How to make an Configuration file?
-[Here is an example](https://github.com/cooperspencer/gickup/blob/main/config.example.yml)
+[Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
 
 ## How to run the Binary version
 `./gickup path-to-conf.yml`
