@@ -3,7 +3,6 @@ name: Build and Publish
 on:
   # run it on push to the default repository branch
   push:
-    branches: [main]
     tags:
       - "v*.*.*"
   # run it during pull request
@@ -32,7 +31,6 @@ jobs:
           # generate Docker tags based on the following events/attributes
           tags: |
             type=schedule
-            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
