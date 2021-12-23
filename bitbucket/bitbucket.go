@@ -46,7 +46,7 @@ func Get(conf *types.Conf) []types.Repo {
 				continue
 			}
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: r.Owner["nickname"].(string), Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: user, Hoster: types.GetHost(repo.Url)})
 			}
 		}
 	}
