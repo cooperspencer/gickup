@@ -32,8 +32,14 @@ func Get(conf *types.Conf) []types.Repo {
 		exclude := types.GetMap(repo.Exclude)
 
 		for _, r := range repositories.Items {
+			user := repo.User
+			if r.Owner != nil {
+				if _, ok := r.Owner["nickname"]; ok {
+					user = r.Owner["nickname"].(string)
+				}
+			}
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: r.Owner["nickname"].(string), Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: user, Hoster: types.GetHost(repo.Url)})
 				continue
 			}
 			if exclude[r.Name] {
