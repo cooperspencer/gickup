@@ -28,6 +28,7 @@ var cli struct {
 	Configfile string `arg name:"conf" help:"path to the configfile." default:"conf.yml"`
 	Version    bool   `flag name:"version" help:"show version."`
 	Dry        bool   `flag name:"dryrun" help:"make a dry-run."`
+	Quiet      bool   `flag name:"quiet" help:"turn of commandline output"`
 }
 
 var (
@@ -155,16 +156,20 @@ func main() {
 		fmt.Println(version)
 	} else {
 		if cli.Dry {
-			log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
+			if !cli.Quiet {
+				log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
+			}
 		}
 
-		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
+		if !cli.Quiet {
+			log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
+		}
 		conf := ReadConfigfile(cli.Configfile)
 		if conf.Log.Timeformat == "" {
 			conf.Log.Timeformat = timeformat
 		}
 
-		log.Logger = logger.CreateLogger(conf.Log)
+		log.Logger = logger.CreateLogger(conf.Log, cli.Quiet)
 
 		if conf.HasValidCronSpec() {
 			c := cron.New()
