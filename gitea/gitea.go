@@ -57,14 +57,17 @@ func Get(conf *types.Conf) []types.Repo {
 		opt.PageSize = 50
 		i := 0
 		gitearepos := []*gitea.Repository{}
-		client, err := gitea.NewClient(repo.Url)
+		client := &gitea.Client{}
+		var err error
+		if repo.Token != "" {
+			client, err = gitea.NewClient(repo.Url, gitea.SetToken(repo.Token))
+		} else {
+			client, err = gitea.NewClient(repo.Url)
+		}
 		for {
 			opt.Page = i
 			if err != nil {
 				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
-			}
-			if repo.Token != "" {
-				client.SetBasicAuth(repo.Token, "")
 			}
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
