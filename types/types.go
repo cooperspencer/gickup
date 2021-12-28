@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -109,14 +110,26 @@ func (conf Conf) MissingCronSpec() bool {
 	return conf.Cron == ""
 }
 
-func ParseCronSpec(spec string) cron.Schedule {
+func ParseCronSpec(spec string) (cron.Schedule, error) {
 	sched, err := cron.ParseStandard(spec)
 
 	if err != nil {
 		log.Error().Str("spec", spec).Msg(err.Error())
 	}
 
-	return sched
+	return sched, err
+}
+
+func (conf Conf) GetNextRun() (*time.Time, error) {
+	if conf.MissingCronSpec() {
+		return nil, fmt.Errorf("cron unspecified")
+	}
+	parsedSched, err := ParseCronSpec(conf.Cron)
+	if err != nil {
+		return nil, err
+	}
+	next := parsedSched.Next(time.Now())
+	return &next, nil
 }
 
 func (conf Conf) HasValidCronSpec() bool {
@@ -124,14 +137,9 @@ func (conf Conf) HasValidCronSpec() bool {
 		return false
 	}
 
-	parsedSched := ParseCronSpec(conf.Cron)
+	_, err := ParseCronSpec(conf.Cron)
 
-	if parsedSched != nil {
-		nextRun := parsedSched.Next(time.Now()).String()
-		log.Info().Str("next", nextRun).Str("cron", conf.Cron).Msg("Next cron run")
-	}
-
-	return parsedSched != nil
+	return err == nil
 }
 
 // Source

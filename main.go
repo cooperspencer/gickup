@@ -146,6 +146,10 @@ func RunBackup(conf *types.Conf) {
 	Backup(repos, conf)
 
 	prometheus.JobsComplete.Inc()
+
+	if conf.HasValidCronSpec() {
+		logNextRun(conf)
+	}
 }
 
 func PlaysForever() {
@@ -199,6 +203,8 @@ func main() {
 
 		if conf.HasValidCronSpec() {
 			c := cron.New()
+			logNextRun(conf)
+
 			c.AddFunc(conf.Cron, func() {
 				RunBackup(conf)
 			})
@@ -212,5 +218,15 @@ func main() {
 		} else {
 			RunBackup(conf)
 		}
+	}
+}
+
+func logNextRun(conf *types.Conf) {
+	nextRun, err := conf.GetNextRun()
+	if err == nil {
+		log.Info().
+			Str("next", nextRun.String()).
+			Str("cron", conf.Cron).
+			Msg("Next cron run")
 	}
 }
