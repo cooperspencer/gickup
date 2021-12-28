@@ -123,6 +123,8 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 }
 
 func RunBackup(conf *types.Conf) {
+	log.Info().Msg("Backup run starting")
+
 	prometheus.JobsStarted.Inc()
 
 	// Github
@@ -146,6 +148,8 @@ func RunBackup(conf *types.Conf) {
 	Backup(repos, conf)
 
 	prometheus.JobsComplete.Inc()
+
+	log.Info().Msg("Backup run complete")
 
 	if conf.HasValidCronSpec() {
 		logNextRun(conf)
