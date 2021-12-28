@@ -56,7 +56,7 @@ type PrometheusConfig struct {
 
 type Metrics struct {
 	InfluxDb2  InfluxDb2Config  `yaml:"influxdb2"`
-	Prometheus PrometheusConfig `aml:"prometheus"`
+	Prometheus PrometheusConfig `yaml:"prometheus"`
 }
 
 type Logging struct {
