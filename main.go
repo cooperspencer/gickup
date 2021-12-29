@@ -16,7 +16,6 @@ import (
 	"gickup/gogs"
 	"gickup/local"
 	"gickup/logger"
-	"gickup/metrics/influx"
 	prometheus "gickup/metrics/prometheus"
 	"gickup/types"
 
@@ -208,10 +207,6 @@ func main() {
 			Int("destinations", conf.Destination.Count()).
 			Int("pairs", pairs).
 			Msg("Configuration loaded")
-
-		if conf.HasAllInfluxDB2Conf() {
-			influx.Setup(conf.Metrics.InfluxDb2)
-		}
 
 		if conf.HasAllPrometheusConf() {
 			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))

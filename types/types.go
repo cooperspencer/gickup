@@ -43,20 +43,12 @@ type Conf struct {
 	Metrics     Metrics     `yaml:"metrics"`
 }
 
-type InfluxDb2Config struct {
-	Bucket string `yaml:"bucket"`
-	Org    string `yaml:"org"`
-	Token  string `yaml:"token"`
-	Url    string `yaml:"url"`
-}
-
 type PrometheusConfig struct {
 	ListenAddr string `yaml:"listen_addr"`
 	Endpoint   string `yaml:"endpoint"`
 }
 
 type Metrics struct {
-	InfluxDb2  InfluxDb2Config  `yaml:"influxdb2"`
 	Prometheus PrometheusConfig `yaml:"prometheus"`
 }
 
@@ -94,16 +86,6 @@ func (conf Conf) HasAllPrometheusConf() bool {
 		"endpoint":   conf.Metrics.Prometheus.Endpoint,
 	}
 	return CheckAllValuesOrNone("prometheus", checks)
-}
-
-func (conf Conf) HasAllInfluxDB2Conf() bool {
-	checks := map[string]string{
-		"bucket": conf.Metrics.InfluxDb2.Bucket,
-		"org":    conf.Metrics.InfluxDb2.Org,
-		"token":  conf.Metrics.InfluxDb2.Token,
-		"url":    conf.Metrics.InfluxDb2.Url,
-	}
-	return CheckAllValuesOrNone("influxdb2", checks)
 }
 
 func (conf Conf) MissingCronSpec() bool {

@@ -15,7 +15,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
-	github.com/influxdata/influxdb-client-go/v2 v2.6.0
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/ktrysmt/go-bitbucket v0.9.32
 	github.com/melbahja/goph v1.3.0
