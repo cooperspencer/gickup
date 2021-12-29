@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"gickup/types"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 )
-
-var dotGitRx = regexp.MustCompile(`\.git$`)
 
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	gitlabclient := &gitlab.Client{}
@@ -90,7 +87,6 @@ func Get(conf *types.Conf) []types.Repo {
 						log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 					}
 					if len(projects) == 0 {
-						log.Debug().Str("stage", "gitlab").Str("user", repo.User).Msg("User has no projects")
 						break
 					}
 					gitlabrepos = append(gitlabrepos, projects...)
@@ -108,9 +104,9 @@ func Get(conf *types.Conf) []types.Repo {
 					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
-				if r.WikiEnabled {
-					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+				if r.WikiEnabled && repo.Wiki {
+					httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+					sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
@@ -124,9 +120,9 @@ func Get(conf *types.Conf) []types.Repo {
 					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
-				if r.WikiEnabled {
-					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+				if r.WikiEnabled && repo.Wiki {
+					httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+					sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 			}
@@ -177,9 +173,9 @@ func Get(conf *types.Conf) []types.Repo {
 							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 
-						if r.WikiEnabled {
-							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+						if r.WikiEnabled && repo.Wiki {
+							httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 						continue
@@ -192,9 +188,9 @@ func Get(conf *types.Conf) []types.Repo {
 							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 
-						if r.WikiEnabled {
-							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+						if r.WikiEnabled && repo.Wiki {
+							httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 					}
