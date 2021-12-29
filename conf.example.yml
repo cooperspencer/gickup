@@ -1,6 +1,8 @@
 source:
   github:
     - token: some-token
+    # alternatively, specify token in a file, relative to current working directory when executed.
+      # token_file: token.txt
       user: some-user # the user you want to clone the repositories from.
       # if you want to get everything from your user, leave out the user parameter and just use the token.
       # for the clone process, either use:
@@ -21,6 +23,7 @@ source:
         - bar
   gitea:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-gitea # if empty, it uses https://gitea.com
       # if you want to get everything from your user, leave out the user parameter and just use the token.
@@ -42,6 +45,7 @@ source:
         - bar
   gogs:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-gogs # no default value
       # if you want to get everything from your user, leave out the user parameter and just use the token.
@@ -63,6 +67,7 @@ source:
         - bar
   gitlab:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-gitlab # if empty, it uses https://gitlab.com
       # if you want to get everything from your user, leave out the user parameter and just use the token.
@@ -97,12 +102,15 @@ source:
 destination:
   gitea:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gitea
   gogs:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gogs
   gitlab:
     - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gitlab
   local:
     - path: /some/path/gickup

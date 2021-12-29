@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -85,6 +87,7 @@ type Source struct {
 // Generell Repo
 type GenRepo struct {
 	Token       string   `yaml:"token"`
+	TokenFile   string   `yaml:"token_file"`
 	User        string   `yaml:"user"`
 	SSH         bool     `yaml:"ssh"`
 	SSHKey      string   `yaml:"sshkey"`
@@ -94,6 +97,43 @@ type GenRepo struct {
 	Exclude     []string `yaml:"exclude"`
 	ExcludeOrgs []string `yaml:"excludeorgs"`
 	Include     []string `yaml:"include"`
+}
+
+func (grepo GenRepo) GetToken() string {
+	token, err := resolveToken(grepo.Token, grepo.TokenFile)
+
+	if err != nil {
+		log.Fatal().
+			Str("url", grepo.Url).
+			Str("tokenfile", grepo.TokenFile).
+			Err(err)
+	}
+
+	return token
+}
+
+func resolveToken(tokenString string, tokenFile string) (string, error) {
+	if tokenString != "" {
+		return tokenString, nil
+	}
+
+	if tokenFile != "" {
+		data, err := os.ReadFile(tokenFile)
+
+		if err != nil {
+			return "", err
+		}
+
+		log.Debug().
+			Int("bytes", len(data)).
+			Str("path", tokenFile).
+			Msg("Read token file")
+
+		tokenData := string(data)
+		return tokenData, nil
+
+	}
+	return "", fmt.Errorf("no token or tokenfile was specified in config when one was expected")
 }
 
 // Repo
