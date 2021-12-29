@@ -129,4 +129,4 @@ log: # optional
 metrics:
   prometheus:
     endpoint: /metrics
-    listenAddr: ":6178" # default listens on port 6178 on all IPs.
+    listen_addr: ":6178" # default listens on port 6178 on all IPs.
