@@ -9,7 +9,7 @@ import (
 
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
-	gogsclient := gogs.NewClient(d.Url, d.Token)
+	gogsclient := gogs.NewClient(d.Url, d.GetToken())
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
@@ -43,7 +43,8 @@ func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
 		log.Info().Str("stage", "gogs").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
-		client := gogs.NewClient(repo.Url, repo.Token)
+		token := repo.GetToken()
+		client := gogs.NewClient(repo.Url, token)
 		gogsrepos, err := client.ListUserRepos(repo.User)
 		if err != nil {
 			log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
@@ -55,14 +56,14 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range gogsrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				continue
 			}
 			if exclude[r.Name] {
 				continue
 			}
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 			}
 		}
 		orgs, err := client.ListUserOrgs(repo.User)
@@ -86,14 +87,14 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		for _, r := range orgrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				continue
 			}
 			if exclude[r.Name] {
 				continue
 			}
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 			}
 		}
 	}
