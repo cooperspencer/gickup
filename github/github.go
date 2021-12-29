@@ -56,6 +56,9 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, r := range githubrepos {
 			if include[*r.Name] {
 				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				if *r.HasWiki && repo.Wiki {
+					repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				}
 				continue
 			}
 			if exclude[*r.Name] {
@@ -66,6 +69,9 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 			if len(repo.Include) == 0 {
 				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				if *r.HasWiki && repo.Wiki {
+					repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				}
 			}
 		}
 	}
