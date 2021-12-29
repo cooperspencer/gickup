@@ -29,6 +29,7 @@ var cli struct {
 	Version    bool   `flag name:"version" help:"show version."`
 	Dry        bool   `flag name:"dryrun" help:"make a dry-run."`
 	Quiet      bool   `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
+	Silent     bool   `flag name:"silent" help:"Suppress all stderr log output"`
 }
 
 var (
@@ -158,6 +159,9 @@ func main() {
 
 		if cli.Quiet {
 			zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		}
+		if cli.Silent {
+			zerolog.SetGlobalLevel(zerolog.Disabled)
 		}
 
 		if cli.Dry {
