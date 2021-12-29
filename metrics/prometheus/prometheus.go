@@ -35,7 +35,7 @@ var JobsStarted = promauto.NewCounter(prometheus.CounterOpts{
 	Help: "The count of scheduled jobs started since process startup",
 })
 
-var JobDuration = promauto.NewHistogram(prometheus.HistogramOpts{
+var JobDuration = promauto.NewSummary(prometheus.SummaryOpts{
 	Name: "gickup_job_duration",
 	Help: "The duration of scheduled jobs started since process startup",
 })
