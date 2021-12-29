@@ -131,22 +131,27 @@ func RunBackup(conf *types.Conf) {
 
 	// Github
 	repos := github.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("github").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitea
 	repos = gitea.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitea").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gogs
 	repos = gogs.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gogs").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitlab
 	repos = gitlab.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	//Bitbucket
 	repos = bitbucket.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	endTime := time.Now()
