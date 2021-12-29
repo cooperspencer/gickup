@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +20,14 @@ type Destination struct {
 	Gogs   []GenRepo `yaml:"gogs"`
 }
 
+func (dest Destination) Count() int {
+	return len(dest.Gogs) +
+		len(dest.Gitea) +
+		len(dest.Local) +
+		len(dest.Github) +
+		len(dest.Gitlab)
+}
+
 // Local
 type Local struct {
 	Path       string `yaml:"path"`
@@ -31,6 +40,16 @@ type Conf struct {
 	Destination Destination `yaml:"destination"`
 	Cron        string      `yaml:"cron"`
 	Log         Logging     `yaml:"log"`
+	Metrics     Metrics     `yaml:"metrics"`
+}
+
+type PrometheusConfig struct {
+	ListenAddr string `yaml:"listen_addr"`
+	Endpoint   string `yaml:"endpoint"`
+}
+
+type Metrics struct {
+	Prometheus PrometheusConfig `yaml:"prometheus"`
 }
 
 type Logging struct {
@@ -44,18 +63,55 @@ type FileLogging struct {
 	MaxAge int    `yaml:"maxage"`
 }
 
+func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
+	allEmpty := true
+
+	for key, value := range theMap {
+		thisOneIsEmpty := value == ""
+		if !allEmpty && thisOneIsEmpty {
+			log.Fatal().Str("expectedButMissing", key).Msg(
+				"A configuration value is expected but not present. Ensure all required configuration is present.")
+		}
+		if !thisOneIsEmpty {
+			allEmpty = false
+		}
+	}
+
+	return true
+}
+
+func (conf Conf) HasAllPrometheusConf() bool {
+	checks := map[string]string{
+		"listenaddr": conf.Metrics.Prometheus.ListenAddr,
+		"endpoint":   conf.Metrics.Prometheus.Endpoint,
+	}
+	return CheckAllValuesOrNone("prometheus", checks)
+}
+
 func (conf Conf) MissingCronSpec() bool {
 	return conf.Cron == ""
 }
 
-func ParseCronSpec(spec string) cron.Schedule {
+func ParseCronSpec(spec string) (cron.Schedule, error) {
 	sched, err := cron.ParseStandard(spec)
 
 	if err != nil {
 		log.Error().Str("spec", spec).Msg(err.Error())
 	}
 
-	return sched
+	return sched, err
+}
+
+func (conf Conf) GetNextRun() (*time.Time, error) {
+	if conf.MissingCronSpec() {
+		return nil, fmt.Errorf("cron unspecified")
+	}
+	parsedSched, err := ParseCronSpec(conf.Cron)
+	if err != nil {
+		return nil, err
+	}
+	next := parsedSched.Next(time.Now())
+	return &next, nil
 }
 
 func (conf Conf) HasValidCronSpec() bool {
@@ -63,14 +119,9 @@ func (conf Conf) HasValidCronSpec() bool {
 		return false
 	}
 
-	parsedSched := ParseCronSpec(conf.Cron)
+	_, err := ParseCronSpec(conf.Cron)
 
-	if parsedSched != nil {
-		nextRun := parsedSched.Next(time.Now()).String()
-		log.Info().Str("next", nextRun).Str("cron", conf.Cron).Msg("Next cron run")
-	}
-
-	return parsedSched != nil
+	return err == nil
 }
 
 // Source
@@ -80,6 +131,14 @@ type Source struct {
 	Github    []GenRepo `yaml:"github"`
 	Gitea     []GenRepo `yaml:"gitea"`
 	BitBucket []GenRepo `yaml:"bitbucket"`
+}
+
+func (source Source) Count() int {
+	return len(source.Gogs) +
+		len(source.Gitea) +
+		len(source.BitBucket) +
+		len(source.Github) +
+		len(source.Gitlab)
 }
 
 // Generell Repo

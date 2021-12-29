@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gickup/bitbucket"
 	"gickup/gitea"
@@ -15,6 +16,7 @@ import (
 	"gickup/gogs"
 	"gickup/local"
 	"gickup/logger"
+	prometheus "gickup/metrics/prometheus"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
@@ -103,41 +105,68 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 				checkedpath = true
 			}
 			local.Locally(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
 		}
 		for _, d := range conf.Destination.Gitea {
 			gitea.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 		}
 		for _, d := range conf.Destination.Gogs {
 			gogs.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
 		}
 		for _, d := range conf.Destination.Gitlab {
 			gitlab.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
 		}
+		prometheus.SourceBackupsComplete.WithLabelValues(r.Name).Inc()
 	}
 }
 
 func RunBackup(conf *types.Conf) {
+	log.Info().Msg("Backup run starting")
+	startTime := time.Now()
+
+	prometheus.JobsStarted.Inc()
+
 	// Github
 	repos := github.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("github").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitea
 	repos = gitea.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitea").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gogs
 	repos = gogs.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gogs").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitlab
 	repos = gitlab.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	//Bitbucket
 	repos = bitbucket.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	Backup(repos, conf)
 
-	conf.HasValidCronSpec()
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+
+	prometheus.JobsComplete.Inc()
+	prometheus.JobDuration.Observe(duration.Seconds())
+
+	log.Info().
+		Float64("duration", duration.Seconds()).
+		Msg("Backup run complete")
+
+	if conf.HasValidCronSpec() {
+		logNextRun(conf)
+	}
 }
 
 func PlaysForever() {
@@ -177,13 +206,45 @@ func main() {
 
 		log.Logger = logger.CreateLogger(conf.Log)
 
+		// one pair per source-destination
+		pairs := conf.Source.Count() * conf.Destination.Count()
+		log.Info().
+			Int("sources", conf.Source.Count()).
+			Int("destinations", conf.Destination.Count()).
+			Int("pairs", pairs).
+			Msg("Configuration loaded")
+
+		if conf.HasAllPrometheusConf() {
+			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
+			prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
+		}
+
 		if conf.HasValidCronSpec() {
 			c := cron.New()
-			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
+			logNextRun(conf)
+
+			c.AddFunc(conf.Cron, func() {
+				RunBackup(conf)
+			})
 			c.Start()
-			PlaysForever()
+
+			if conf.HasAllPrometheusConf() {
+				prometheus.Serve(conf.Metrics.Prometheus)
+			} else {
+				PlaysForever()
+			}
 		} else {
 			RunBackup(conf)
 		}
+	}
+}
+
+func logNextRun(conf *types.Conf) {
+	nextRun, err := conf.GetNextRun()
+	if err == nil {
+		log.Info().
+			Str("next", nextRun.String()).
+			Str("cron", conf.Cron).
+			Msg("Next cron run")
 	}
 }
