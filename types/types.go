@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -156,6 +157,7 @@ type GenRepo struct {
 	Exclude     []string `yaml:"exclude"`
 	ExcludeOrgs []string `yaml:"excludeorgs"`
 	Include     []string `yaml:"include"`
+	Wiki        bool     `yaml:"wiki"`
 }
 
 func (grepo GenRepo) GetToken() string {
@@ -183,7 +185,7 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 			return "", err
 		}
 
-		log.Debug().
+		log.Info().
 			Int("bytes", len(data)).
 			Str("path", tokenFile).
 			Msg("Read token file")
@@ -251,9 +253,10 @@ func (s *Site) GetValues(url string) error {
 }
 
 var (
-	Red   = color.FgRed.Render
-	Green = color.FgGreen.Render
-	Blue  = color.FgBlue.Render
+	Red      = color.FgRed.Render
+	Green    = color.FgGreen.Render
+	Blue     = color.FgBlue.Render
+	DotGitRx = regexp.MustCompile(`\.git$`)
 )
 
 func GetMap(excludes []string) map[string]bool {

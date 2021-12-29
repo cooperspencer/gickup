@@ -21,6 +21,7 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      wiki: true # includes wiki too
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -43,6 +44,7 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      wiki: true # includes wiki too
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -65,6 +67,7 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      wiki: true # includes wiki too
   gitlab:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -87,6 +90,7 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      wiki: true # includes wiki too
   bitbucket:
     - user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-bitbucket # if empty, it uses https://bitbucket.org
