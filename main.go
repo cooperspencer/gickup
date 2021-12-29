@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gickup/bitbucket"
 	"gickup/gitea"
@@ -15,6 +16,7 @@ import (
 	"gickup/gogs"
 	"gickup/local"
 	"gickup/logger"
+	prometheus "gickup/metrics/prometheus"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
@@ -28,7 +30,8 @@ var cli struct {
 	Configfile string `arg name:"conf" help:"path to the configfile." default:"conf.yml"`
 	Version    bool   `flag name:"version" help:"show version."`
 	Dry        bool   `flag name:"dryrun" help:"make a dry-run."`
-	Quiet      bool   `flag name:"quiet" help:"turn of commandline output"`
+	Quiet      bool   `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
+	Silent     bool   `flag name:"silent" help:"Suppress all stderr log output"`
 }
 
 var (
@@ -102,41 +105,68 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 				checkedpath = true
 			}
 			local.Locally(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
 		}
 		for _, d := range conf.Destination.Gitea {
 			gitea.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 		}
 		for _, d := range conf.Destination.Gogs {
 			gogs.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
 		}
 		for _, d := range conf.Destination.Gitlab {
 			gitlab.Backup(r, d, cli.Dry)
+			prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
 		}
+		prometheus.SourceBackupsComplete.WithLabelValues(r.Name).Inc()
 	}
 }
 
 func RunBackup(conf *types.Conf) {
+	log.Info().Msg("Backup run starting")
+	startTime := time.Now()
+
+	prometheus.JobsStarted.Inc()
+
 	// Github
 	repos := github.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("github").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitea
 	repos = gitea.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitea").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gogs
 	repos = gogs.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gogs").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	// Gitlab
 	repos = gitlab.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
 	Backup(repos, conf)
 
 	//Bitbucket
 	repos = bitbucket.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	Backup(repos, conf)
 
-	conf.HasValidCronSpec()
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+
+	prometheus.JobsComplete.Inc()
+	prometheus.JobDuration.Observe(duration.Seconds())
+
+	log.Info().
+		Float64("duration", duration.Seconds()).
+		Msg("Backup run complete")
+
+	if conf.HasValidCronSpec() {
+		logNextRun(conf)
+	}
 }
 
 func PlaysForever() {
@@ -155,29 +185,66 @@ func main() {
 	if cli.Version {
 		fmt.Println(version)
 	} else {
-		if cli.Dry {
-			if !cli.Quiet {
-				log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
-			}
+
+		if cli.Quiet {
+			zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		}
+		if cli.Silent {
+			zerolog.SetGlobalLevel(zerolog.Disabled)
 		}
 
-		if !cli.Quiet {
-			log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
+		if cli.Dry {
+			log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
 		}
+
+		log.Info().Str("file", cli.Configfile).Msgf("Reading %s", types.Green(cli.Configfile))
+
 		conf := ReadConfigfile(cli.Configfile)
 		if conf.Log.Timeformat == "" {
 			conf.Log.Timeformat = timeformat
 		}
 
-		log.Logger = logger.CreateLogger(conf.Log, cli.Quiet)
+		log.Logger = logger.CreateLogger(conf.Log)
+
+		// one pair per source-destination
+		pairs := conf.Source.Count() * conf.Destination.Count()
+		log.Info().
+			Int("sources", conf.Source.Count()).
+			Int("destinations", conf.Destination.Count()).
+			Int("pairs", pairs).
+			Msg("Configuration loaded")
+
+		if conf.HasAllPrometheusConf() {
+			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
+			prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
+		}
 
 		if conf.HasValidCronSpec() {
 			c := cron.New()
-			c.AddFunc(conf.Cron, func() { RunBackup(conf) })
+			logNextRun(conf)
+
+			c.AddFunc(conf.Cron, func() {
+				RunBackup(conf)
+			})
 			c.Start()
-			PlaysForever()
+
+			if conf.HasAllPrometheusConf() {
+				prometheus.Serve(conf.Metrics.Prometheus)
+			} else {
+				PlaysForever()
+			}
 		} else {
 			RunBackup(conf)
 		}
+	}
+}
+
+func logNextRun(conf *types.Conf) {
+	nextRun, err := conf.GetNextRun()
+	if err == nil {
+		log.Info().
+			Str("next", nextRun.String()).
+			Str("cron", conf.Cron).
+			Msg("Next cron run")
 	}
 }

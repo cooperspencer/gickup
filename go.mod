@@ -19,7 +19,8 @@ require (
 	github.com/ktrysmt/go-bitbucket v0.9.32
 	github.com/melbahja/goph v1.3.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/robfig/cron/v3 v3.0.0 // indirect
+	github.com/prometheus/client_golang v1.11.0
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.26.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/xanzy/go-gitlab v0.52.2
@@ -30,6 +31,6 @@ require (
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0
 )
