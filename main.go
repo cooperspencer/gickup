@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gickup/bitbucket"
 	"gickup/gitea"
@@ -124,6 +125,7 @@ func Backup(repos []types.Repo, conf *types.Conf) {
 
 func RunBackup(conf *types.Conf) {
 	log.Info().Msg("Backup run starting")
+	startTime := time.Now()
 
 	prometheus.JobsStarted.Inc()
 
@@ -147,9 +149,15 @@ func RunBackup(conf *types.Conf) {
 	repos = bitbucket.Get(conf)
 	Backup(repos, conf)
 
-	prometheus.JobsComplete.Inc()
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
 
-	log.Info().Msg("Backup run complete")
+	prometheus.JobsComplete.Inc()
+	prometheus.JobDuration.Observe(duration.Seconds())
+
+	log.Info().
+		Float64("duration", duration.Seconds()).
+		Msg("Backup run complete")
 
 	if conf.HasValidCronSpec() {
 		logNextRun(conf)
