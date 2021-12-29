@@ -28,12 +28,11 @@ func NewRollingFile(config types.FileLogging) io.Writer {
 	}
 }
 
-func CreateLogger(conf types.Logging, quiet bool) zerolog.Logger {
+func CreateLogger(conf types.Logging) zerolog.Logger {
 	var writers []io.Writer
 
-	if !quiet {
-		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: conf.Timeformat})
-	}
+	writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: conf.Timeformat})
+
 	if conf.FileLogging.File != "" {
 		writers = append(writers, NewRollingFile(conf.FileLogging))
 	}
