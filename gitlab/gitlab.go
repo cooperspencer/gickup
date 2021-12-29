@@ -15,12 +15,13 @@ var dotGitRx = regexp.MustCompile(`\.git$`)
 
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	gitlabclient := &gitlab.Client{}
+	token := d.GetToken()
 	var err error
 	if d.Url == "" {
 		d.Url = "https://gitlab.com"
-		gitlabclient, err = gitlab.NewClient(d.Token)
+		gitlabclient, err = gitlab.NewClient(token)
 	} else {
-		gitlabclient, err = gitlab.NewClient(d.Token, gitlab.WithBaseURL(d.Url))
+		gitlabclient, err = gitlab.NewClient(token, gitlab.WithBaseURL(d.Url))
 	}
 	log.Info().Str("stage", "gitlab").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
 	if err != nil {
@@ -68,7 +69,8 @@ func Get(conf *types.Conf) []types.Repo {
 		log.Info().Str("stage", "gitlab").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		gitlabrepos := []*gitlab.Project{}
 		gitlabgrouprepos := map[string][]*gitlab.Project{}
-		client, err := gitlab.NewClient(repo.Token, gitlab.WithBaseURL(repo.Url))
+		token := repo.GetToken()
+		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Url))
 		if err != nil {
 			log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 		}
@@ -88,6 +90,7 @@ func Get(conf *types.Conf) []types.Repo {
 						log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
 					}
 					if len(projects) == 0 {
+						log.Debug().Str("stage", "gitlab").Str("user", repo.User).Msg("User has no projects")
 						break
 					}
 					gitlabrepos = append(gitlabrepos, projects...)
@@ -102,13 +105,13 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, r := range gitlabrepos {
 			if include[r.Name] {
 				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
 				if r.WikiEnabled {
 					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
 				continue
@@ -118,17 +121,17 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 			if len(include) == 0 {
 				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 
 				if r.WikiEnabled {
 					httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 					sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
 				}
 			}
 		}
-		if repo.Token != "" {
+		if token != "" {
 			groups := []*gitlab.Group{}
 			i = 1
 			for {
@@ -171,13 +174,13 @@ func Get(conf *types.Conf) []types.Repo {
 				for _, r := range gr {
 					if include[r.Name] {
 						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 
 						if r.WikiEnabled {
 							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 						continue
 					}
@@ -186,13 +189,13 @@ func Get(conf *types.Conf) []types.Repo {
 					}
 					if len(include) == 0 {
 						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 
 						if r.WikiEnabled {
 							httpUrlToRepo := dotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 							sshUrlToRepo := dotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: repo.Token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 						}
 					}
 				}

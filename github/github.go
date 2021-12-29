@@ -17,16 +17,17 @@ func Get(conf *types.Conf) []types.Repo {
 		opt := &github.RepositoryListOptions{ListOptions: github.ListOptions{PerPage: 50}}
 		i := 1
 		githubrepos := []*github.Repository{}
-		if repo.Token == "" {
+		token := repo.GetToken()
+		if token == "" {
 			client = github.NewClient(nil)
 		} else {
 			ts := oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: repo.Token},
+				&oauth2.Token{AccessToken: token},
 			)
 			tc := oauth2.NewClient(context.TODO(), ts)
 			client = github.NewClient(tc)
 		}
-		if repo.Token != "" {
+		if token != "" {
 			user, _, err := client.Users.Get(context.TODO(), "")
 			if err != nil {
 				log.Fatal().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
@@ -54,7 +55,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range githubrepos {
 			if include[*r.Name] {
-				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
 				continue
 			}
 			if exclude[*r.Name] {
@@ -64,7 +65,7 @@ func Get(conf *types.Conf) []types.Repo {
 				continue
 			}
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: repo.Token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
 			}
 		}
 	}
