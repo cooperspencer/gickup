@@ -161,7 +161,7 @@ func RunBackup(conf *types.Conf) {
 	prometheus.JobDuration.Observe(duration.Seconds())
 
 	log.Info().
-		Float64("duration", duration.Seconds()).
+		Str("duration", duration.String()).
 		Msg("Backup run complete")
 
 	if conf.HasValidCronSpec() {
