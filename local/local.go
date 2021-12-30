@@ -66,10 +66,10 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 			if err != nil {
 				if x == tries {
-					log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+					log.Fatal().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 				} else {
 					if strings.Contains(err.Error(), "remote repository is empty") {
-						log.Warn().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+						log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 						break
 					}
 					log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
@@ -79,7 +79,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 			}
 		} else {
 			if !stat.IsDir() {
-				log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("%s is a file", types.Red(repo.Name))
+				log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msgf("%s is a file", types.Red(repo.Name))
 			} else {
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", types.Green(repo.Name))
 
@@ -90,10 +90,10 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 					} else {
 						if x == tries {
-							log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+							log.Fatal().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 						} else {
 							os.RemoveAll(repo.Name)
-							log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+							log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 							time.Sleep(5 * time.Second)
 							continue
 						}
@@ -131,17 +131,17 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool) error
 			site := types.Site{}
 			err := site.GetValues(url)
 			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
+				log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
 			}
 
 			sshAuth, err := goph.Key(repo.Origin.SSHKey, "")
 			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
+				log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
 			}
 
 			err = testSshConnection(site, sshAuth)
 			if err != nil {
-				log.Fatal().Str("stage", "locally").Msg(err.Error())
+				log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
 			}
 		}
 
