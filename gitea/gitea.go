@@ -1,9 +1,8 @@
 package gitea
 
 import (
-	"gickup/types"
-
 	"code.gitea.io/sdk/gitea"
+	"gickup/types"
 	"github.com/rs/zerolog/log"
 )
 
