@@ -13,7 +13,7 @@ You can clone/mirror them to:
 - Gogs
 - Local
 
-## How to make an Configuration file?
+## How to make a Configuration file?
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
 
 ## How to run the Binary version
