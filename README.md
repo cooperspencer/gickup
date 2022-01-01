@@ -13,10 +13,10 @@ You can clone/mirror them to:
 - Gogs
 - Local
 
-## How to make a Configuration file?
+## How to make a configuration file
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
 
-## How to run the Binary version
+## How to run the binary version
 `./gickup path-to-conf.yml`
 
 ## How to run the Docker image
@@ -26,7 +26,7 @@ wget https://raw.githubusercontent.com/cooperspencer/gickup/main/docker-compose.
 nano conf.yml # Make your config here
 docker-compose up
 ```
-## Compile the Binary version
+## Compile the binary version
 `go build .`
 
 ## Compile the Docker Image
