@@ -105,9 +105,11 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 
 				if r.WikiEnabled && repo.Wiki {
-					httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-					sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					if activeWiki(r, client, repo) {
+						httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+						sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+						repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					}
 				}
 
 				continue
@@ -121,9 +123,11 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 
 				if r.WikiEnabled && repo.Wiki {
-					httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-					sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-					repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					if activeWiki(r, client, repo) {
+						httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+						sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+						repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.Username, Hoster: types.GetHost(repo.Url)})
+					}
 				}
 			}
 		}
@@ -174,9 +178,11 @@ func Get(conf *types.Conf) []types.Repo {
 						}
 
 						if r.WikiEnabled && repo.Wiki {
-							httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-							sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							if activeWiki(r, client, repo) {
+								httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+								sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+								repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							}
 						}
 						continue
 					}
@@ -189,9 +195,11 @@ func Get(conf *types.Conf) []types.Repo {
 						}
 
 						if r.WikiEnabled && repo.Wiki {
-							httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-							sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-							repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							if activeWiki(r, client, repo) {
+								httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+								sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+								repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+							}
 						}
 					}
 				}
@@ -199,4 +207,16 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 	return repos
+}
+
+func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bool {
+	wikilistoptions := &gitlab.ListWikisOptions{WithContent: gitlab.Bool(true)}
+	wikis, _, err := client.Wikis.ListWikis(r.ID, wikilistoptions)
+	if err != nil {
+		log.Warn().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+	}
+	if len(wikis) > 0 {
+		return true
+	}
+	return false
 }
