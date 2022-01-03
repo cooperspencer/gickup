@@ -214,11 +214,6 @@ func main() {
 			Int("pairs", pairs).
 			Msg("Configuration loaded")
 
-		if conf.HasAllPrometheusConf() {
-			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
-			prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
-		}
-
 		if conf.HasValidCronSpec() {
 			c := cron.New()
 			logNextRun(conf)
@@ -229,6 +224,8 @@ func main() {
 			c.Start()
 
 			if conf.HasAllPrometheusConf() {
+				prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
+				prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
 				prometheus.Serve(conf.Metrics.Prometheus)
 			} else {
 				PlaysForever()

@@ -66,28 +66,36 @@ type FileLogging struct {
 }
 
 func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
-	allEmpty := true
-
+	missing := false
 	for key, value := range theMap {
-		thisOneIsEmpty := value == ""
-		if !allEmpty && thisOneIsEmpty {
-			log.Fatal().Str("expectedButMissing", key).Msg(
+		if value == "" {
+			log.Warn().Str("expectedButMissing", key).Msg(
 				"A configuration value is expected but not present. Ensure all required configuration is present.")
-		}
-		if !thisOneIsEmpty {
-			allEmpty = false
+			missing = true
 		}
 	}
 
-	return true
+	return !missing
 }
 
 func (conf Conf) HasAllPrometheusConf() bool {
-	checks := map[string]string{
-		"listenaddr": conf.Metrics.Prometheus.ListenAddr,
-		"endpoint":   conf.Metrics.Prometheus.Endpoint,
+	if len(conf.Metrics.Prometheus.ListenAddr) == 0 && len(conf.Metrics.Prometheus.Endpoint) == 0 {
+		return false
+	} else {
+		checks := map[string]string{
+			"listenaddr": conf.Metrics.Prometheus.ListenAddr,
+			"endpoint":   conf.Metrics.Prometheus.Endpoint,
+		}
+
+		ok := CheckAllValuesOrNone("prometheus", checks)
+
+		if !ok {
+			log.Fatal().Str("monitoring", "prometheus").Msg(
+				"Fix the values in the configuration.")
+		}
+
+		return ok
 	}
-	return CheckAllValuesOrNone("prometheus", checks)
 }
 
 func (conf Conf) MissingCronSpec() bool {
