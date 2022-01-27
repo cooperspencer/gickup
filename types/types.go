@@ -164,6 +164,7 @@ type GenRepo struct {
 	Exclude     []string `yaml:"exclude"`
 	ExcludeOrgs []string `yaml:"excludeorgs"`
 	Include     []string `yaml:"include"`
+	IncludeOrgs []string `yaml:"includeorgs"`
 	Wiki        bool     `yaml:"wiki"`
 }
 

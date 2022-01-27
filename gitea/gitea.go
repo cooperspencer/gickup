@@ -82,6 +82,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
+		includeorgs := types.GetMap(repo.IncludeOrgs)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gitearepos {
@@ -116,21 +117,30 @@ func Get(conf *types.Conf) []types.Repo {
 			orgopt.Page++
 		}
 
-		orgopt.Page = 1
 		orgrepos := []*gitea.Repository{}
 		for _, org := range orgs {
+			orgopt.Page = 1
 			if excludeorgs[org.UserName] {
 				continue
 			}
-			o, _, err := client.ListOrgRepos(org.UserName, gitea.ListOrgReposOptions{orgopt})
-			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+			for {
+				if len(includeorgs) > 0 {
+					if includeorgs[org.UserName] {
+						o := getOrgRepos(client, org, orgopt, repo)
+						if len(o) == 0 {
+							break
+						}
+						orgrepos = append(orgrepos, o...)
+					}
+				} else {
+					o := getOrgRepos(client, org, orgopt, repo)
+					if len(o) == 0 {
+						break
+					}
+					orgrepos = append(orgrepos, o...)
+				}
+				orgopt.Page++
 			}
-			if len(o) == 0 {
-				break
-			}
-			orgrepos = append(orgrepos, o...)
-			orgopt.Page++
 		}
 		for _, r := range orgrepos {
 			if include[r.Name] {
@@ -152,4 +162,12 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 	return repos
+}
+
+func getOrgRepos(client *gitea.Client, org *gitea.Organization, orgopt gitea.ListOptions, repo types.GenRepo) []*gitea.Repository {
+	o, _, err := client.ListOrgRepos(org.UserName, gitea.ListOrgReposOptions{orgopt})
+	if err != nil {
+		log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+	}
+	return o
 }

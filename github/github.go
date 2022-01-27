@@ -50,6 +50,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		include := types.GetMap(repo.Include)
+		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
@@ -68,9 +69,18 @@ func Get(conf *types.Conf) []types.Repo {
 				continue
 			}
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
-				if *r.HasWiki && repo.Wiki && *r.HasPages {
-					repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				if len(includeorgs) > 0 {
+					if includeorgs[r.GetOwner().GetLogin()] {
+						repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+						if *r.HasWiki && repo.Wiki && *r.HasPages {
+							repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+						}
+					}
+				} else {
+					repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+					if *r.HasWiki && repo.Wiki && *r.HasPages {
+						repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+					}
 				}
 			}
 		}

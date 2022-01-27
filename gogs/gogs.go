@@ -51,6 +51,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		include := types.GetMap(repo.Include)
+		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
@@ -82,14 +83,29 @@ func Get(conf *types.Conf) []types.Repo {
 			if excludeorgs[org.UserName] {
 				continue
 			}
-			o, err := client.ListOrgRepos(org.UserName)
-			if err != nil {
-				log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+			for {
+				if len(includeorgs) > 0 {
+					if includeorgs[org.UserName] {
+						o, err := client.ListOrgRepos(org.UserName)
+						if err != nil {
+							log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+						}
+						if len(o) == 0 {
+							break
+						}
+						orgrepos = append(orgrepos, o...)
+					}
+				} else {
+					o, err := client.ListOrgRepos(org.UserName)
+					if err != nil {
+						log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+					}
+					if len(o) == 0 {
+						break
+					}
+					orgrepos = append(orgrepos, o...)
+				}
 			}
-			if len(o) == 0 {
-				break
-			}
-			orgrepos = append(orgrepos, o...)
 		}
 		for _, r := range orgrepos {
 			if include[r.Name] {
