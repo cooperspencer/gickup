@@ -21,6 +21,9 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      includeorgs: # this includes repos from the organizations "foo1" and "bar1"
+        - foo1
+        - bar1
       wiki: true # includes wiki too
   gitea:
     - token: some-token
@@ -44,6 +47,9 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      includeorgs: # this includes repos from the organizations "foo1" and "bar1"
+        - foo1
+        - bar1
       wiki: true # includes wiki too
   gogs:
     - token: some-token
@@ -67,6 +73,9 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      includeorgs: # this includes repos from the organizations "foo1" and "bar1"
+        - foo1
+        - bar1
       wiki: true # includes wiki too
   gitlab:
     - token: some-token
@@ -90,6 +99,9 @@ source:
       excludeorgs: # this excludes repos from the organizations "foo" and "bar"
         - foo
         - bar
+      includeorgs: # this includes repos from the organizations "foo1" and "bar1"
+        - foo1
+        - bar1
       wiki: true # includes wiki too
   bitbucket:
     - user: some-user # the user you want to clone the repositories from.
