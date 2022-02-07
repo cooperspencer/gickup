@@ -6,3 +6,6 @@ services:
     volumes:
       - ${PWD}/conf.yml:/gickup/conf.yml # Change the path of your local config ${PWD} is your current directory (where the docker-compose.yml is located)
     command: ["/gickup/conf.yml"] # Changes the path of the internal bound config
+    # Uncomment these 2 lines and set timezone appropriately to specify cron in local time instead of UTC.
+    # environment:
+    #   - TZ=America/Los_Angeles

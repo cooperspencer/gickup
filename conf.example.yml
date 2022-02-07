@@ -129,11 +129,15 @@ destination:
       # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gitlab
   local:
+    # Export this path from Docker with a volume to make it accessible and more permanent.
     - path: /some/path/gickup
       structured: true # checks repos out like hostersite/user|organization/repo
 
-cron: 0 22 * * * # optional
-# https://crontab.guru/
+cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
+# Otherwise, it runs according to the cron schedule.
+# See timezone commentary in docker-compose.yml for making sure this container runs
+# in the timezone you want.
+# For more information on crontab or testing: https://crontab.guru/
 
 log: # optional
   timeformat: 2006-01-02 15:04:05 # you can use a custom time format, use https://yourbasic.org/golang/format-parse-string-time-date-example/ to check how date formats work in go
