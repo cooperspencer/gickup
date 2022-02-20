@@ -52,6 +52,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      starred: true # includes the user's starred repositories too
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
