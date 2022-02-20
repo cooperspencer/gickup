@@ -49,6 +49,25 @@ func Get(conf *types.Conf) []types.Repo {
 			i++
 		}
 
+		if repo.Starred {
+			i = 1
+			opt := &github.ActivityListStarredOptions{ListOptions: github.ListOptions{PerPage: 50}}
+			for {
+				opt.ListOptions.Page = i
+				repos, _, err := client.Activity.ListStarred(context.TODO(), repo.User, opt)
+				if err != nil {
+					log.Fatal().Str("stage", "github").Str("url", "https://github.com").Msg(err.Error())
+				}
+				if len(repos) == 0 {
+					break
+				}
+				for _, starredrepo := range repos {
+					githubrepos = append(githubrepos, starredrepo.Repository)
+				}
+				i++
+			}
+		}
+
 		include := types.GetMap(repo.Include)
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)

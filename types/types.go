@@ -166,6 +166,7 @@ type GenRepo struct {
 	Include     []string `yaml:"include"`
 	IncludeOrgs []string `yaml:"includeorgs"`
 	Wiki        bool     `yaml:"wiki"`
+	Starred     bool     `yaml:"starred"`
 }
 
 func (grepo GenRepo) GetToken() string {
