@@ -78,10 +78,11 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		opt.PerPage = 50
-		i := 0
 		for _, user := range users {
 			if user.Username == repo.User {
+				i := 1
 				for {
+					opt.Page = i
 					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
 					if err != nil {
 						log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
@@ -91,7 +92,6 @@ func Get(conf *types.Conf) []types.Repo {
 					}
 					gitlabrepos = append(gitlabrepos, projects...)
 					i++
-					opt.Page = i
 				}
 			}
 		}
@@ -133,7 +133,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		if token != "" {
 			groups := []*gitlab.Group{}
-			i = 1
+			i := 1
 			for {
 				g, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{ListOptions: gitlab.ListOptions{Page: i, PerPage: 50}})
 				if err != nil {
