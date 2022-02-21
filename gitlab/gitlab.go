@@ -95,6 +95,27 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 		}
+
+		if repo.Starred {
+			for _, user := range users {
+				if user.Username == repo.User {
+					i := 1
+					for {
+						opt.Page = i
+						projects, _, err := client.Projects.ListUserStarredProjects(user.ID, opt)
+						if err != nil {
+							log.Fatal().Str("stage", "gitlab").Str("url", repo.Url).Msg(err.Error())
+						}
+						if len(projects) == 0 {
+							break
+						}
+						gitlabrepos = append(gitlabrepos, projects...)
+						i++
+					}
+				}
+			}
+		}
+
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 

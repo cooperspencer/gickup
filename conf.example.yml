@@ -105,6 +105,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      starred: true # includes the user's starred repositories too
   bitbucket:
     - user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-bitbucket # if empty, it uses https://bitbucket.org
