@@ -80,6 +80,14 @@ func Get(conf *types.Conf) []types.Repo {
 			i++
 		}
 
+		if repo.Starred {
+			starredrepos, _, err := client.GetMyStarredRepos()
+			if err != nil {
+				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+			}
+			gitearepos = append(gitearepos, starredrepos...)
+		}
+
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 		includeorgs := types.GetMap(repo.IncludeOrgs)
