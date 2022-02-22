@@ -54,7 +54,7 @@ func Get(conf *types.Conf) []types.Repo {
 		log.Info().Str("stage", "gitea").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
 		opt := gitea.ListReposOptions{}
 		opt.PageSize = 50
-		i := 0
+		opt.Page = 1
 		gitearepos := []*gitea.Repository{}
 		client := &gitea.Client{}
 		var err error
@@ -65,7 +65,6 @@ func Get(conf *types.Conf) []types.Repo {
 			client, err = gitea.NewClient(repo.Url)
 		}
 		for {
-			opt.Page = i
 			if err != nil {
 				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
 			}
@@ -77,7 +76,7 @@ func Get(conf *types.Conf) []types.Repo {
 				break
 			}
 			gitearepos = append(gitearepos, repos...)
-			i++
+			opt.Page++
 		}
 
 		if repo.Starred {
