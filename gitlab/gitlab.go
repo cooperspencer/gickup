@@ -117,6 +117,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		include := types.GetMap(repo.Include)
+		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
@@ -215,17 +216,19 @@ func Get(conf *types.Conf) []types.Repo {
 						continue
 					}
 					if len(include) == 0 {
-						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-							repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
-						}
-
-						if r.WikiEnabled && repo.Wiki {
-							if activeWiki(r, client, repo) {
-								httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-								sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-								repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+						if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
+							if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+								repos = append(repos, types.Repo{Name: r.Path, Url: r.HTTPURLToRepo, SshUrl: r.SSHURLToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 							}
-						}
+
+							if r.WikiEnabled && repo.Wiki {
+								if activeWiki(r, client, repo) {
+									httpUrlToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+									sshUrlToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+									repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
+								}
+							}
+                        }
 					}
 				}
 			}
