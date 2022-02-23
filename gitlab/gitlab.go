@@ -118,6 +118,7 @@ func Get(conf *types.Conf) []types.Repo {
 
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
+		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gitlabrepos {
 			if include[r.Name] {
@@ -208,6 +209,9 @@ func Get(conf *types.Conf) []types.Repo {
 						continue
 					}
 					if exclude[r.Name] {
+						continue
+					}
+					if excludeorgs[r.Namespace.FullPath] {
 						continue
 					}
 					if len(include) == 0 {
