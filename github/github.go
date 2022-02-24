@@ -3,11 +3,17 @@ package github
 import (
 	"context"
 	"gickup/types"
-
 	"github.com/google/go-github/v41/github"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
+
+func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
+	if r.GetHasWiki() && repo.Wiki && r.GetHasPages() {
+		return types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"}
+	}
+	return types.Repo{}
+}
 
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
@@ -76,8 +82,9 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, r := range githubrepos {
 			if include[*r.Name] {
 				repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
-				if *r.HasWiki && repo.Wiki && *r.HasPages {
-					repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+				wiki := addWiki(*r, repo, token)
+				if wiki.Name != "" {
+					repos = append(repos, wiki)
 				}
 				continue
 			}
@@ -91,14 +98,16 @@ func Get(conf *types.Conf) []types.Repo {
 				if len(includeorgs) > 0 {
 					if includeorgs[r.GetOwner().GetLogin()] {
 						repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
-						if *r.HasWiki && repo.Wiki && *r.HasPages {
-							repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+						wiki := addWiki(*r, repo, token)
+						if wiki.Name != "" {
+							repos = append(repos, wiki)
 						}
 					}
 				} else {
 					repos = append(repos, types.Repo{Name: r.GetName(), Url: r.GetCloneURL(), SshUrl: r.GetSSHURL(), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
-					if *r.HasWiki && repo.Wiki && *r.HasPages {
-						repos = append(repos, types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"})
+					wiki := addWiki(*r, repo, token)
+					if wiki.Name != "" {
+						repos = append(repos, wiki)
 					}
 				}
 			}
