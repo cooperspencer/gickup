@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -68,6 +69,10 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				if x == tries {
 					log.Fatal().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 				} else {
+					if strings.Contains(err.Error(), "ERR access denied or repository not exported") {
+						log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msgf("%s doesn't exist.", repo.Name)
+						break
+					}
 					if strings.Contains(err.Error(), "remote repository is empty") {
 						log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 						break
@@ -110,6 +115,13 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool) erro
 	if err != nil {
 		return err
 	}
+	remote, _ := r.Remote("origin")
+
+	rem := git.NewRemote(nil, &config.RemoteConfig{Name: "origin", URLs: remote.Config().URLs})
+	_, err = rem.List(&git.ListOptions{Auth: auth})
+	if err != nil {
+		return err
+	}
 
 	w, err := r.Worktree()
 	if err != nil {
@@ -145,7 +157,13 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool) error
 			}
 		}
 
-		_, err := git.PlainClone(repo.Name, false, &git.CloneOptions{
+		rem := git.NewRemote(nil, &config.RemoteConfig{Name: "origin", URLs: []string{url}})
+		_, err := rem.List(&git.ListOptions{Auth: auth})
+		if err != nil {
+			return err
+		}
+
+		_, err = git.PlainClone(repo.Name, false, &git.CloneOptions{
 			URL:          url,
 			Auth:         auth,
 			SingleBranch: false,
