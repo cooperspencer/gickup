@@ -199,7 +199,7 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 			Str("path", tokenFile).
 			Msg("Read token file")
 
-		tokenData := string(data)
+		tokenData := strings.ReplaceAll(string(data), "\n", "")
 		return tokenData, nil
 
 	}
