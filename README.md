@@ -39,6 +39,10 @@ docker-compose build
 docker-compose up
 ```
 
+## Questions?
+If anything is unclear or you have a great idea for the project, feel free to open a discussion about it.
+https://github.com/cooperspencer/gickup/discussions
+
 ## Distribution Packages
 |Distribution|Package|Maintainer|
 |---|---|---|
