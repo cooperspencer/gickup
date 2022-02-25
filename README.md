@@ -50,3 +50,10 @@ https://github.com/cooperspencer/gickup/discussions
 
 ## Issues
 The mirroring to Gitlab doesn't work, or at least I can't test it properly because I have no access to a Gitlab EE instance.
+
+## Future Ideas
+- Additional VCS
+  - [OneDev](https://code.onedev.io/)
+  - [GitBucket](https://gitbucket.github.io/)
+  - Local bare repositories
+- Add minio as a destination
