@@ -3,11 +3,17 @@ package types
 import (
 	"fmt"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -274,4 +280,36 @@ func GetMap(excludes []string) map[string]bool {
 		excludemap[exclude] = true
 	}
 	return excludemap
+}
+
+func StatRemote(URL, sshURL string, repo GenRepo) bool {
+	var url string
+	var auth transport.AuthMethod
+	var err error
+	if repo.SSH {
+		url = DotGitRx.ReplaceAllString(sshURL, ".wiki.git")
+		if repo.SSHKey == "" {
+			home := os.Getenv("HOME")
+			repo.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+		auth, err = ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		url = DotGitRx.ReplaceAllString(URL, ".wiki.git")
+		if repo.Token != "" {
+			auth = &http.BasicAuth{
+				Username: "xyz",
+				Password: repo.Token,
+			}
+		} else if repo.Username != "" && repo.Password != "" {
+			auth = &http.BasicAuth{
+				Username: repo.Username,
+				Password: repo.Password,
+			}
+		}
+	}
+	_, err = git.NewRemote(nil, &config.RemoteConfig{Name: "origin", URLs: []string{url}}).List(&git.ListOptions{Auth: auth})
+	return err == nil
 }

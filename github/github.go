@@ -9,7 +9,7 @@ import (
 )
 
 func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
-	if r.GetHasWiki() && repo.Wiki && r.GetHasPages() {
+	if r.GetHasWiki() && repo.Wiki && types.StatRemote(r.GetCloneURL(), r.GetSSHURL(), repo) {
 		return types.Repo{Name: *r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"), Token: token, Defaultbranch: r.GetDefaultBranch(), Origin: repo, Owner: r.GetOwner().GetLogin(), Hoster: "github.com"}
 	}
 	return types.Repo{}
