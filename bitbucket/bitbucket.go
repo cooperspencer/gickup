@@ -12,6 +12,9 @@ func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.BitBucket {
 		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
+		if repo.User == "" {
+			repo.User = repo.Username
+		}
 		if repo.Url == "" {
 			repo.Url = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
 		} else {
