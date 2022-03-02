@@ -95,7 +95,7 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, r := range gitearepos {
 			if include[r.Name] {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
-				if r.HasWiki && repo.Wiki {
+				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				}
 				continue
@@ -105,7 +105,7 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 			if len(repo.Include) == 0 {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
-				if r.HasWiki && repo.Wiki {
+				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				}
 			}
@@ -152,7 +152,7 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, r := range orgrepos {
 			if include[r.Name] {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
-				if r.HasWiki && repo.Wiki {
+				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				}
 				continue
@@ -162,7 +162,7 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 			if len(repo.Include) == 0 {
 				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
-				if r.HasWiki && repo.Wiki {
+				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
 				}
 			}
