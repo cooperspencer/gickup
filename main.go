@@ -16,7 +16,8 @@ import (
 	"gickup/gogs"
 	"gickup/local"
 	"gickup/logger"
-	prometheus "gickup/metrics/prometheus"
+	"gickup/metrics/heartbeat"
+	"gickup/metrics/prometheus"
 	"gickup/types"
 
 	"github.com/alecthomas/kong"
@@ -149,7 +150,7 @@ func RunBackup(conf *types.Conf) {
 	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
 	Backup(repos, conf)
 
-	//Bitbucket
+	// Bitbucket
 	repos = bitbucket.Get(conf)
 	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	Backup(repos, conf)
@@ -159,6 +160,10 @@ func RunBackup(conf *types.Conf) {
 
 	prometheus.JobsComplete.Inc()
 	prometheus.JobDuration.Observe(duration.Seconds())
+
+	if conf.Metrics.Heartbeat.URL != "" {
+		heartbeat.Send(conf.Metrics.Heartbeat)
+	}
 
 	log.Info().
 		Str("duration", duration.String()).

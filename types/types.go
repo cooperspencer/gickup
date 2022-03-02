@@ -50,8 +50,13 @@ type PrometheusConfig struct {
 	Endpoint   string `yaml:"endpoint"`
 }
 
+type HeartbeatConfig struct {
+	URL string `yaml:"url"`
+}
+
 type Metrics struct {
 	Prometheus PrometheusConfig `yaml:"prometheus"`
+	Heartbeat  HeartbeatConfig  `yaml:"heartbeat"`
 }
 
 type Logging struct {

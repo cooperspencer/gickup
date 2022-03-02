@@ -153,3 +153,5 @@ metrics:
   prometheus:
     endpoint: /metrics
     listen_addr: ":6178" # default listens on port 6178 on all IPs.
+  heartbeat:
+    url: http(s)://url-to-make-request-to
