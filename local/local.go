@@ -115,13 +115,6 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool) erro
 	if err != nil {
 		return err
 	}
-	remote, _ := r.Remote("origin")
-
-	rem := git.NewRemote(nil, &config.RemoteConfig{Name: "origin", URLs: remote.Config().URLs})
-	_, err = rem.List(&git.ListOptions{Auth: auth})
-	if err != nil {
-		return err
-	}
 
 	w, err := r.Worktree()
 	if err != nil {
