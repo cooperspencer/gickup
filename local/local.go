@@ -97,10 +97,18 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 						if x == tries {
 							log.Fatal().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
 						} else {
-							os.RemoveAll(repo.Name)
-							log.Warn().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
-							time.Sleep(5 * time.Second)
-							continue
+							if l.Working {
+								log.Error().Str("stage", "locally").Str("path", l.Path).Err(err)
+							} else {
+								if x == tries {
+									log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
+								} else {
+									os.RemoveAll(repo.Name)
+									log.Warn().Str("stage", "locally").Str("path", l.Path).Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+									time.Sleep(5 * time.Second)
+									continue
+								}
+							}
 						}
 					}
 				}
