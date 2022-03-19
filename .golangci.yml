@@ -1,10 +1,13 @@
 linters:
   enable-all: true
   disable:
+    - cyclop # duplicate of gocyclo
     - exhaustivestruct # not revelent
     - gochecknoglobals
+    - gocognit # too strict
     - goerr113 # too strict
     - golint # deprecated
+    - gomnd # too strict
     - interfacer # deprecated
     - ireturn # not revelent
     - maligned # deprecated
@@ -13,7 +16,7 @@ linters:
     - testpackage # too strict
     - varnamelen # not revelent
     - wrapcheck # too strict
-    - gomnd # too strict
+    - wsl # too strict
 
 issues:
   exclude-rules:
@@ -28,6 +31,10 @@ issues:
         - typecheck
     - path: metrics/prometheus/prometheus.go # FIXME
       text: counter metrics should have "_total" suffix
+    - path: local/local.go # FIXME
+      text: has complex nested blocks
+    - path: local/local.go # FIXME
+      text: Function 'Locally' has too many statements
 
 linters-settings:
   forbidigo:
