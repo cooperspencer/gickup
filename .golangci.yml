@@ -1,7 +1,25 @@
 linters:
   enable-all: true
   disable:
-    - scopelint # deprecated
     - golint # deprecated
     - interfacer # deprecated
     - maligned # deprecated
+    - scopelint # deprecated
+    - varnamelen # not revelent
+    - wrapcheck # too strict
+    - exhaustivestruct # not revelent
+    - gochecknoglobals
+
+issues:
+  exclude-rules:
+    - path: main.go
+      text: bad syntax for struct tag pair
+    - path: main.go
+      text: Expected 'a', Found 'c'
+    - path: main.go # FIXME
+      text: Function 'main' is too long
+
+linters-settings:
+  forbidigo:
+    forbid:
+      - '^print(ln)?$'
