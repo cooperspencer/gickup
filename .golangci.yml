@@ -1,17 +1,19 @@
 linters:
   enable-all: true
   disable:
-    - golint # deprecated
-    - interfacer # deprecated
-    - maligned # deprecated
-    - scopelint # deprecated
-    - varnamelen # not revelent
-    - wrapcheck # too strict
     - exhaustivestruct # not revelent
     - gochecknoglobals
-    - tagliatelle # breaking
-    - ireturn # not revelent
     - goerr113 # too strict
+    - golint # deprecated
+    - interfacer # deprecated
+    - ireturn # not revelent
+    - maligned # deprecated
+    - scopelint # deprecated
+    - tagliatelle # breaking
+    - testpackage # too strict
+    - varnamelen # not revelent
+    - wrapcheck # too strict
+    - gomnd # too strict
 
 issues:
   exclude-rules:
