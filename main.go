@@ -34,13 +34,10 @@ var cli struct {
 	Silent     bool   `flag name:"silent" help:"Suppress all stderr log output"`
 }
 
-var (
-	version = "unknown"
-)
+var version = "unknown"
 
 func ReadConfigfile(configfile string) *types.Conf {
 	cfgdata, err := ioutil.ReadFile(configfile)
-
 	if err != nil {
 		log.Fatal().Str("stage", "readconfig").Str("file", configfile).Msgf("Cannot open config file from %s", types.Red(configfile))
 	}
@@ -58,7 +55,6 @@ func ReadConfigfile(configfile string) *types.Conf {
 
 func GetUserHome() (string, error) {
 	usr, err := user.Current()
-
 	if err != nil {
 		return "", err
 	}
@@ -149,7 +145,7 @@ func RunBackup(conf *types.Conf) {
 	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
 	Backup(repos, conf)
 
-	//Bitbucket
+
 	repos = bitbucket.Get(conf)
 	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	Backup(repos, conf)
@@ -185,7 +181,6 @@ func main() {
 	if cli.Version {
 		fmt.Println(version)
 	} else {
-
 		if cli.Quiet {
 			zerolog.SetGlobalLevel(zerolog.WarnLevel)
 		}

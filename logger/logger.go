@@ -14,7 +14,7 @@ import (
 
 func NewRollingFile(config types.FileLogging) io.Writer {
 	if config.Dir != "" {
-		if err := os.MkdirAll(config.Dir, 0744); err != nil {
+		if err := os.MkdirAll(config.Dir, 0o744); err != nil {
 			log.Error().Err(err).Str("path", config.Dir).Msg("can't create log directory")
 			return nil
 		}

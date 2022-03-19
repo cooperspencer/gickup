@@ -24,7 +24,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 	}
 	stat, err := os.Stat(l.Path)
 	if os.IsNotExist(err) && !dry {
-		err := os.MkdirAll(l.Path, 0777)
+		err := os.MkdirAll(l.Path, 0o777)
 		if err != nil {
 			log.Fatal().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())
 		}
@@ -64,7 +64,6 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 			log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("cloning %s", types.Green(repo.Name))
 
 			err := cloneRepository(repo, auth, dry)
-
 			if err != nil {
 				if x == tries {
 					log.Fatal().Str("stage", "locally").Str("path", l.Path).Str("repo", repo.Name).Msg(err.Error())
@@ -89,7 +88,6 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				log.Info().Str("stage", "locally").Str("path", l.Path).Msgf("opening %s locally", types.Green(repo.Name))
 
 				err := updateRepository(repo.Name, auth, dry)
-
 				if err != nil {
 					if strings.Contains(err.Error(), "already up-to-date") {
 						log.Info().Str("stage", "locally").Str("path", l.Path).Msg(err.Error())

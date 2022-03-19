@@ -19,7 +19,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Destination
+// Destination.
 type Destination struct {
 	Gitlab []GenRepo `yaml:"gitlab"`
 	Local  []Local   `yaml:"local"`
@@ -36,13 +36,13 @@ func (dest Destination) Count() int {
 		len(dest.Gitlab)
 }
 
-// Local
+// Local.
 type Local struct {
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
 }
 
-// Conf
+// Conf.
 type Conf struct {
 	Source      Source      `yaml:"source"`
 	Destination Destination `yaml:"destination"`
@@ -110,7 +110,6 @@ func (conf Conf) MissingCronSpec() bool {
 
 func ParseCronSpec(spec string) (cron.Schedule, error) {
 	sched, err := cron.ParseStandard(spec)
-
 	if err != nil {
 		log.Error().Str("spec", spec).Msg(err.Error())
 	}
@@ -140,7 +139,7 @@ func (conf Conf) HasValidCronSpec() bool {
 	return err == nil
 }
 
-// Source
+// Source.
 type Source struct {
 	Gogs      []GenRepo `yaml:"gogs"`
 	Gitlab    []GenRepo `yaml:"gitlab"`
@@ -157,7 +156,7 @@ func (source Source) Count() int {
 		len(source.Gitlab)
 }
 
-// Generell Repo
+// Generell Repo.
 type GenRepo struct {
 	Token       string   `yaml:"token"`
 	TokenFile   string   `yaml:"token_file"`
@@ -177,7 +176,6 @@ type GenRepo struct {
 
 func (grepo GenRepo) GetToken() string {
 	token, err := resolveToken(grepo.Token, grepo.TokenFile)
-
 	if err != nil {
 		log.Fatal().
 			Str("url", grepo.Url).
@@ -195,7 +193,6 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 
 	if tokenFile != "" {
 		data, err := os.ReadFile(tokenFile)
-
 		if err != nil {
 			return "", err
 		}
@@ -207,12 +204,11 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 
 		tokenData := strings.ReplaceAll(string(data), "\n", "")
 		return tokenData, nil
-
 	}
 	return "", fmt.Errorf("no token or tokenfile was specified in config when one was expected")
 }
 
-// Repo
+// Repo.
 type Repo struct {
 	Name          string
 	Url           string
@@ -224,7 +220,7 @@ type Repo struct {
 	Hoster        string
 }
 
-// Site
+// Site.
 type Site struct {
 	Url  string
 	User string
