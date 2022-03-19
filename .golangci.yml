@@ -9,6 +9,9 @@ linters:
     - wrapcheck # too strict
     - exhaustivestruct # not revelent
     - gochecknoglobals
+    - tagliatelle # breaking
+    - ireturn # not revelent
+    - goerr113 # too strict
 
 issues:
   exclude-rules:

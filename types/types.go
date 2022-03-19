@@ -19,7 +19,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Destination.
+// Destination TODO.
 type Destination struct {
 	Gitlab []GenRepo `yaml:"gitlab"`
 	Local  []Local   `yaml:"local"`
@@ -28,6 +28,7 @@ type Destination struct {
 	Gogs   []GenRepo `yaml:"gogs"`
 }
 
+// Count TODO.
 func (dest Destination) Count() int {
 	return len(dest.Gogs) +
 		len(dest.Gitea) +
@@ -36,13 +37,13 @@ func (dest Destination) Count() int {
 		len(dest.Gitlab)
 }
 
-// Local.
+// Local TODO.
 type Local struct {
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
 }
 
-// Conf.
+// Conf TODO.
 type Conf struct {
 	Source      Source      `yaml:"source"`
 	Destination Destination `yaml:"destination"`
@@ -51,32 +52,39 @@ type Conf struct {
 	Metrics     Metrics     `yaml:"metrics"`
 }
 
+// PrometheusConfig TODO.
 type PrometheusConfig struct {
 	ListenAddr string `yaml:"listen_addr"`
 	Endpoint   string `yaml:"endpoint"`
 }
 
+// Metrics TODO.
 type Metrics struct {
 	Prometheus PrometheusConfig `yaml:"prometheus"`
 }
 
+// Logging TODO.
 type Logging struct {
 	Timeformat  string      `yaml:"timeformat"`
 	FileLogging FileLogging `yaml:"file-logging"`
 }
 
+// FileLogging TODO.
 type FileLogging struct {
 	Dir    string `yaml:"dir"`
 	File   string `yaml:"file"`
 	MaxAge int    `yaml:"maxage"`
 }
 
+// CheckAllValuesOrNone TODO.
 func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
-	missing := false
+	var missing bool
+
 	for key, value := range theMap {
 		if value == "" {
-			log.Warn().Str("expectedButMissing", key).Msg(
-				"A configuration value is expected but not present. Ensure all required configuration is present.")
+			log.Warn().Str("expectedButMissing", key).
+				Msg("A configuration value is expected but not present. Ensure all required configuration is present.")
+
 			missing = true
 		}
 	}
@@ -84,30 +92,32 @@ func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
 	return !missing
 }
 
+// HasAllPrometheusConf TODO.
 func (conf Conf) HasAllPrometheusConf() bool {
 	if len(conf.Metrics.Prometheus.ListenAddr) == 0 && len(conf.Metrics.Prometheus.Endpoint) == 0 {
 		return false
-	} else {
-		checks := map[string]string{
-			"listenaddr": conf.Metrics.Prometheus.ListenAddr,
-			"endpoint":   conf.Metrics.Prometheus.Endpoint,
-		}
-
-		ok := CheckAllValuesOrNone("prometheus", checks)
-
-		if !ok {
-			log.Fatal().Str("monitoring", "prometheus").Msg(
-				"Fix the values in the configuration.")
-		}
-
-		return ok
 	}
+
+	checks := map[string]string{
+		"listenaddr": conf.Metrics.Prometheus.ListenAddr,
+		"endpoint":   conf.Metrics.Prometheus.Endpoint,
+	}
+
+	ok := CheckAllValuesOrNone("prometheus", checks)
+	if !ok {
+		log.Fatal().Str("monitoring", "prometheus").Msg(
+			"Fix the values in the configuration.")
+	}
+
+	return ok
 }
 
+// MissingCronSpec TODO.
 func (conf Conf) MissingCronSpec() bool {
 	return conf.Cron == ""
 }
 
+// ParseCronSpec TODO.
 func ParseCronSpec(spec string) (cron.Schedule, error) {
 	sched, err := cron.ParseStandard(spec)
 	if err != nil {
@@ -117,18 +127,23 @@ func ParseCronSpec(spec string) (cron.Schedule, error) {
 	return sched, err
 }
 
+// GetNextRun TODO.
 func (conf Conf) GetNextRun() (*time.Time, error) {
 	if conf.MissingCronSpec() {
 		return nil, fmt.Errorf("cron unspecified")
 	}
+
 	parsedSched, err := ParseCronSpec(conf.Cron)
 	if err != nil {
 		return nil, err
 	}
+
 	next := parsedSched.Next(time.Now())
+
 	return &next, nil
 }
 
+// HasValidCronSpec TODO.
 func (conf Conf) HasValidCronSpec() bool {
 	if conf.MissingCronSpec() {
 		return false
@@ -139,7 +154,7 @@ func (conf Conf) HasValidCronSpec() bool {
 	return err == nil
 }
 
-// Source.
+// Source TODO.
 type Source struct {
 	Gogs      []GenRepo `yaml:"gogs"`
 	Gitlab    []GenRepo `yaml:"gitlab"`
@@ -148,6 +163,7 @@ type Source struct {
 	BitBucket []GenRepo `yaml:"bitbucket"`
 }
 
+// Count TODO.
 func (source Source) Count() int {
 	return len(source.Gogs) +
 		len(source.Gitea) +
@@ -156,7 +172,7 @@ func (source Source) Count() int {
 		len(source.Gitlab)
 }
 
-// Generell Repo.
+// GenRepo Generell Repo.
 type GenRepo struct {
 	Token       string   `yaml:"token"`
 	TokenFile   string   `yaml:"token_file"`
@@ -165,7 +181,7 @@ type GenRepo struct {
 	SSHKey      string   `yaml:"sshkey"`
 	Username    string   `yaml:"username"`
 	Password    string   `yaml:"password"`
-	Url         string   `yaml:"url"`
+	URL         string   `yaml:"url"`
 	Exclude     []string `yaml:"exclude"`
 	ExcludeOrgs []string `yaml:"excludeorgs"`
 	Include     []string `yaml:"include"`
@@ -174,11 +190,12 @@ type GenRepo struct {
 	Starred     bool     `yaml:"starred"`
 }
 
+// GetToken TODO.
 func (grepo GenRepo) GetToken() string {
 	token, err := resolveToken(grepo.Token, grepo.TokenFile)
 	if err != nil {
 		log.Fatal().
-			Str("url", grepo.Url).
+			Str("url", grepo.URL).
 			Str("tokenfile", grepo.TokenFile).
 			Err(err)
 	}
@@ -203,16 +220,18 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 			Msg("Read token file")
 
 		tokenData := strings.ReplaceAll(string(data), "\n", "")
+
 		return tokenData, nil
 	}
+
 	return "", fmt.Errorf("no token or tokenfile was specified in config when one was expected")
 }
 
-// Repo.
+// Repo TODO.
 type Repo struct {
 	Name          string
-	Url           string
-	SshUrl        string
+	URL           string
+	SSHURL        string
 	Token         string
 	Defaultbranch string
 	Origin        GenRepo
@@ -220,80 +239,111 @@ type Repo struct {
 	Hoster        string
 }
 
-// Site.
+// Site TODO.
 type Site struct {
-	Url  string
+	URL  string
 	User string
 	Port int
 }
 
+// GetHost TODO.
 func GetHost(url string) string {
 	if strings.Contains(url, "http://") {
 		url = strings.Split(url, "http://")[1]
 	}
+
 	if strings.Contains(url, "https://") {
 		url = strings.Split(url, "https://")[1]
 	}
+
 	if strings.Contains(url, "/") {
 		url = strings.Split(url, "/")[0]
 	}
+
 	return url
 }
 
+// GetValues TODO.
 func (s *Site) GetValues(url string) error {
 	if strings.HasPrefix(url, "ssh://") {
 		url = strings.Split(url, "ssh://")[1]
 		userurl := strings.Split(url, "@")
 		s.User = userurl[0]
+
 		urlport := strings.Split(userurl[1], ":")
-		s.Url = urlport[0]
+		s.URL = urlport[0]
+
 		portstring := strings.Split(urlport[1], "/")[0]
+
 		port, err := strconv.Atoi(portstring)
 		if err != nil {
 			return err
 		}
+
 		s.Port = port
-	} else {
-		userurl := strings.Split(url, "@")
-		s.User = userurl[0]
-		urlport := strings.Split(userurl[1], ":")
-		s.Url = urlport[0]
-		s.Port = 22
+
+		return nil
 	}
+
+	userurl := strings.Split(url, "@")
+	s.User = userurl[0]
+
+	urlport := strings.Split(userurl[1], ":")
+	s.URL = urlport[0]
+	s.Port = 22
+
 	return nil
 }
 
 var (
-	Red      = color.FgRed.Render
-	Green    = color.FgGreen.Render
-	Blue     = color.FgBlue.Render
+	// Red Render message with Red color.
+	Red = color.FgRed.Render
+	// Green Render message with Green color.
+	Green = color.FgGreen.Render
+	// Blue Render message with Blue color.
+	Blue = color.FgBlue.Render
+	// DotGitRx .git regexp.
 	DotGitRx = regexp.MustCompile(`\.git$`)
 )
 
+// GetMap TODO.
 func GetMap(excludes []string) map[string]bool {
 	excludemap := make(map[string]bool)
 	for _, exclude := range excludes {
 		excludemap[exclude] = true
 	}
+
 	return excludemap
 }
 
-func StatRemote(URL, sshURL string, repo GenRepo) bool {
-	var url string
-	var auth transport.AuthMethod
-	var err error
+func statRemoteSSH(sshURL string, repo GenRepo) (string, transport.AuthMethod, error) {
+	url := DotGitRx.ReplaceAllString(sshURL, ".wiki.git")
+
+	if repo.SSHKey == "" {
+		home := os.Getenv("HOME")
+		repo.SSHKey = path.Join(home, ".ssh", "id_rsa")
+	}
+
+	auth, err := ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
+
+	return url, auth, err
+}
+
+// StatRemote TODO.
+func StatRemote(remoteURL, sshURL string, repo GenRepo) bool {
+	var (
+		url  string
+		auth transport.AuthMethod
+		err  error
+	)
+
 	if repo.SSH {
-		url = DotGitRx.ReplaceAllString(sshURL, ".wiki.git")
-		if repo.SSHKey == "" {
-			home := os.Getenv("HOME")
-			repo.SSHKey = path.Join(home, ".ssh", "id_rsa")
-		}
-		auth, err = ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
+		url, auth, err = statRemoteSSH(sshURL, repo)
 		if err != nil {
-			panic(err)
+			return false
 		}
 	} else {
-		url = DotGitRx.ReplaceAllString(URL, ".wiki.git")
+		url = DotGitRx.ReplaceAllString(remoteURL, ".wiki.git")
 		if repo.Token != "" {
 			auth = &http.BasicAuth{
 				Username: "xyz",
@@ -306,6 +356,13 @@ func StatRemote(URL, sshURL string, repo GenRepo) bool {
 			}
 		}
 	}
-	_, err = git.NewRemote(nil, &config.RemoteConfig{Name: "origin", URLs: []string{url}}).List(&git.ListOptions{Auth: auth})
+
+	remoteConfig := config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{url},
+	}
+
+	_, err = git.NewRemote(nil, &remoteConfig).List(&git.ListOptions{Auth: auth})
+
 	return err == nil
 }
