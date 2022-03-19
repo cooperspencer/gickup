@@ -26,6 +26,8 @@ issues:
     - path: (.+)_test.go
       linters:
         - typecheck
+    - path: metrics/prometheus/prometheus.go # FIXME
+      text: counter metrics should have "_total" suffix
 
 linters-settings:
   forbidigo:
