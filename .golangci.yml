@@ -18,6 +18,9 @@ issues:
       text: Expected 'a', Found 'c'
     - path: main.go # FIXME
       text: Function 'main' is too long
+    - path: (.+)_test.go
+      linters:
+        - typecheck
 
 linters-settings:
   forbidigo:
