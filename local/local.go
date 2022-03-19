@@ -1,13 +1,13 @@
 package local
 
 import (
-	"gickup/types"
 	"net"
 	"os"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport"

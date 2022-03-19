@@ -2,7 +2,7 @@ package gitea
 
 import (
 	"code.gitea.io/sdk/gitea"
-	"gickup/types"
+	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
 )
 

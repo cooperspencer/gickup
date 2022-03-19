@@ -1,8 +1,9 @@
 package bitbucket
 
 import (
-	"gickup/types"
 	"net/url"
+
+	"github.com/cooperspencer/gickup/types"
 
 	"github.com/ktrysmt/go-bitbucket"
 	"github.com/rs/zerolog/log"

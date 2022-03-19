@@ -2,7 +2,8 @@ package github
 
 import (
 	"context"
-	"gickup/types"
+
+	"github.com/cooperspencer/gickup/types"
 	"github.com/google/go-github/v41/github"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"

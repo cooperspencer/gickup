@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"gickup/types"
+	"github.com/cooperspencer/gickup/types"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

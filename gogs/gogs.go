@@ -1,8 +1,7 @@
 package gogs
 
 import (
-	"gickup/types"
-
+	"github.com/cooperspencer/gickup/types"
 	"github.com/gogs/go-gogs-client"
 	"github.com/rs/zerolog/log"
 )

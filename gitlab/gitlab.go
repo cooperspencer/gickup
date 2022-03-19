@@ -2,10 +2,10 @@ package gitlab
 
 import (
 	"fmt"
-	"gickup/types"
 	"path"
 	"strings"
 
+	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 )
@@ -228,7 +228,7 @@ func Get(conf *types.Conf) []types.Repo {
 									repos = append(repos, types.Repo{Name: r.Path + ".wiki", Url: httpUrlToRepo, SshUrl: sshUrlToRepo, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: k, Hoster: types.GetHost(repo.Url)})
 								}
 							}
-                        }
+						}
 					}
 				}
 			}

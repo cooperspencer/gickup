@@ -1,4 +1,4 @@
-module gickup
+module github.com/cooperspencer/gickup
 
 go 1.16
 

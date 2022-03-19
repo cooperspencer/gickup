@@ -1,9 +1,9 @@
 package prometheus
 
 import (
-	"gickup/types"
 	"net/http"
 
+	"github.com/cooperspencer/gickup/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
