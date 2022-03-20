@@ -66,6 +66,10 @@ issues:
       text: cyclomatic complexity \d+ of func `Get` is high
     - path: gitea/gitea.go # FIXME
       text: lines are duplicate of `gitea/gitea.go:\d+-\d+`
+    - path: github/github.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: github/github.go # FIXME
+      text: has complex nested blocks
 
 linters-settings:
   forbidigo:
