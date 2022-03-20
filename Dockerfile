@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:1.17-alpine as builder
 
 # Install dependencies for copy
 RUN apk add -U --no-cache ca-certificates tzdata git
