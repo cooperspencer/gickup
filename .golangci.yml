@@ -54,6 +54,18 @@ issues:
       text: Function 'Get' is too long
     - path: bitbucket/bitbucket.go # FIXME
       text: type assertion must be checked
+    - path: gitea/gitea.go
+      text: .code.gitea.io/sdk/gitea.ListOrgReposOptions. composite literal uses unkeyed fields
+    - path: gitea/gitea.go # FIXME
+      text: has complex nested blocks
+    - path: gitea/gitea.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gitea/gitea.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: gitea/gitea.go # FIXME
+      text: cyclomatic complexity \d+ of func `Get` is high
+    - path: gitea/gitea.go # FIXME
+      text: lines are duplicate of `gitea/gitea.go:\d+-\d+`
 
 linters-settings:
   forbidigo:
