@@ -51,4 +51,5 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
+          working-directory: ${{ github.workspace }}/go/src/github.com/cooperspencer/gickup
 
