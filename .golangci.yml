@@ -44,6 +44,12 @@ issues:
       text: cyclomatic complexity \d+ of func `Get` is high
     - path: gitlab/gitlab.go # FIXME
       text: has complex nested blocks
+    - path: gogs/gogs.go # FIXME
+      text: has complex nested blocks
+    - path: gogs/gogs.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gogs/gogs.go # FIXME
+      text: Function 'Get' has too many statements
 
 linters-settings:
   forbidigo:

@@ -6,47 +6,97 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
-	log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
-	gogsclient := gogs.NewClient(d.Url, d.GetToken())
+	log.Info().
+		Str("stage", "gogs").
+		Str("url", d.URL).
+		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+	gogsclient := gogs.NewClient(d.URL, d.GetToken())
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
-		log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().
+			Str("stage", "gogs").
+			Str("url", d.URL).
+			Msg(err.Error())
 	}
-	if !dry {
-		repo, err := gogsclient.GetRepo(user.UserName, r.Name)
-		if err != nil {
-			opts := gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Token}
-			if r.Token == "" {
-				opts = gogs.MigrateRepoOption{RepoName: r.Name, UID: int(user.ID), Mirror: true, CloneAddr: r.Url, AuthUsername: r.Origin.User, AuthPassword: r.Origin.Password}
-			}
-			_, err := gogsclient.MigrateRepo(opts)
-			if err != nil {
-				log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
-			}
-		} else {
-			if repo.Mirror {
-				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
-				err := gogsclient.MirrorSync(user.UserName, repo.Name)
-				if err != nil {
-					log.Fatal().Str("stage", "gogs").Str("url", d.Url).Msg(err.Error())
-				}
-				log.Info().Str("stage", "gogs").Str("url", d.Url).Msgf("successfully synced %s.", types.Blue(r.Name))
+
+	if dry {
+		return
+	}
+
+	repo, err := gogsclient.GetRepo(user.UserName, r.Name)
+	if err != nil {
+		opts := gogs.MigrateRepoOption{
+			RepoName:     r.Name,
+			UID:          int(user.ID),
+			Mirror:       true,
+			CloneAddr:    r.URL,
+			AuthUsername: r.Token,
+		}
+
+		if r.Token == "" {
+			opts = gogs.MigrateRepoOption{
+				RepoName:     r.Name,
+				UID:          int(user.ID),
+				Mirror:       true,
+				CloneAddr:    r.URL,
+				AuthUsername: r.Origin.User,
+				AuthPassword: r.Origin.Password,
 			}
 		}
+
+		_, err := gogsclient.MigrateRepo(opts)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gogs").
+				Str("url", d.URL).
+				Msg(err.Error())
+		}
+
+		return
+	}
+
+	if repo.Mirror {
+		log.Info().
+			Str("stage", "gogs").
+			Str("url", d.URL).
+			Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
+
+		err := gogsclient.MirrorSync(user.UserName, repo.Name)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gogs").
+				Str("url", d.URL).
+				Msg(err.Error())
+		}
+
+		log.Info().
+			Str("stage", "gogs").
+			Str("url", d.URL).
+			Msgf("successfully synced %s.", types.Blue(r.Name))
 	}
 }
 
+// Get TODO.
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
-		log.Info().Str("stage", "gogs").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
+		log.Info().
+			Str("stage", "gogs").
+			Str("url", repo.URL).
+			Msgf("grabbing repositories from %s", repo.User)
+
 		token := repo.GetToken()
-		client := gogs.NewClient(repo.Url, token)
+		client := gogs.NewClient(repo.URL, token)
 		gogsrepos, err := client.ListUserRepos(repo.User)
 		if err != nil {
-			log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msg(err.Error())
 		}
 
 		include := types.GetMap(repo.Include)
@@ -56,25 +106,67 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range gogsrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if repo.Wiki {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
+
 				continue
 			}
+
 			if exclude[r.Name] {
 				continue
 			}
+
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if repo.Wiki {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
 			}
 		}
 		orgs, err := client.ListUserOrgs(repo.User)
 		if err != nil {
-			log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msg(err.Error())
 		}
 
 		orgrepos := []*gogs.Repository{}
@@ -87,43 +179,94 @@ func Get(conf *types.Conf) []types.Repo {
 					if includeorgs[org.UserName] {
 						o, err := client.ListOrgRepos(org.UserName)
 						if err != nil {
-							log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+							log.Fatal().
+								Str("stage", "gogs").
+								Str("url", repo.URL).
+								Msg(err.Error())
 						}
+
 						if len(o) == 0 {
 							break
 						}
+
 						orgrepos = append(orgrepos, o...)
 					}
 				} else {
 					o, err := client.ListOrgRepos(org.UserName)
 					if err != nil {
-						log.Fatal().Str("stage", "gogs").Str("url", repo.Url).Msg(err.Error())
+						log.Fatal().
+							Str("stage", "gogs").
+							Str("url", repo.URL).
+							Msg(err.Error())
 					}
+
 					if len(o) == 0 {
 						break
 					}
+
 					orgrepos = append(orgrepos, o...)
 				}
 			}
 		}
 		for _, r := range orgrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if repo.Wiki {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
+
 				continue
 			}
+
 			if exclude[r.Name] {
 				continue
 			}
+
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
+
 				if repo.Wiki {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
 			}
 		}
 	}
+
 	return repos
 }
