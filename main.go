@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
 	"github.com/cooperspencer/gickup/gitea"
 	"github.com/cooperspencer/gickup/github"
@@ -18,8 +19,6 @@ import (
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
-
-	"github.com/alecthomas/kong"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -104,7 +103,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 	checkedpath := false
 
 	for _, r := range repos {
-		log.Info().Str("stage", "backup").Msgf("starting backup for %s", r.Url)
+		log.Info().
+			Str("stage", "backup").
+			Msgf("starting backup for %s", r.URL)
 
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
@@ -112,7 +113,10 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
-					log.Fatal().Str("stage", "locally").Str("path", d.Path).Msg(err.Error())
+					log.Fatal().
+						Str("stage", "locally").
+						Str("path", d.Path).
+						Msg(err.Error())
 				}
 
 				conf.Destination.Local[i].Path = path
@@ -221,7 +225,9 @@ func main() {
 	}
 
 	if cli.Dry {
-		log.Info().Str("dry", "true").Msgf("this is a %s", types.Blue("dry run"))
+		log.Info().
+			Str("dry", "true").
+			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
 	log.Info().Str("file", cli.Configfile).

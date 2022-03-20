@@ -23,8 +23,6 @@ issues:
   exclude-rules:
     - path: main.go
       text: bad syntax for struct tag pair
-    - path: main.go
-      text: Expected 'a', Found 'c'
     - path: main.go # FIXME
       text: Function 'main' is too long
     - path: (.+)_test.go
