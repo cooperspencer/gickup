@@ -5,10 +5,12 @@ RUN apk add -U --no-cache ca-certificates tzdata git
 
 # Use an valid GOPATH and copy the files
 WORKDIR /go/src/github.com/cooperspencer/gickup
+COPY go.mod .
+COPY go.sum .
+RUN go mod tidy
 COPY . .
 
 # Fetching dependencies and build the app
-RUN go mod tidy
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o app .
 
