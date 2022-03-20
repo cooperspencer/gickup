@@ -50,6 +50,10 @@ issues:
       text: Function 'Backup' is too long
     - path: gogs/gogs.go # FIXME
       text: Function 'Get' has too many statements
+    - path: bitbucket/bitbucket.go # FIXME
+      text: Function 'Get' is too long
+    - path: bitbucket/bitbucket.go # FIXME
+      text: type assertion must be checked
 
 linters-settings:
   forbidigo:
