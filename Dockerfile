@@ -1,10 +1,16 @@
-FROM golang:alpine as builder
+FROM golang:1.17-alpine as builder
 
 # Install dependencies for copy
-RUN apk add -U --no-cache ca-certificates tzdata
+RUN apk add -U --no-cache ca-certificates tzdata git
 
 # Use an valid GOPATH and copy the files
 WORKDIR /go/src/github.com/cooperspencer/gickup
+
+# Pre fetching dependancies to take advantage of the docker caching system
+COPY go.mod .
+COPY go.sum .
+RUN go mod tidy
+
 COPY . .
 
 # Fetching dependencies and build the app
