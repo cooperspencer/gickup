@@ -17,6 +17,7 @@ linters:
     - varnamelen # not revelent
     - wrapcheck # too strict
     - wsl # too strict
+    - maintidx # kind of duplicate of gocyclo
 
 issues:
   exclude-rules:
@@ -35,6 +36,14 @@ issues:
       text: has complex nested blocks
     - path: local/local.go # FIXME
       text: Function 'Locally' has too many statements
+    - path: gitlab/gitlab.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gitlab/gitlab.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: gitlab/gitlab.go # FIXME
+      text: cyclomatic complexity \d+ of func `Get` is high
+    - path: gitlab/gitlab.go # FIXME
+      text: has complex nested blocks
 
 linters-settings:
   forbidigo:
