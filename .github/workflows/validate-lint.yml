@@ -1,0 +1,55 @@
+name: Validate lint
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  GO_VERSION: 1.17
+  GOLANGCI_LINT_VERSION: v1.45.0
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-20.04
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/go/src/github.com/cooperspencer/gickup
+
+    steps:
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          path: go/src/github.com/cooperspencer/gickup
+          fetch-depth: 0
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-lint-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-lint-go
+
+      - name: Setup GOPATH
+        run: go env -w GOPATH=${{ github.workspace }}/go
+
+      - name: go mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          working-directory: ${{ github.workspace }}/go/src/github.com/cooperspencer/gickup
+

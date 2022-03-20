@@ -1,13 +1,14 @@
 package bitbucket
 
 import (
-	"gickup/types"
 	"net/url"
 
+	"github.com/cooperspencer/gickup/types"
 	"github.com/ktrysmt/go-bitbucket"
 	"github.com/rs/zerolog/log"
 )
 
+// Get TODO.
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.BitBucket {
@@ -15,20 +16,31 @@ func Get(conf *types.Conf) []types.Repo {
 		if repo.User == "" {
 			repo.User = repo.Username
 		}
-		if repo.Url == "" {
-			repo.Url = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
+
+		if repo.URL == "" {
+			repo.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
 		} else {
-			bitbucketUrl, err := url.Parse(repo.Url)
+			bitbucketURL, err := url.Parse(repo.URL)
 			if err != nil {
-				log.Fatal().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().
+					Str("stage", "bitbucket").
+					Str("url", repo.URL).
+					Msg(err.Error())
 			}
-			client.SetApiBaseURL(*bitbucketUrl)
+			client.SetApiBaseURL(*bitbucketURL)
 		}
-		log.Info().Str("stage", "bitbucket").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
+
+		log.Info().
+			Str("stage", "bitbucket").
+			Str("url", repo.URL).
+			Msgf("grabbing repositories from %s", repo.User)
 
 		repositories, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
 		if err != nil {
-			log.Fatal().Str("stage", "bitbucket").Str("url", repo.Url).Msg(err.Error())
+			log.Fatal().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
 		}
 
 		include := types.GetMap(repo.Include)
@@ -41,17 +53,40 @@ func Get(conf *types.Conf) []types.Repo {
 					user = r.Owner["nickname"].(string)
 				}
 			}
+
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: user, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
+					Token:         "",
+					Defaultbranch: r.Mainbranch.Name,
+					Origin:        repo,
+					Owner:         user,
+					Hoster:        types.GetHost(repo.URL),
+				})
+
 				continue
 			}
+
 			if exclude[r.Name] {
 				continue
 			}
+
 			if len(include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string), SshUrl: r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string), Token: "", Defaultbranch: r.Mainbranch.Name, Origin: repo, Owner: user, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
+					Token:         "",
+					Defaultbranch: r.Mainbranch.Name,
+					Origin:        repo,
+					Owner:         user,
+					Hoster:        types.GetHost(repo.URL),
+				})
 			}
 		}
 	}
+
 	return repos
 }

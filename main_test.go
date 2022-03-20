@@ -6,22 +6,26 @@ import (
 )
 
 func TestTildeReplacement_NoAction(t *testing.T) {
-	path := "/boop"
-	if SubstituteHomeForTildeInPath(path) != path {
+	t.Parallel()
+
+	if path := "/boop"; substituteHomeForTildeInPath(path) != path {
 		t.Error("Altered path when no alteration was expected")
 	}
 }
 
 func TestTildeReplacement_TildeOnly(t *testing.T) {
-	path := "~"
-	if SubstituteHomeForTildeInPath(path) == path {
+	t.Parallel()
+
+	if path := "~"; substituteHomeForTildeInPath(path) == path {
 		t.Error("Path unaltered when alteration was expected")
 	}
 }
 
 func TestTildeReplacement_TildeDir(t *testing.T) {
+	t.Parallel()
+
 	path := "~/boop"
-	actual := SubstituteHomeForTildeInPath(path)
+	actual := substituteHomeForTildeInPath(path)
 	if strings.HasPrefix(actual, "~") {
 		t.Error("Altered path still contains ~")
 	}

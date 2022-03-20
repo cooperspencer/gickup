@@ -3,6 +3,8 @@ package types
 import "testing"
 
 func TestConfCronMissing(t *testing.T) {
+	t.Parallel()
+
 	conf := Conf{Cron: ""}
 
 	if !conf.MissingCronSpec() {
@@ -11,6 +13,8 @@ func TestConfCronMissing(t *testing.T) {
 }
 
 func TestParseValidCron(t *testing.T) {
+	t.Parallel()
+
 	conf := Conf{Cron: "0 0 * * *"}
 
 	if !conf.HasValidCronSpec() {
@@ -19,6 +23,8 @@ func TestParseValidCron(t *testing.T) {
 }
 
 func TestParseInvalidCron(t *testing.T) {
+	t.Parallel()
+
 	conf := Conf{Cron: "redshirt"}
 
 	if conf.HasValidCronSpec() {

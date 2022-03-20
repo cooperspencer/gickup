@@ -2,75 +2,135 @@ package gitea
 
 import (
 	"code.gitea.io/sdk/gitea"
-	"gickup/types"
+	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
 )
 
+// Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
-	if d.Url == "" {
-		d.Url = "https://gitea.com/"
+	if d.URL == "" {
+		d.URL = "https://gitea.com/"
 	}
-	log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirroring %s to %s", types.Blue(r.Name), d.Url)
-	giteaclient, err := gitea.NewClient(d.Url)
+
+	log.Info().
+		Str("stage", "gitea").
+		Str("url", d.URL).
+		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+	giteaclient, err := gitea.NewClient(d.URL)
 	if err != nil {
-		log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitea").Str("url", d.URL).Msg(err.Error())
 	}
+
 	giteaclient.SetBasicAuth(d.GetToken(), "")
+
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
-		log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
+		log.Fatal().
+			Str("stage", "gitea").
+			Str("url", d.URL).
+			Msg(err.Error())
 	}
-	if !dry {
-		repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
-		if err != nil {
-			opts := gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthToken: r.Token}
-			if r.Token == "" {
-				opts = gitea.MigrateRepoOption{RepoName: r.Name, RepoOwner: user.UserName, Mirror: true, CloneAddr: r.Url, AuthUsername: r.Origin.User, AuthPassword: r.Origin.Password}
-			}
-			_, _, err := giteaclient.MigrateRepo(opts)
-			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
-			}
-			log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirrored %s to %s", types.Blue(r.Name), d.Url)
-		} else {
-			if repo.Mirror {
-				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
-				_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
-				if err != nil {
-					log.Fatal().Str("stage", "gitea").Str("url", d.Url).Msg(err.Error())
-				}
-				log.Info().Str("stage", "gitea").Str("url", d.Url).Msgf("successfully synced %s.", types.Blue(r.Name))
+
+	if dry {
+		return
+	}
+
+	repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
+	if err != nil {
+		opts := gitea.MigrateRepoOption{
+			RepoName:  r.Name,
+			RepoOwner: user.UserName,
+			Mirror:    true,
+			CloneAddr: r.URL,
+			AuthToken: r.Token,
+		}
+
+		if r.Token == "" {
+			opts = gitea.MigrateRepoOption{
+				RepoName:     r.Name,
+				RepoOwner:    user.UserName,
+				Mirror:       true,
+				CloneAddr:    r.URL,
+				AuthUsername: r.Origin.User,
+				AuthPassword: r.Origin.Password,
 			}
 		}
+
+		_, _, err := giteaclient.MigrateRepo(opts)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gitea").
+				Str("url", d.URL).
+				Msg(err.Error())
+		}
+
+		log.Info().
+			Str("stage", "gitea").
+			Str("url", d.URL).
+			Msgf("mirrored %s to %s", types.Blue(r.Name), d.URL)
+
+		return
+	}
+	if repo.Mirror {
+		log.Info().
+			Str("stage", "gitea").
+			Str("url", d.URL).
+			Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
+
+		_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gitea").
+				Str("url", d.URL).
+				Msg(err.Error())
+		}
+
+		log.Info().
+			Str("stage", "gitea").
+			Str("url", d.URL).
+			Msgf("successfully synced %s.", types.Blue(r.Name))
 	}
 }
 
+// Get TODO.
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
-		if repo.Url == "" {
-			repo.Url = "https://gitea.com"
+		if repo.URL == "" {
+			repo.URL = "https://gitea.com"
 		}
-		log.Info().Str("stage", "gitea").Str("url", repo.Url).Msgf("grabbing repositories from %s", repo.User)
+		log.Info().
+			Str("stage", "gitea").
+			Str("url", repo.URL).
+			Msgf("grabbing repositories from %s", repo.User)
 		opt := gitea.ListReposOptions{}
 		opt.PageSize = 50
 		opt.Page = 1
 		gitearepos := []*gitea.Repository{}
-		client := &gitea.Client{}
+
+		var client *gitea.Client
 		var err error
 		token := repo.GetToken()
 		if token != "" {
-			client, err = gitea.NewClient(repo.Url, gitea.SetToken(token))
+			client, err = gitea.NewClient(repo.URL, gitea.SetToken(token))
 		} else {
-			client, err = gitea.NewClient(repo.Url)
+			client, err = gitea.NewClient(repo.URL)
 		}
+
 		for {
 			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", repo.URL).
+					Msg(err.Error())
 			}
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", repo.URL).
+					Msg(err.Error())
 			}
 			if len(repos) == 0 {
 				break
@@ -82,7 +142,10 @@ func Get(conf *types.Conf) []types.Repo {
 		if repo.Starred {
 			starredrepos, _, err := client.GetMyStarredRepos()
 			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", repo.URL).
+					Msg(err.Error())
 			}
 			gitearepos = append(gitearepos, starredrepos...)
 		}
@@ -94,19 +157,58 @@ func Get(conf *types.Conf) []types.Repo {
 
 		for _, r := range gitearepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
+
 				continue
 			}
+
 			if exclude[r.Name] {
 				continue
 			}
+
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
 			}
 		}
@@ -115,7 +217,10 @@ func Get(conf *types.Conf) []types.Repo {
 		for {
 			o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
 			if err != nil {
-				log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", repo.URL).
+					Msg(err.Error())
 			}
 			if len(o) == 0 {
 				break
@@ -151,30 +256,74 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		for _, r := range orgrepos {
 			if include[r.Name] {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
+
 				continue
 			}
+
 			if exclude[r.Name] {
 				continue
 			}
+
 			if len(repo.Include) == 0 {
-				repos = append(repos, types.Repo{Name: r.Name, Url: r.CloneURL, SshUrl: r.SSHURL, Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+				repos = append(repos, types.Repo{
+					Name:          r.Name,
+					URL:           r.CloneURL,
+					SSHURL:        r.SSHURL,
+					Token:         token,
+					Defaultbranch: r.DefaultBranch,
+					Origin:        repo,
+					Owner:         r.Owner.UserName,
+					Hoster:        types.GetHost(repo.URL),
+				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
-					repos = append(repos, types.Repo{Name: r.Name + ".wiki", Url: types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"), SshUrl: types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"), Token: token, Defaultbranch: r.DefaultBranch, Origin: repo, Owner: r.Owner.UserName, Hoster: types.GetHost(repo.Url)})
+					repos = append(repos, types.Repo{
+						Name:          r.Name + ".wiki",
+						URL:           types.DotGitRx.ReplaceAllString(r.CloneURL, ".wiki.git"),
+						SSHURL:        types.DotGitRx.ReplaceAllString(r.SSHURL, ".wiki.git"),
+						Token:         token,
+						Defaultbranch: r.DefaultBranch,
+						Origin:        repo,
+						Owner:         r.Owner.UserName,
+						Hoster:        types.GetHost(repo.URL),
+					})
 				}
 			}
 		}
 	}
+
 	return repos
 }
 
-func getOrgRepos(client *gitea.Client, org *gitea.Organization, orgopt gitea.ListOptions, repo types.GenRepo) []*gitea.Repository {
-	o, _, err := client.ListOrgRepos(org.UserName, gitea.ListOrgReposOptions{orgopt})
+func getOrgRepos(client *gitea.Client, org *gitea.Organization,
+	orgopt gitea.ListOptions, repo types.GenRepo,
+) []*gitea.Repository {
+	o, _, err := client.ListOrgRepos(org.UserName,
+		gitea.ListOrgReposOptions{orgopt})
 	if err != nil {
-		log.Fatal().Str("stage", "gitea").Str("url", repo.Url).Msg(err.Error())
+		log.Fatal().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
 	}
+
 	return o
 }

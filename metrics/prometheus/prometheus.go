@@ -1,9 +1,9 @@
 package prometheus
 
 import (
-	"gickup/types"
 	"net/http"
 
+	"github.com/cooperspencer/gickup/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -51,8 +51,15 @@ var DestinationBackupsComplete = promauto.NewCounterVec(prometheus.CounterOpts{
 }, []string{"destination_type"})
 
 func Serve(conf types.PrometheusConfig) {
-	log.Info().Str("listenAddr", conf.ListenAddr).Str("endpoint", conf.Endpoint).Msg("Starting Prometheus listener")
+	log.Info().
+		Str("listenAddr", conf.ListenAddr).
+		Str("endpoint", conf.Endpoint).
+		Msg("Starting Prometheus listener")
 
 	http.Handle(conf.Endpoint, promhttp.Handler())
-	http.ListenAndServe(conf.ListenAddr, nil)
+	err := http.ListenAndServe(conf.ListenAddr, nil)
+	log.Fatal().
+		Str("listenAddr", conf.ListenAddr).
+		Str("endpoint", conf.Endpoint).
+		Msg(err.Error())
 }

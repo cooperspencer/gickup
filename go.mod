@@ -1,4 +1,4 @@
-module gickup
+module github.com/cooperspencer/gickup
 
 go 1.16
 
@@ -9,7 +9,6 @@ require (
 	github.com/alecthomas/kong v0.4.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-github/v41 v41.0.0
 	github.com/gookit/color v1.5.0
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
