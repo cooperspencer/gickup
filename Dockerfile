@@ -8,6 +8,7 @@ WORKDIR /go/src/github.com/cooperspencer/gickup
 COPY . .
 
 # Fetching dependencies and build the app
+RUN go mod tidy
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o app .
 
