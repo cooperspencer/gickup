@@ -184,7 +184,7 @@ func runBackup(conf *types.Conf) {
 	prometheus.JobsComplete.Inc()
 	prometheus.JobDuration.Observe(duration.Seconds())
 
-	if conf.Metrics.Heartbeat.URL != "" {
+	if len(conf.Metrics.Heartbeat.URLs) > 0 {
 		heartbeat.Send(conf.Metrics.Heartbeat)
 	}
 

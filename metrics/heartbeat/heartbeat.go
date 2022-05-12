@@ -8,9 +8,11 @@ import (
 )
 
 func Send(conf types.HeartbeatConfig) {
-	log.Info().Str("url", conf.URL).Msg("sending heartbeat")
-	_, err := http.Get(conf.URL)
-	if err != nil {
-		log.Fatal().Str("monitoring", "heartbeat").Msg(err.Error())
+	for _, u := range conf.URLs {
+		log.Info().Str("url", u).Msg("sending heartbeat")
+		_, err := http.Get(u)
+		if err != nil {
+			log.Fatal().Str("monitoring", "heartbeat").Msg(err.Error())
+		}
 	}
 }

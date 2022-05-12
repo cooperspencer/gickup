@@ -59,7 +59,7 @@ type PrometheusConfig struct {
 }
 
 type HeartbeatConfig struct {
-	URL string `yaml:"url"`
+	URLs []string `yaml:"urls"`
 }
 
 // Metrics TODO.
