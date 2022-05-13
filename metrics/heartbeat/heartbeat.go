@@ -12,7 +12,7 @@ func Send(conf types.HeartbeatConfig) {
 		log.Info().Str("url", u).Msg("sending heartbeat")
 		_, err := http.Get(u)
 		if err != nil {
-			log.Fatal().Str("monitoring", "heartbeat").Msg(err.Error())
+			log.Error().Str("monitoring", "heartbeat").Msg(err.Error())
 		}
 	}
 }
