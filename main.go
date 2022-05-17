@@ -17,6 +17,7 @@ import (
 	"github.com/cooperspencer/gickup/gogs"
 	"github.com/cooperspencer/gickup/local"
 	"github.com/cooperspencer/gickup/logger"
+	"github.com/cooperspencer/gickup/metrics/heartbeat"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/robfig/cron/v3"
@@ -182,6 +183,10 @@ func runBackup(conf *types.Conf) {
 
 	prometheus.JobsComplete.Inc()
 	prometheus.JobDuration.Observe(duration.Seconds())
+
+	if len(conf.Metrics.Heartbeat.URLs) > 0 {
+		heartbeat.Send(conf.Metrics.Heartbeat)
+	}
 
 	log.Info().
 		Str("duration", duration.String()).

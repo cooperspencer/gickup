@@ -150,6 +150,10 @@ log: # optional
     maxage: 7 # keep logs for 7 days
 
 metrics:
-  prometheus:
+  prometheus: # optional
     endpoint: /metrics
     listen_addr: ":6178" # default listens on port 6178 on all IPs.
+  heartbeat: # optional - upon successful backup, makes a GET http request to one or more URLs. This is useful for use with monitoring services such as healthchecks.io or deadmanssnitch.com
+    urls:
+      - http(s)://url-to-make-request-to
+      - http(s)://another-url-to-make-request-to
