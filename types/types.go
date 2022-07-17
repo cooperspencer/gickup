@@ -166,6 +166,7 @@ type Source struct {
 	Github    []GenRepo `yaml:"github"`
 	Gitea     []GenRepo `yaml:"gitea"`
 	BitBucket []GenRepo `yaml:"bitbucket"`
+	Any       []GenRepo `yaml:"any"`
 }
 
 // Count TODO.
@@ -174,7 +175,8 @@ func (source Source) Count() int {
 		len(source.Gitea) +
 		len(source.BitBucket) +
 		len(source.Github) +
-		len(source.Gitlab)
+		len(source.Gitlab) +
+		len(source.Any)
 }
 
 // GenRepo Generell Repo.

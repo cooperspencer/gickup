@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
+	"github.com/cooperspencer/gickup/any"
 	"github.com/cooperspencer/gickup/bitbucket"
 	"github.com/cooperspencer/gickup/gitea"
 	"github.com/cooperspencer/gickup/github"
@@ -176,6 +177,10 @@ func runBackup(conf *types.Conf) {
 
 	repos = bitbucket.Get(conf)
 	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
+	backup(repos, conf)
+
+	repos = any.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("any").Set(float64(len(repos)))
 	backup(repos, conf)
 
 	endTime := time.Now()
