@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cooperspencer/gickup/whatever"
-
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
 	"github.com/cooperspencer/gickup/gitea"
@@ -22,6 +20,7 @@ import (
 	"github.com/cooperspencer/gickup/metrics/heartbeat"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
+	"github.com/cooperspencer/gickup/whatever"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -213,6 +212,11 @@ func playsForever() {
 
 func main() {
 	timeformat := "2006-01-02T15:04:05Z07:00"
+
+	if len(os.Getenv("GICKUP_TIME_FORMAT")) > 0 {
+		timeformat = os.Getenv("GICKUP_TIME_FORMAT")
+	}
+
 	log.Logger = log.Output(zerolog.ConsoleWriter{
 		Out:        os.Stderr,
 		TimeFormat: timeformat,

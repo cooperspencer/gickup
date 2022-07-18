@@ -65,6 +65,7 @@ func Get(conf *types.Conf) []types.Repo {
 			log.Error().
 				Str("stage", "whatever").
 				Err(err)
+
 			continue
 		}
 
@@ -72,6 +73,7 @@ func Get(conf *types.Conf) []types.Repo {
 		for _, d := range data {
 			if d.Hash().IsZero() {
 				main = d.Target().Short()
+
 				break
 			}
 		}
@@ -82,7 +84,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		name := repo.URL[strings.LastIndex(repo.URL, separator)+1:]
 		if strings.HasSuffix(name, ".git") {
-			name = name[strings.LastIndex(name, ".git")+1:]
+			name = name[:strings.LastIndex(name, ".git")]
 		}
 
 		repos = append(repos, types.Repo{
@@ -95,7 +97,6 @@ func Get(conf *types.Conf) []types.Repo {
 			Owner:         "git",
 			Hoster:        hoster,
 		})
-
 	}
 
 	return repos
