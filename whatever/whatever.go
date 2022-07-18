@@ -1,6 +1,10 @@
-package any
+package whatever
 
 import (
+	"os"
+	"path"
+	"strings"
+
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -8,21 +12,18 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/rs/zerolog/log"
-	"os"
-	"path"
-	"strings"
 )
 
 // Get TODO.
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	log.Info().
-		Str("stage", "any").
+		Str("stage", "whatever").
 		Msgf("adding repos")
 	for _, repo := range conf.Source.Any {
 		if repo.URL == "" {
 			log.Error().
-				Str("stage", "any").
+				Str("stage", "whatever").
 				Msg("no url configured")
 		}
 
@@ -51,7 +52,7 @@ func Get(conf *types.Conf) []types.Repo {
 				auth, err = ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
 				if err != nil {
 					log.Error().
-						Str("stage", "any").
+						Str("stage", "whatever").
 						Err(err)
 					continue
 				}
@@ -62,7 +63,7 @@ func Get(conf *types.Conf) []types.Repo {
 		data, err := rem.List(&git.ListOptions{Auth: auth})
 		if err != nil {
 			log.Error().
-				Str("stage", "any").
+				Str("stage", "whatever").
 				Err(err)
 			continue
 		}
@@ -75,11 +76,11 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 		}
 
-		seperator := "/"
+		separator := "/"
 		if hoster == "local" {
-			seperator = string(os.PathSeparator)
+			separator = string(os.PathSeparator)
 		}
-		name := repo.URL[strings.LastIndex(repo.URL, seperator)+1:]
+		name := repo.URL[strings.LastIndex(repo.URL, separator)+1:]
 		if strings.HasSuffix(name, ".git") {
 			name = name[strings.LastIndex(name, ".git")+1:]
 		}
