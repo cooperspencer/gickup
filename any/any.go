@@ -75,7 +75,11 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 		}
 
-		name := repo.URL[strings.LastIndex(repo.URL, "/")+1:]
+		seperator := "/"
+		if hoster == "local" {
+			seperator = string(os.PathSeparator)
+		}
+		name := repo.URL[strings.LastIndex(repo.URL, seperator)+1:]
 		if strings.HasSuffix(name, ".git") {
 			name = name[strings.LastIndex(name, ".git")+1:]
 		}
