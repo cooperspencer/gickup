@@ -20,6 +20,7 @@ import (
 	"github.com/cooperspencer/gickup/metrics/heartbeat"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
+	"github.com/cooperspencer/gickup/whatever"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -96,7 +97,7 @@ func substituteHomeForTildeInPath(path string) string {
 			return filepath.Join(userHome, path[2:])
 		}
 	}
-	// in any other strange case
+	// in whatever other strange case
 	return path
 }
 
@@ -178,6 +179,10 @@ func runBackup(conf *types.Conf) {
 	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
 	backup(repos, conf)
 
+	repos = whatever.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("whatever").Set(float64(len(repos)))
+	backup(repos, conf)
+
 	endTime := time.Now()
 	duration := endTime.Sub(startTime)
 
@@ -207,6 +212,11 @@ func playsForever() {
 
 func main() {
 	timeformat := "2006-01-02T15:04:05Z07:00"
+
+	if len(os.Getenv("GICKUP_TIME_FORMAT")) > 0 {
+		timeformat = os.Getenv("GICKUP_TIME_FORMAT")
+	}
+
 	log.Logger = log.Output(zerolog.ConsoleWriter{
 		Out:        os.Stderr,
 		TimeFormat: timeformat,

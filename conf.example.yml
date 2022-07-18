@@ -118,6 +118,13 @@ source:
         - bar
       include:
         - foobar
+  any:
+    - url: url-to-any-repo # can be https, http or ssh
+      username: your-user # user is used to clone the repo with
+      password: your-password
+      ssh: true # can be true or false
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
+    - url: can-also-be-a-local-path-to-a-bare-repo
 destination:
   gitea:
     - token: some-token
@@ -144,6 +151,7 @@ cron: 0 22 * * * # optional - when cron is not provided, the program runs once a
 
 log: # optional
   timeformat: 2006-01-02 15:04:05 # you can use a custom time format, use https://yourbasic.org/golang/format-parse-string-time-date-example/ to check how date formats work in go
+                                  # or set it as environment variable GICKUP_TIME_FORMAT
   file-logging: # optional
     dir: log # directory to log into
     file: gickup.log # file to log into
