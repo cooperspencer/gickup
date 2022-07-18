@@ -27,30 +27,34 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		var auth transport.AuthMethod
-		if strings.HasPrefix(repo.URL, "http://") || strings.HasPrefix(repo.URL, "https://") {
-			if repo.Token != "" {
-				auth = &http.BasicAuth{
-					Username: "xyz",
-					Password: repo.Token,
+		hoster := "local"
+		if _, err := os.Stat(repo.URL); os.IsNotExist(err) {
+			hoster = types.GetHost(repo.URL)
+			if strings.HasPrefix(repo.URL, "http://") || strings.HasPrefix(repo.URL, "https://") {
+				if repo.Token != "" {
+					auth = &http.BasicAuth{
+						Username: "xyz",
+						Password: repo.Token,
+					}
+				} else if repo.Username != "" && repo.Password != "" {
+					auth = &http.BasicAuth{
+						Username: repo.Username,
+						Password: repo.Password,
+					}
 				}
-			} else if repo.Username != "" && repo.Password != "" {
-				auth = &http.BasicAuth{
-					Username: repo.Username,
-					Password: repo.Password,
+			} else {
+				var err error
+				if repo.SSHKey == "" {
+					home := os.Getenv("HOME")
+					repo.SSHKey = path.Join(home, ".ssh", "id_rsa")
 				}
-			}
-		} else {
-			var err error
-			if repo.SSHKey == "" {
-				home := os.Getenv("HOME")
-				repo.SSHKey = path.Join(home, ".ssh", "id_rsa")
-			}
-			auth, err = ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
-			if err != nil {
-				log.Error().
-					Str("stage", "any").
-					Err(err)
-				continue
+				auth, err = ssh.NewPublicKeysFromFile("git", repo.SSHKey, "")
+				if err != nil {
+					log.Error().
+						Str("stage", "any").
+						Err(err)
+					continue
+				}
 			}
 		}
 
@@ -84,7 +88,7 @@ func Get(conf *types.Conf) []types.Repo {
 			Defaultbranch: main,
 			Origin:        repo,
 			Owner:         "git",
-			Hoster:        types.GetHost(repo.URL),
+			Hoster:        hoster,
 		})
 
 	}
