@@ -6,6 +6,7 @@ You can clone/mirror repositories from:
 - Gitea
 - Gogs
 - Bitbucket
+- OneDev
 - Any
 
 You can clone/mirror them to:
@@ -56,5 +57,4 @@ The mirroring to Gitlab doesn't work, or at least I can't test it properly becau
 - Additional VCS
   - [OneDev](https://code.onedev.io/)
   - [GitBucket](https://gitbucket.github.io/)
-  - Local bare repositories
 - Add minio as a destination

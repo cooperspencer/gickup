@@ -17,10 +17,10 @@ import (
 // Get TODO.
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
-	log.Info().
-		Str("stage", "whatever").
-		Msgf("adding repos")
 	for _, repo := range conf.Source.Any {
+		log.Info().
+			Str("stage", "whatever").
+			Msgf("adding repos")
 		if repo.URL == "" {
 			log.Error().
 				Str("stage", "whatever").

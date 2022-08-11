@@ -5,8 +5,10 @@ go 1.16
 require (
 	code.gitea.io/sdk/gitea v0.15.1
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20220714114130-e85cedf506cd // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20220810064516-de89276ce0f3 // indirect
 	github.com/alecthomas/kong v0.6.1
+	github.com/cloudflare/circl v1.2.0 // indirect
+	github.com/cooperspencer/onedev v0.0.0-20220811131013-65a7e8bcceca
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
@@ -26,10 +28,10 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/xanzy/go-gitlab v0.69.0
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
-	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
+	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced // indirect
 	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.1
