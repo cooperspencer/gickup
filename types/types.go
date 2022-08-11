@@ -166,6 +166,7 @@ type Source struct {
 	Github    []GenRepo `yaml:"github"`
 	Gitea     []GenRepo `yaml:"gitea"`
 	BitBucket []GenRepo `yaml:"bitbucket"`
+	OneDev    []GenRepo `yaml:"onedev"`
 	Any       []GenRepo `yaml:"any"`
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cooperspencer/gickup/onedev"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -181,6 +182,10 @@ func runBackup(conf *types.Conf) {
 
 	repos = whatever.Get(conf)
 	prometheus.CountReposDiscovered.WithLabelValues("whatever").Set(float64(len(repos)))
+	backup(repos, conf)
+
+	repos = onedev.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("onedev").Set(float64(len(repos)))
 	backup(repos, conf)
 
 	endTime := time.Now()
