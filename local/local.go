@@ -82,8 +82,16 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 			err := cloneRepository(repo, auth, dry)
 			if err != nil {
+				if err.Error() == "repository not found" {
+					log.Warn().
+						Str("stage", "locally").
+						Str("path", l.Path).
+						Str("repo", repo.Name).
+						Msg(err.Error())
+					break
+				}
 				if x == tries {
-					log.Fatal().
+					log.Warn().
 						Str("stage", "locally").
 						Str("path", l.Path).
 						Str("repo", repo.Name).
