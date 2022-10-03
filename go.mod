@@ -26,6 +26,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.27.0
 	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/xanzy/go-gitlab v0.69.0
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa

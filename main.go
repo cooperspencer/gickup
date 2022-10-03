@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/cooperspencer/gickup/onedev"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cooperspencer/gickup/onedev"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -29,16 +33,17 @@ import (
 )
 
 var cli struct {
-	Configfile string `arg name:"conf" help:"Path to the configfile." default:"conf.yml"`
-	Version    bool   `flag name:"version" help:"Show version."`
-	Dry        bool   `flag name:"dryrun" help:"Make a dry-run."`
-	Quiet      bool   `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
-	Silent     bool   `flag name:"silent" help:"Suppress all stderr log output"`
+	Configfiles []string `arg name:"conf" help:"Path to the configfile." default:"conf.yml"`
+	Version     bool     `flag name:"version" help:"Show version."`
+	Dry         bool     `flag name:"dryrun" help:"Make a dry-run."`
+	Quiet       bool     `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
+	Silent      bool     `flag name:"silent" help:"Suppress all stderr log output"`
 }
 
 var version = "unknown"
 
-func readConfigFile(configfile string) *types.Conf {
+func readConfigFile(configfile string) []*types.Conf {
+	conf := []*types.Conf{}
 	cfgdata, err := ioutil.ReadFile(configfile)
 	if err != nil {
 		log.Fatal().
@@ -47,18 +52,36 @@ func readConfigFile(configfile string) *types.Conf {
 			Msgf("Cannot open config file from %s", types.Red(configfile))
 	}
 
-	t := types.Conf{}
+	//	t := types.Conf{}
 
-	err = yaml.Unmarshal(cfgdata, &t)
+	dec := yaml.NewDecoder(bytes.NewReader(cfgdata))
 
-	if err != nil {
-		log.Fatal().
-			Str("stage", "readconfig").
-			Str("file", configfile).
-			Msg("Cannot map yml config file to interface, possible syntax error")
+	//	err = yaml.Unmarshal(cfgdata, &t)
+
+	i := 0
+	for {
+		var c *types.Conf
+		err = dec.Decode(&c)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			if len(conf) > 0 {
+				log.Fatal().
+					Str("stage", "readconfig").
+					Str("file", configfile).
+					Msgf("an error occured in the %d place of %s", i, configfile)
+			} else {
+				log.Fatal().
+					Str("stage", "readconfig").
+					Str("file", configfile).
+					Msg("Cannot map yml config file to interface, possible syntax error")
+			}
+		}
+		conf = append(conf, c)
+		i++
 	}
 
-	return &t
+	return conf
 }
 
 func getUserHome() (string, error) {
@@ -149,8 +172,10 @@ func backup(repos []types.Repo, conf *types.Conf) {
 	}
 }
 
-func runBackup(conf *types.Conf) {
+func runBackup(conf *types.Conf, num int) {
 	log.Info().Msg("Backup run starting")
+
+	num_string := strconv.Itoa(num)
 
 	startTime := time.Now()
 
@@ -158,34 +183,34 @@ func runBackup(conf *types.Conf) {
 
 	// Github
 	repos := github.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("github").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("github", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gitea
 	repos = gitea.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitea").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gitea", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gogs
 	repos = gogs.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gogs").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gogs", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gitlab
 	repos = gitlab.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitlab").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gitlab", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = bitbucket.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("bitbucket").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("bitbucket", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = whatever.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("whatever").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("whatever", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = onedev.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("onedev").Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("onedev", num_string).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	endTime := time.Now()
@@ -250,51 +275,74 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
-	log.Info().Str("file", cli.Configfile).
-		Msgf("Reading %s", types.Green(cli.Configfile))
+	confs := []*types.Conf{}
+	for _, f := range cli.Configfiles {
+		log.Info().Str("file", f).
+			Msgf("Reading %s", types.Green(f))
 
-	conf := readConfigFile(cli.Configfile)
-	if conf.Log.Timeformat == "" {
-		conf.Log.Timeformat = timeformat
+		confs = append(confs, readConfigFile(f)...)
+	}
+	if confs[0].Log.Timeformat == "" {
+		confs[0].Log.Timeformat = timeformat
 	}
 
-	log.Logger = logger.CreateLogger(conf.Log)
+	log.Logger = logger.CreateLogger(confs[0].Log)
 
+	validcron := confs[0].HasValidCronSpec()
+
+	var c *cron.Cron
+
+	if validcron {
+		c = cron.New()
+		c.Start()
+	}
+
+	sourcecount := 0
+	destinationcount := 0
 	// one pair per source-destination
-	pairs := conf.Source.Count() * conf.Destination.Count()
-	log.Info().
-		Int("sources", conf.Source.Count()).
-		Int("destinations", conf.Destination.Count()).
-		Int("pairs", pairs).
-		Msg("Configuration loaded")
+	for num, conf := range confs {
+		pairs := conf.Source.Count() * conf.Destination.Count()
+		sourcecount += conf.Source.Count()
+		destinationcount += conf.Destination.Count()
+		log.Info().
+			Int("sources", conf.Source.Count()).
+			Int("destinations", conf.Destination.Count()).
+			Int("pairs", pairs).
+			Msg("Configuration loaded")
 
-	if conf.HasValidCronSpec() {
-		c := cron.New()
-
-		logNextRun(conf)
-
-		_, err := c.AddFunc(conf.Cron, func() {
-			runBackup(conf)
-		})
-		if err != nil {
-			log.Fatal().
-				Int("sources", conf.Source.Count()).
-				Int("destinations", conf.Destination.Count()).
-				Int("pairs", pairs).
-				Msg(err.Error())
+		if !conf.HasValidCronSpec() {
+			conf.Cron = confs[0].Cron
 		}
 
-		c.Start()
+		if conf.HasValidCronSpec() && validcron {
+			conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
+			num := num
 
-		if conf.HasAllPrometheusConf() {
-			prometheus.CountSourcesConfigured.Add(float64(conf.Source.Count()))
-			prometheus.CountDestinationsConfigured.Add(float64(conf.Destination.Count()))
-			prometheus.Serve(conf.Metrics.Prometheus)
+			logNextRun(conf)
+
+			_, err := c.AddFunc(conf.Cron, func() {
+				runBackup(conf, num)
+			})
+			if err != nil {
+				log.Fatal().
+					Int("sources", conf.Source.Count()).
+					Int("destinations", conf.Destination.Count()).
+					Int("pairs", pairs).
+					Msg(err.Error())
+			}
+		} else {
+			runBackup(conf, num)
+		}
+	}
+
+	if validcron {
+		if confs[0].HasAllPrometheusConf() {
+			prometheus.CountSourcesConfigured.Add(float64(sourcecount))
+			prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
+			prometheus.Serve(confs[0].Metrics.Prometheus)
 		} else {
 			playsForever()
 		}
-	} else {
-		runBackup(conf)
 	}
 }
 

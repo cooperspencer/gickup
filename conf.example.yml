@@ -177,3 +177,11 @@ metrics:
     urls:
       - http(s)://url-to-make-request-to
       - http(s)://another-url-to-make-request-to
+
+---
+
+# you can define separate source and destination pairs,
+# like "mirror all repos from github to gitea but keep gitlab repos up-to-date in ~/backup"
+# if cron is defined in the first config, this cron interval will be used for all the other confgurations, except it has one of its own.
+# if cron is not enabled for the first config, cron will not run for any other configuration
+# metrics configuration is always used from the first configuration
