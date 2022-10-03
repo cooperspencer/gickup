@@ -23,7 +23,7 @@ var CountDestinationsConfigured = promauto.NewGauge(prometheus.GaugeOpts{
 var CountReposDiscovered = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "gickup_repos_discovered",
 	Help: "The count of sources configured",
-}, []string{"source_name"})
+}, []string{"source_name", "config_number"})
 
 var JobsComplete = promauto.NewCounter(prometheus.CounterOpts{
 	Name: "gickup_jobs_complete",

@@ -2,6 +2,7 @@ package onedev
 
 import (
 	"fmt"
+
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/onedev"
 	"github.com/rs/zerolog/log"
