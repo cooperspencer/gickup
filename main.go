@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -44,7 +43,7 @@ var version = "unknown"
 
 func readConfigFile(configfile string) []*types.Conf {
 	conf := []*types.Conf{}
-	cfgdata, err := ioutil.ReadFile(configfile)
+	cfgdata, err := os.ReadFile(configfile)
 	if err != nil {
 		log.Fatal().
 			Str("stage", "readconfig").
@@ -175,7 +174,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 func runBackup(conf *types.Conf, num int) {
 	log.Info().Msg("Backup run starting")
 
-	num_string := strconv.Itoa(num)
+	numstring := strconv.Itoa(num)
 
 	startTime := time.Now()
 
@@ -183,34 +182,34 @@ func runBackup(conf *types.Conf, num int) {
 
 	// Github
 	repos := github.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("github", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("github", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gitea
 	repos = gitea.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitea", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gitea", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gogs
 	repos = gogs.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gogs", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gogs", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	// Gitlab
 	repos = gitlab.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitlab", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("gitlab", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = bitbucket.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("bitbucket", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("bitbucket", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = whatever.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("whatever", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("whatever", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	repos = onedev.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("onedev", num_string).Set(float64(len(repos)))
+	prometheus.CountReposDiscovered.WithLabelValues("onedev", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	endTime := time.Now()
