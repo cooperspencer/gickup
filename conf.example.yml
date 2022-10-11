@@ -141,10 +141,12 @@ destination:
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
+      user: some-nome # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gitea
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
+      user: some-nome # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gogs
   gitlab:
     - token: some-token

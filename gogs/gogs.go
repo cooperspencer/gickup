@@ -23,6 +23,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Msg(err.Error())
 	}
 
+	if d.User != "" {
+		user, err = gogsclient.GetUserInfo(d.User)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gogs").
+				Str("url", d.URL).
+				Msgf("couldn't find %s", d.User)
+		}
+	}
+
 	if dry {
 		return
 	}

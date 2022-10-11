@@ -32,6 +32,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Msg(err.Error())
 	}
 
+	if d.User != "" {
+		user, _, err = giteaclient.GetUserInfo(d.User)
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gitea").
+				Str("url", d.URL).
+				Msg(err.Error())
+		}
+	}
+
 	if dry {
 		return
 	}
