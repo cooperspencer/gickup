@@ -133,8 +133,6 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 		}
 
-		fmt.Println(repo.IncludeOrgs)
-
 		if len(repo.IncludeOrgs) > 0 {
 			for _, org := range repo.IncludeOrgs {
 				query.Query = fmt.Sprintf("children of \"%s\"", org)
