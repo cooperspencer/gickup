@@ -177,6 +177,7 @@ func (source Source) Count() int {
 		len(source.BitBucket) +
 		len(source.Github) +
 		len(source.Gitlab) +
+		len(source.OneDev) +
 		len(source.Any)
 }
 
