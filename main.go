@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -76,8 +77,11 @@ func readConfigFile(configfile string) []*types.Conf {
 					Msg("Cannot map yml config file to interface, possible syntax error")
 			}
 		}
-		conf = append(conf, c)
-		i++
+
+		if !reflect.ValueOf(c).IsZero() {
+			conf = append(conf, c)
+			i++
+		}
 	}
 
 	return conf
