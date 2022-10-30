@@ -17,12 +17,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 		Str("url", d.URL).
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
-	giteaclient, err := gitea.NewClient(d.URL)
+	giteaclient, err := gitea.NewClient(d.URL, gitea.SetToken(d.GetToken()))
 	if err != nil {
 		log.Fatal().Str("stage", "gitea").Str("url", d.URL).Msg(err.Error())
 	}
-
-	giteaclient.SetBasicAuth(d.GetToken(), "")
 
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
