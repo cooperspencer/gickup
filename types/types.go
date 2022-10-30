@@ -197,6 +197,7 @@ type GenRepo struct {
 	IncludeOrgs []string `yaml:"includeorgs"`
 	Wiki        bool     `yaml:"wiki"`
 	Starred     bool     `yaml:"starred"`
+	CreateOrg   bool     `yaml:"createorg"`
 }
 
 // GetToken TODO.

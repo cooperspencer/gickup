@@ -33,11 +33,25 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	if d.User != "" {
 		user, _, err = giteaclient.GetUserInfo(d.User)
 		if err != nil {
-			log.Fatal().
-				Str("stage", "gitea").
-				Str("url", d.URL).
-				Msg(err.Error())
+			if d.CreateOrg {
+				_, _, err = giteaclient.CreateOrg(gitea.CreateOrgOption{
+					Name:       d.User,
+					Visibility: gitea.VisibleTypePrivate,
+				})
+				if err != nil {
+					log.Fatal().
+						Str("stage", "gitea").
+						Str("url", d.URL).
+						Msg(err.Error())
+				}
+			} else {
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", d.URL).
+					Msg(err.Error())
+			}
 		}
+
 	}
 
 	if dry {
