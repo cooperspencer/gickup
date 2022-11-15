@@ -143,11 +143,13 @@ destination:
       # token_file: token.txt # alternatively, specify token in a file
       user: some-nome # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gitea
+      createorg: true # creates organization if it doesn't exist already
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
       user: some-nome # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gogs
+      createorg: true # creates organization if it doesn't exist already
   gitlab:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
