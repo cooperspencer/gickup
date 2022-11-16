@@ -111,13 +111,13 @@ func Get(conf *types.Conf) []types.Repo {
 			repo.URL += "/"
 		}
 
-		api_url := fmt.Sprintf("%sapi/", repo.URL)
+		apiURL := fmt.Sprintf("%sapi/", repo.URL)
 
 		token := repo.GetToken()
 
 		if repo.User == "" {
 			user := User{}
-			body, err := doRequest(fmt.Sprintf("%suser", api_url), token)
+			body, err := doRequest(fmt.Sprintf("%suser", apiURL), token)
 			if err != nil {
 				log.Fatal().
 					Str("stage", "sourcehut").
@@ -146,12 +146,12 @@ func Get(conf *types.Conf) []types.Repo {
 			}
 		}
 
-		api_url = fmt.Sprintf("%sapi/%s/repos/", repo.URL, repo.User)
+		apiURL = fmt.Sprintf("%sapi/%s/repos/", repo.URL, repo.User)
 
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 
-		repositories, err := getRepos(api_url, token)
+		repositories, err := getRepos(apiURL, token)
 		if err != nil {
 			log.Fatal().
 				Str("stage", "sourcehut").
@@ -160,10 +160,10 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		for _, r := range repositories.Results {
-			repo_url := fmt.Sprintf("%s%s/%s", repo.URL, r.Owner.CanonicalName, r.Name)
-			ssh_url := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
+			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, r.Owner.CanonicalName, r.Name)
+			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
 
-			refs, err := getRefs(api_url, r.Name, token)
+			refs, err := getRefs(apiURL, r.Name, token)
 			if err != nil {
 				log.Fatal().
 					Str("stage", "sourcehut").
@@ -182,8 +182,8 @@ func Get(conf *types.Conf) []types.Repo {
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
-					URL:           repo_url,
-					SSHURL:        ssh_url,
+					URL:           repoURL,
+					SSHURL:        sshURL,
 					Token:         token,
 					Defaultbranch: refs.Results[0].Name,
 					Origin:        repo,
@@ -193,8 +193,8 @@ func Get(conf *types.Conf) []types.Repo {
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
 						Name:          r.Name + ".-docs",
-						URL:           repo_url + "-docs",
-						SSHURL:        ssh_url + "-docs",
+						URL:           repoURL + "-docs",
+						SSHURL:        sshURL + "-docs",
 						Token:         token,
 						Defaultbranch: head,
 						Origin:        repo,
@@ -213,8 +213,8 @@ func Get(conf *types.Conf) []types.Repo {
 			if len(include) == 0 {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
-					URL:           repo_url,
-					SSHURL:        ssh_url,
+					URL:           repoURL,
+					SSHURL:        sshURL,
 					Token:         token,
 					Defaultbranch: head,
 					Origin:        repo,
@@ -222,7 +222,7 @@ func Get(conf *types.Conf) []types.Repo {
 					Hoster:        types.GetHost(repo.URL),
 				})
 				if repo.Wiki {
-					refs, err := getRefs(api_url, fmt.Sprintf("%s-docs", r.Name), token)
+					refs, err := getRefs(apiURL, fmt.Sprintf("%s-docs", r.Name), token)
 					if err != nil {
 						continue
 					}
@@ -237,8 +237,8 @@ func Get(conf *types.Conf) []types.Repo {
 
 						repos = append(repos, types.Repo{
 							Name:          r.Name + "-docs",
-							URL:           repo_url + "-docs",
-							SSHURL:        ssh_url + "-docs",
+							URL:           repoURL + "-docs",
+							SSHURL:        sshURL + "-docs",
 							Token:         token,
 							Defaultbranch: head,
 							Origin:        repo,
