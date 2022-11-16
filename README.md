@@ -7,6 +7,7 @@ You can clone/mirror repositories from:
 - Gogs
 - Bitbucket
 - OneDev
+- Sourcehut
 - Any
 
 You can clone/mirror them to:

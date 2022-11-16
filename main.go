@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cooperspencer/gickup/onedev"
+	"github.com/cooperspencer/gickup/sourcehut"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -214,6 +215,10 @@ func runBackup(conf *types.Conf, num int) {
 
 	repos = onedev.Get(conf)
 	prometheus.CountReposDiscovered.WithLabelValues("onedev", numstring).Set(float64(len(repos)))
+	backup(repos, conf)
+
+	repos = sourcehut.Get(conf)
+	prometheus.CountReposDiscovered.WithLabelValues("sourcehut", numstring).Set(float64(len(repos)))
 	backup(repos, conf)
 
 	endTime := time.Now()

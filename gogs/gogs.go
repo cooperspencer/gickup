@@ -26,10 +26,24 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	if d.User != "" {
 		user, err = gogsclient.GetUserInfo(d.User)
 		if err != nil {
-			log.Fatal().
-				Str("stage", "gogs").
-				Str("url", d.URL).
-				Msgf("couldn't find %s", d.User)
+			if d.CreateOrg {
+				org, err := gogsclient.CreateOrg(gogs.CreateOrgOption{
+					UserName: d.User,
+				})
+				if err != nil {
+					log.Fatal().
+						Str("stage", "gogs").
+						Str("url", d.URL).
+						Msg(err.Error())
+				}
+				user.ID = org.ID
+				user.UserName = org.UserName
+			} else {
+				log.Fatal().
+					Str("stage", "gogs").
+					Str("url", d.URL).
+					Msg(err.Error())
+			}
 		}
 	}
 
