@@ -6,8 +6,34 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func getOrgVisibility(visibility string) gitea.VisibleType {
+	switch visibility {
+	case "public":
+		return gitea.VisibleTypePublic
+	case "private":
+		return gitea.VisibleTypePrivate
+	case "limited":
+		return gitea.VisibleTypeLimited
+	default:
+		return gitea.VisibleTypePrivate
+	}
+}
+
+func getRepoVisibility(visibility string) bool {
+	switch visibility {
+	case "public":
+		return false
+	case "private":
+		return true
+	default:
+		return true
+	}
+}
+
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
+	orgvisibilty := getOrgVisibility(d.Visibility.Organizations)
+	repovisibility := getRepoVisibility(d.Visibility.Repositories)
 	if d.URL == "" {
 		d.URL = "https://gitea.com/"
 	}
@@ -30,13 +56,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Msg(err.Error())
 	}
 
+	if d.User == "" && d.CreateOrg {
+		d.User = r.Owner
+	}
+
 	if d.User != "" {
 		user, _, err = giteaclient.GetUserInfo(d.User)
 		if err != nil {
 			if d.CreateOrg {
-				_, _, err = giteaclient.CreateOrg(gitea.CreateOrgOption{
+				org, _, err := giteaclient.CreateOrg(gitea.CreateOrgOption{
 					Name:       d.User,
-					Visibility: gitea.VisibleTypePrivate,
+					Visibility: orgvisibilty,
 				})
 				if err != nil {
 					log.Fatal().
@@ -44,6 +74,8 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 						Str("url", d.URL).
 						Msg(err.Error())
 				}
+				user.ID = org.ID
+				user.UserName = org.UserName
 			} else {
 				log.Fatal().
 					Str("stage", "gitea").
@@ -66,6 +98,8 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Mirror:    true,
 			CloneAddr: r.URL,
 			AuthToken: r.Token,
+			Wiki:      r.Origin.Wiki,
+			Private:   repovisibility,
 		}
 
 		if r.Token == "" {
@@ -76,15 +110,18 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				CloneAddr:    r.URL,
 				AuthUsername: r.Origin.User,
 				AuthPassword: r.Origin.Password,
+				Wiki:         r.Origin.Wiki,
+				Private:      repovisibility,
 			}
 		}
 
 		_, _, err := giteaclient.MigrateRepo(opts)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
+			return
 		}
 
 		log.Info().
@@ -102,10 +139,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
+			return
 		}
 
 		log.Info().

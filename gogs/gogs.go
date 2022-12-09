@@ -6,8 +6,20 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func getRepoVisibility(visibility string) bool {
+	switch visibility {
+	case "public":
+		return false
+	case "private":
+		return true
+	default:
+		return true
+	}
+}
+
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) {
+	repovisibility := getRepoVisibility(d.Visibility.Repositories)
 	log.Info().
 		Str("stage", "gogs").
 		Str("url", d.URL).
@@ -21,6 +33,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Str("stage", "gogs").
 			Str("url", d.URL).
 			Msg(err.Error())
+	}
+
+	if d.User == "" && d.CreateOrg {
+		d.User = r.Owner
 	}
 
 	if d.User != "" {
@@ -59,6 +75,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Mirror:       true,
 			CloneAddr:    r.URL,
 			AuthUsername: r.Token,
+			Private:      repovisibility,
 		}
 
 		if r.Token == "" {
@@ -69,15 +86,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				CloneAddr:    r.URL,
 				AuthUsername: r.Origin.User,
 				AuthPassword: r.Origin.Password,
+				Private:      repovisibility,
 			}
 		}
 
 		_, err := gogsclient.MigrateRepo(opts)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
 		}
 
 		return
@@ -91,10 +109,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		err := gogsclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
 		}
 
 		log.Info().
