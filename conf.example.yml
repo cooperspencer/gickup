@@ -175,7 +175,6 @@ destination:
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
       visibility:
         repositories: private # private, public, default: private
-        organizations: private # private, limited, public, default: private
   gitlab:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
