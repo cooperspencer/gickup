@@ -117,10 +117,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		_, _, err := giteaclient.MigrateRepo(opts)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
+			return
 		}
 
 		log.Info().
@@ -138,10 +139,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
+			return
 		}
 
 		log.Info().

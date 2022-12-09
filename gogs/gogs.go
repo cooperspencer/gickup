@@ -92,10 +92,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		_, err := gogsclient.MigrateRepo(opts)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
 		}
 
 		return
@@ -109,10 +109,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 		err := gogsclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Msg(err.Error())
+				Err(err)
 		}
 
 		log.Info().
