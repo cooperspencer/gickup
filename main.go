@@ -157,18 +157,24 @@ func backup(repos []types.Repo, conf *types.Conf) {
 		}
 
 		for _, d := range conf.Destination.Gitea {
-			gitea.Backup(r, d, cli.Dry)
-			prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
+			if !strings.HasSuffix(r.Name, ".wiki") {
+				gitea.Backup(r, d, cli.Dry)
+				prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
+			}
 		}
 
 		for _, d := range conf.Destination.Gogs {
-			gogs.Backup(r, d, cli.Dry)
-			prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
+			if !strings.HasSuffix(r.Name, ".wiki") {
+				gogs.Backup(r, d, cli.Dry)
+				prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
+			}
 		}
 
 		for _, d := range conf.Destination.Gitlab {
-			gitlab.Backup(r, d, cli.Dry)
-			prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
+			if !strings.HasSuffix(r.Name, ".wiki") {
+				gitlab.Backup(r, d, cli.Dry)
+				prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
+			}
 		}
 
 		prometheus.SourceBackupsComplete.WithLabelValues(r.Name).Inc()
