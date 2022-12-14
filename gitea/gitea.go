@@ -200,7 +200,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 
 		if repo.Starred {
-			starredrepos, _, err := client.GetMyStarredRepos()
+			starredrepos, _, err := client.GetStarredRepos(repo.User)
 			if err != nil {
 				log.Fatal().
 					Str("stage", "gitea").
