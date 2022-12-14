@@ -1,5 +1,9 @@
 [![Build and Publish](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg)](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml)
 # GICKUP
+Backup all the repositories.
+
+A lot of hosters are already supported, but if you see that there is one missing, feel free to create a MR or open an issue and I will take care of it.
+
 You can clone/mirror repositories from:
 - Github
 - Gitlab
@@ -15,6 +19,8 @@ You can clone/mirror them to:
 - Gitea
 - Gogs
 - Local
+
+[Official Documentation](https://cooperspencer.github.io/gickup-documentation/)
 
 ## How to make a configuration file
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
@@ -56,6 +62,5 @@ The mirroring to Gitlab doesn't work, or at least I can't test it properly becau
 
 ## Future Ideas
 - Additional VCS
-  - [OneDev](https://code.onedev.io/)
   - [GitBucket](https://gitbucket.github.io/)
 - Add minio as a destination
