@@ -1,6 +1,7 @@
 package local
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path"
@@ -21,7 +22,12 @@ import (
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) {
 	if l.Structured {
-		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
+		if l.Date {
+			date := time.Now()
+			repo.Name = path.Join(fmt.Sprint(date.Year()), fmt.Sprintf("%02d", int(date.Month())), fmt.Sprintf("%02d", date.Day()), repo.Hoster, repo.Owner, repo.Name)
+		} else {
+			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
+		}
 	}
 
 	stat, err := os.Stat(l.Path)

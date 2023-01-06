@@ -183,6 +183,7 @@ destination:
     # Export this path from Docker with a volume to make it accessible and more permanent.
     - path: /some/path/gickup
       structured: true # checks repos out like hostersite/user|organization/repo
+      date: true # if structured is true, it adds /year/month/day to the backup path
 
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
