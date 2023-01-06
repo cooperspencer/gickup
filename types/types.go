@@ -42,6 +42,7 @@ type Local struct {
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
 	Date       bool   `yaml:"date"`
+	Zip        bool   `yaml:"zip"`
 }
 
 // Conf TODO.

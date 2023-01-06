@@ -15,15 +15,16 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
+	"github.com/mholt/archiver"
 	"github.com/rs/zerolog/log"
 	gossh "golang.org/x/crypto/ssh"
 )
 
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) {
+	date := time.Now()
 	if l.Structured {
 		if l.Date {
-			date := time.Now()
 			repo.Name = path.Join(fmt.Sprint(date.Year()), fmt.Sprintf("%02d", int(date.Month())), fmt.Sprintf("%02d", date.Day()), repo.Hoster, repo.Owner, repo.Name)
 		} else {
 			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
@@ -179,6 +180,26 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 			}
 		}
 
+		if l.Zip {
+			log.Info().
+				Str("stage", "locally").
+				Str("path", l.Path).
+				Msgf("zipping %s", types.Green(repo.Name))
+			err := archiver.Archive([]string{repo.Name}, fmt.Sprintf("%s.zip", repo.Name))
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+			}
+			err = os.RemoveAll(repo.Name)
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+			}
+		}
 		x = 5
 	}
 }

@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/kong v0.6.1
 	github.com/cloudflare/circl v1.2.0 // indirect
 	github.com/cooperspencer/onedev v0.0.0-20221203121514-8a047feb4b04
+	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
@@ -19,7 +20,10 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/ktrysmt/go-bitbucket v0.9.48
 	github.com/melbahja/goph v1.3.0
+	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/nwaples/rardecode v1.1.3 // indirect
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/prometheus/client_golang v1.12.2
 	github.com/prometheus/common v0.37.0 // indirect
@@ -27,8 +31,10 @@ require (
 	github.com/rs/zerolog v1.27.0
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/xanzy/go-gitlab v0.69.0
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced // indirect
 	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0
