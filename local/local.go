@@ -2,9 +2,12 @@ package local
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"path"
+	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -23,12 +26,20 @@ import (
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) {
 	date := time.Now()
+	search := fmt.Sprintf("(?m)%s_[0-9]{10}", repo.Name)
+	if l.Zip {
+		search += ".zip"
+	}
 	if l.Structured {
 		if l.Date {
 			repo.Name = path.Join(fmt.Sprint(date.Year()), fmt.Sprintf("%02d", int(date.Month())), fmt.Sprintf("%02d", date.Day()), repo.Hoster, repo.Owner, repo.Name)
 		} else {
 			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 		}
+	}
+
+	if l.Keep > 0 {
+		repo.Name += fmt.Sprintf("_%d", date.Unix())
 	}
 
 	stat, err := os.Stat(l.Path)
@@ -200,6 +211,53 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 					Str("repo", repo.Name).Err(err)
 			}
 		}
+
+		if l.Keep > 0 {
+			var re = regexp.MustCompile(search)
+
+			parentdir := path.Dir(repo.Name)
+			files, err := ioutil.ReadDir(parentdir)
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+				break
+			}
+
+			keep := []string{}
+			for _, file := range files {
+				match := re.FindAllString(file.Name(), -1)
+				if len(match) > 0 {
+					if !l.Zip {
+						if strings.HasSuffix(file.Name(), ".zip") {
+							continue
+						}
+					}
+					keep = append(keep, file.Name())
+				}
+			}
+
+			sort.Sort(sort.Reverse(sort.StringSlice(keep)))
+
+			if len(keep) > l.Keep {
+				toremove := keep[l.Keep:]
+				for _, file := range toremove {
+					log.Info().
+						Str("stage", "locally").
+						Str("path", l.Path).
+						Msgf("removing %s", types.Red(path.Join(parentdir, file)))
+					err := os.RemoveAll(path.Join(parentdir, file))
+					if err != nil {
+						log.Warn().
+							Str("stage", "locally").
+							Str("path", l.Path).
+							Str("repo", repo.Name).Err(err)
+					}
+				}
+			}
+		}
+
 		x = 5
 	}
 }

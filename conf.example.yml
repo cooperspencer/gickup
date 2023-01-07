@@ -185,6 +185,7 @@ destination:
       structured: true # checks repos out like hostersite/user|organization/repo
       date: true # if structured is true, it adds /year/month/day to the backup path
       zip: true # zips the repository after cloned and removes the repository afterwards
+      keep: 5 # only keeps x backups
 
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
