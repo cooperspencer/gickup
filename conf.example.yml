@@ -183,7 +183,6 @@ destination:
     # Export this path from Docker with a volume to make it accessible and more permanent.
     - path: /some/path/gickup
       structured: true # checks repos out like hostersite/user|organization/repo
-      date: true # if structured is true, it adds /year/month/day to the backup path
       zip: true # zips the repository after cloned and removes the repository afterwards
       keep: 5 # only keeps x backups
 

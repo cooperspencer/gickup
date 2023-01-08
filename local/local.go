@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 	"path"
-	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,15 +31,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 		search += ".zip"
 	}
 	if l.Structured {
-		if l.Date {
-			repo.Name = path.Join(fmt.Sprint(date.Year()), fmt.Sprintf("%02d", int(date.Month())), fmt.Sprintf("%02d", date.Day()), repo.Hoster, repo.Owner, repo.Name)
+		if l.Keep > 0 {
+			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name, fmt.Sprint(date.Unix()))
 		} else {
 			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 		}
-	}
-
-	if l.Keep > 0 {
-		repo.Name += fmt.Sprintf("_%d", date.Unix())
 	}
 
 	stat, err := os.Stat(l.Path)
@@ -213,8 +209,6 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 		}
 
 		if l.Keep > 0 {
-			var re = regexp.MustCompile(search)
-
 			parentdir := path.Dir(repo.Name)
 			files, err := ioutil.ReadDir(parentdir)
 			if err != nil {
@@ -227,15 +221,22 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 			keep := []string{}
 			for _, file := range files {
-				match := re.FindAllString(file.Name(), -1)
-				if len(match) > 0 {
-					if !l.Zip {
-						if strings.HasSuffix(file.Name(), ".zip") {
-							continue
-						}
-					}
-					keep = append(keep, file.Name())
+				fname := file.Name()
+				if l.Zip {
+					fname = strings.TrimSuffix(file.Name(), ".zip")
 				}
+				_, err := strconv.ParseInt(fname, 10, 64)
+				if err != nil {
+					log.Warn().
+						Str("stage", "locally").
+						Str("path", l.Path).
+						Str("repo", repo.Name).
+						Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
+				}
+				if l.Zip && !strings.HasSuffix(file.Name(), ".zip") {
+					continue
+				}
+				keep = append(keep, file.Name())
 			}
 
 			sort.Sort(sort.Reverse(sort.StringSlice(keep)))
