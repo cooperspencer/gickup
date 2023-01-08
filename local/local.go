@@ -31,11 +31,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 		search += ".zip"
 	}
 	if l.Structured {
-		if l.Keep > 0 {
-			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name, fmt.Sprint(date.Unix()))
-		} else {
-			repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
-		}
+		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
+	}
+
+	if l.Keep > 0 {
+		repo.Name = path.Join(repo.Name, fmt.Sprint(date.Unix()))
 	}
 
 	stat, err := os.Stat(l.Path)
