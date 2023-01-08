@@ -26,10 +26,7 @@ import (
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) {
 	date := time.Now()
-	search := fmt.Sprintf("(?m)%s_[0-9]{10}", repo.Name)
-	if l.Zip {
-		search += ".zip"
-	}
+
 	if l.Structured {
 		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 	}
