@@ -41,6 +41,8 @@ func (dest Destination) Count() int {
 type Local struct {
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
+	Zip        bool   `yaml:"zip"`
+	Keep       int    `yaml:"keep"`
 }
 
 // Conf TODO.

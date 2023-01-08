@@ -1,9 +1,13 @@
 package local
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"path"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,14 +18,21 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
+	"github.com/mholt/archiver"
 	"github.com/rs/zerolog/log"
 	gossh "golang.org/x/crypto/ssh"
 )
 
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) {
+	date := time.Now()
+
 	if l.Structured {
 		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
+	}
+
+	if l.Keep > 0 {
+		repo.Name = path.Join(repo.Name, fmt.Sprint(date.Unix()))
 	}
 
 	stat, err := os.Stat(l.Path)
@@ -168,6 +179,78 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 							continue
 						}
+					}
+				}
+			}
+		}
+
+		if l.Zip {
+			log.Info().
+				Str("stage", "locally").
+				Str("path", l.Path).
+				Msgf("zipping %s", types.Green(repo.Name))
+			err := archiver.Archive([]string{repo.Name}, fmt.Sprintf("%s.zip", repo.Name))
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+			}
+			err = os.RemoveAll(repo.Name)
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+			}
+		}
+
+		if l.Keep > 0 {
+			parentdir := path.Dir(repo.Name)
+			files, err := ioutil.ReadDir(parentdir)
+			if err != nil {
+				log.Warn().
+					Str("stage", "locally").
+					Str("path", l.Path).
+					Str("repo", repo.Name).Err(err)
+				break
+			}
+
+			keep := []string{}
+			for _, file := range files {
+				fname := file.Name()
+				if l.Zip {
+					fname = strings.TrimSuffix(file.Name(), ".zip")
+				}
+				_, err := strconv.ParseInt(fname, 10, 64)
+				if err != nil {
+					log.Warn().
+						Str("stage", "locally").
+						Str("path", l.Path).
+						Str("repo", repo.Name).
+						Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
+				}
+				if l.Zip && !strings.HasSuffix(file.Name(), ".zip") {
+					continue
+				}
+				keep = append(keep, file.Name())
+			}
+
+			sort.Sort(sort.Reverse(sort.StringSlice(keep)))
+
+			if len(keep) > l.Keep {
+				toremove := keep[l.Keep:]
+				for _, file := range toremove {
+					log.Info().
+						Str("stage", "locally").
+						Str("path", l.Path).
+						Msgf("removing %s", types.Red(path.Join(parentdir, file)))
+					err := os.RemoveAll(path.Join(parentdir, file))
+					if err != nil {
+						log.Warn().
+							Str("stage", "locally").
+							Str("path", l.Path).
+							Str("repo", repo.Name).Err(err)
 					}
 				}
 			}
