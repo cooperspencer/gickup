@@ -1,5 +1,6 @@
 [![Build and Publish](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg)](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml)
 # GICKUP
+![gickup](https://github.com/cooperspencer/gickup/blob/main/gickup.png)
 Backup all the repositories.
 
 A lot of hosters are already supported, but if you see that there is one missing, feel free to create a MR or open an issue and I will take care of it.
