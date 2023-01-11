@@ -31,6 +31,10 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 	}
 
+	if l.Bare {
+		repo.Name += ".git"
+	}
+
 	if l.Keep > 0 {
 		repo.Name = path.Join(repo.Name, fmt.Sprint(date.Unix()))
 	}
@@ -91,7 +95,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 				Str("path", l.Path).
 				Msgf("cloning %s", types.Green(repo.Name))
 
-			err := cloneRepository(repo, auth, dry)
+			err := cloneRepository(repo, auth, dry, l.Bare)
 			if err != nil {
 				if err.Error() == "repository not found" {
 					log.Warn().
@@ -153,7 +157,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 					Str("path", l.Path).
 					Msgf("opening %s locally", types.Green(repo.Name))
 
-				err := updateRepository(repo.Name, auth, dry)
+				err := updateRepository(repo.Name, auth, dry, l.Bare)
 				if err != nil {
 					if strings.Contains(err.Error(), "already up-to-date") {
 						log.Info().
@@ -260,29 +264,32 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 	}
 }
 
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool) error {
+func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool) error {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
 	}
 
-	w, err := r.Worktree()
-	if err != nil {
-		return err
-	}
-
 	if !dry {
-		log.Info().
-			Str("stage", "locally").
-			Msgf("pulling %s", types.Green(repoPath))
+		if bare {
+			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+		} else {
+			w, err := r.Worktree()
+			if err != nil {
+				return err
+			}
 
-		err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+			log.Info().
+				Str("stage", "locally").
+				Msgf("pulling %s", types.Green(repoPath))
+
+			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+		}
 	}
-
 	return err
 }
 
-func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool) error {
+func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, bare bool) error {
 	if dry {
 		return nil
 	}
@@ -320,7 +327,7 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool) error
 		return err
 	}
 
-	_, err = git.PlainClone(repo.Name, false, &git.CloneOptions{
+	_, err = git.PlainClone(repo.Name, bare, &git.CloneOptions{
 		URL:          url,
 		Auth:         auth,
 		SingleBranch: false,
