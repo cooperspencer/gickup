@@ -185,6 +185,7 @@ destination:
       structured: true # checks repos out like hostersite/user|organization/repo
       zip: true # zips the repository after cloned and removes the repository afterwards
       keep: 5 # only keeps x backups
+      bare: true # clone the repositories as bare
 
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
