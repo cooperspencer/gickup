@@ -31,10 +31,14 @@ func Get(conf *types.Conf) []types.Repo {
 
 		client := &onedev.Client{}
 
-		if repo.Password != "" {
-			client = onedev.NewClient(repo.URL, repo.Username, repo.Password)
+		if repo.Token != "" || repo.TokenFile != "" {
+			client = onedev.NewClientWithToken(repo.URL, repo.GetToken())
 		} else {
-			client = onedev.NewClient(repo.URL, "", "")
+			if repo.Password != "" {
+				client = onedev.NewClient(repo.URL, repo.Username, repo.Password)
+			} else {
+				client = onedev.NewClient(repo.URL, "", "")
+			}
 		}
 
 		query := onedev.ProjectQueryOptions{

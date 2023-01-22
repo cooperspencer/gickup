@@ -8,7 +8,7 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20220810064516-de89276ce0f3 // indirect
 	github.com/alecthomas/kong v0.6.1
 	github.com/cloudflare/circl v1.2.0 // indirect
-	github.com/cooperspencer/onedev v0.0.0-20221203121514-8a047feb4b04
+	github.com/cooperspencer/onedev v0.0.0-20230122104023-a6c4b6001d9e
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect

@@ -113,8 +113,8 @@ github.com/cncf/xds/go v0.0.0-20210805033703-aa0b78936158/go.mod h1:eXthEFrGJvWH
 github.com/cncf/xds/go v0.0.0-20210922020428-25de7278fc84/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211001041855-01bcc9b48dfe/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
-github.com/cooperspencer/onedev v0.0.0-20221203121514-8a047feb4b04 h1:cLozB3SZxCPQ9/mv0MonE4BRDtzvLuZQfPc+iirOukw=
-github.com/cooperspencer/onedev v0.0.0-20221203121514-8a047feb4b04/go.mod h1:6xF8ZlcuNkJoGf2VnyZZBkQAOGLu2zKOxKqEzPR2DJs=
+github.com/cooperspencer/onedev v0.0.0-20230122104023-a6c4b6001d9e h1:98DLPOGIK6oKbcpxfq4wjsJl68KjDT9mgKXvB8r8YiM=
+github.com/cooperspencer/onedev v0.0.0-20230122104023-a6c4b6001d9e/go.mod h1:6xF8ZlcuNkJoGf2VnyZZBkQAOGLu2zKOxKqEzPR2DJs=
 github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
