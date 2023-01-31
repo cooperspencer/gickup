@@ -178,6 +178,17 @@ func Get(conf *types.Conf) []types.Repo {
 			client, err = gitea.NewClient(repo.URL)
 		}
 
+		if token != "" && repo.User == "" {
+			user, _, err := client.GetMyUserInfo()
+			if err != nil {
+				log.Fatal().
+					Str("stage", "gitea").
+					Str("url", repo.URL).
+					Msg(err.Error())
+			}
+			repo.User = user.UserName
+		}
+
 		for {
 			if err != nil {
 				log.Fatal().
