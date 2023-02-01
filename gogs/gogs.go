@@ -140,7 +140,14 @@ func Get(conf *types.Conf) []types.Repo {
 
 		token := repo.GetToken()
 		client := gogs.NewClient(repo.URL, token)
-		gogsrepos, err := client.ListUserRepos(repo.User)
+		var gogsrepos []*gogs.Repository
+		var err error
+
+		if repo.User == "" {
+			gogsrepos, err = client.ListMyRepos()
+		} else {
+			gogsrepos, err = client.ListUserRepos(repo.User)
+		}
 		if err != nil {
 			log.Fatal().
 				Str("stage", "gogs").
@@ -210,7 +217,14 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 		}
-		orgs, err := client.ListUserOrgs(repo.User)
+
+		var orgs []*gogs.Organization
+
+		if repo.User == "" {
+			orgs, err = client.ListMyOrgs()
+		} else {
+			orgs, err = client.ListUserOrgs(repo.User)
+		}
 		if err != nil {
 			log.Fatal().
 				Str("stage", "gogs").
