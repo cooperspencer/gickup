@@ -126,10 +126,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
-		log.Info().
-			Str("stage", "gogs").
-			Str("url", repo.URL).
-			Msgf("grabbing repositories from %s", repo.User)
+		if repo.User == "" {
+			log.Info().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msg("grabbing my repositories")
+		} else {
+			log.Info().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msgf("grabbing repositories from %s", repo.User)
+		}
 
 		token := repo.GetToken()
 		client := gogs.NewClient(repo.URL, token)
