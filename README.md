@@ -57,7 +57,7 @@ https://github.com/cooperspencer/gickup/discussions
 ## Distribution Packages
 |Distribution|Package|Maintainer|
 |---|---|---|
-|Arch|[gickup](https://aur.archlinux.org/packages/gickup/)|[zhulik](https://github.com/zhulik)|
+|Arch|[gickup](https://aur.archlinux.org/packages/gickup/)|[me](https://github.com/cooperspencer)|
 
 ## Issues
 The mirroring to Gitlab doesn't work, or at least I can't test it properly because I have no access to a Gitlab EE instance.
