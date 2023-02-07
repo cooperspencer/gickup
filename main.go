@@ -153,27 +153,55 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				checkedpath = true
 			}
 
-			local.Locally(r, d, cli.Dry)
+			repotime := time.Now()
+			status := 0
+			if local.Locally(r, d, cli.Dry) {
+				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Observe(time.Now().Sub(repotime).Seconds())
+				status = 1
+			}
+
+			prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Set(float64(status))
 			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
 		}
 
 		for _, d := range conf.Destination.Gitea {
 			if !strings.HasSuffix(r.Name, ".wiki") {
-				gitea.Backup(r, d, cli.Dry)
+				repotime := time.Now()
+				status := 0
+				if gitea.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					status = 1
+				}
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 			}
 		}
 
 		for _, d := range conf.Destination.Gogs {
 			if !strings.HasSuffix(r.Name, ".wiki") {
-				gogs.Backup(r, d, cli.Dry)
+				repotime := time.Now()
+				status := 0
+				if gogs.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					status = 1
+				}
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
 			}
 		}
 
 		for _, d := range conf.Destination.Gitlab {
 			if !strings.HasSuffix(r.Name, ".wiki") {
-				gitlab.Backup(r, d, cli.Dry)
+				repotime := time.Now()
+				status := 0
+				if gitlab.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					status = 1
+				}
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
 			}
 		}

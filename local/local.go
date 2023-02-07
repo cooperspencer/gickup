@@ -24,7 +24,7 @@ import (
 )
 
 // Locally TODO.
-func Locally(repo types.Repo, l types.Local, dry bool) {
+func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	date := time.Now()
 
 	if l.Structured {
@@ -42,10 +42,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 	stat, err := os.Stat(l.Path)
 	if os.IsNotExist(err) && !dry {
 		if err := os.MkdirAll(l.Path, 0o777); err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "locally").
 				Str("path", l.Path).
 				Msg(err.Error())
+			return false
 		}
 
 		stat, _ = os.Stat(l.Path)
@@ -53,10 +54,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 	if stat != nil && stat.IsDir() {
 		if err := os.Chdir(l.Path); err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "locally").
 				Str("path", l.Path).
 				Msg(err.Error())
+			return false
 		}
 	}
 
@@ -73,7 +75,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 		auth, err = ssh.NewPublicKeysFromFile("git", repo.Origin.SSHKey, "")
 		if err != nil {
-			panic(err)
+			log.Error().
+				Str("stage", "locally").
+				Str("path", l.Path).
+				Msg(err.Error())
+			return false
 		}
 	case repo.Token != "":
 		auth = &http.BasicAuth{
@@ -262,6 +268,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) {
 
 		x = 5
 	}
+	return true
 }
 
 func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool) error {

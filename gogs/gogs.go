@@ -18,7 +18,7 @@ func getRepoVisibility(visibility string) bool {
 }
 
 // Backup TODO.
-func Backup(r types.Repo, d types.GenRepo, dry bool) {
+func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	repovisibility := getRepoVisibility(d.Visibility.Repositories)
 	log.Info().
 		Str("stage", "gogs").
@@ -29,10 +29,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
-		log.Fatal().
+		log.Error().
 			Str("stage", "gogs").
 			Str("url", d.URL).
 			Msg(err.Error())
+		return false
 	}
 
 	if d.User == "" && d.CreateOrg {
@@ -64,7 +65,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	}
 
 	if dry {
-		return
+		return true
 	}
 
 	repo, err := gogsclient.GetRepo(user.UserName, r.Name)
@@ -96,9 +97,10 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				Str("stage", "gogs").
 				Str("url", d.URL).
 				Err(err)
+			return false
 		}
 
-		return
+		return true
 	}
 
 	if repo.Mirror {
@@ -113,6 +115,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				Str("stage", "gogs").
 				Str("url", d.URL).
 				Err(err)
+			return false
 		}
 
 		log.Info().
@@ -120,6 +123,8 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Str("url", d.URL).
 			Msgf("successfully synced %s.", types.Blue(r.Name))
 	}
+
+	return true
 }
 
 // Get TODO.

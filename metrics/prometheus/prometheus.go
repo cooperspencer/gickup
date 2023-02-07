@@ -50,6 +50,16 @@ var DestinationBackupsComplete = promauto.NewCounterVec(prometheus.CounterOpts{
 	Help: "The count of destination to which a backup was written",
 }, []string{"destination_type"})
 
+var RepoSuccess = promauto.NewGaugeVec(prometheus.GaugeOpts{
+	Name: "gickup_repo_success",
+	Help: "See if backup was successful",
+}, []string{"hoster", "repository", "owner", "type", "path"})
+
+var RepoTime = promauto.NewSummaryVec(prometheus.SummaryOpts{
+	Name: "gickup_repo_time",
+	Help: "How long did the task take",
+}, []string{"hoster", "repository", "owner", "type", "path"})
+
 func Serve(conf types.PrometheusConfig) {
 	log.Info().
 		Str("listenAddr", conf.ListenAddr).
