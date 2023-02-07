@@ -156,7 +156,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			repotime := time.Now()
 			status := 0
 			if local.Locally(r, d, cli.Dry) {
-				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Observe(time.Now().Sub(repotime).Seconds())
+				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Set(time.Now().Sub(repotime).Seconds())
 				status = 1
 			}
 
@@ -169,7 +169,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				repotime := time.Now()
 				status := 0
 				if gitea.Backup(r, d, cli.Dry) {
-					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Now().Sub(repotime).Seconds())
 					status = 1
 				}
 
@@ -183,7 +183,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				repotime := time.Now()
 				status := 0
 				if gogs.Backup(r, d, cli.Dry) {
-					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Now().Sub(repotime).Seconds())
 					status = 1
 				}
 
@@ -197,7 +197,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				repotime := time.Now()
 				status := 0
 				if gitlab.Backup(r, d, cli.Dry) {
-					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Observe(time.Now().Sub(repotime).Seconds())
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Now().Sub(repotime).Seconds())
 					status = 1
 				}
 

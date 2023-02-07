@@ -55,7 +55,7 @@ var RepoSuccess = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Help: "See if backup was successful",
 }, []string{"hoster", "repository", "owner", "type", "path"})
 
-var RepoTime = promauto.NewSummaryVec(prometheus.SummaryOpts{
+var RepoTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "gickup_repo_time",
 	Help: "How long did the task take",
 }, []string{"hoster", "repository", "owner", "type", "path"})
