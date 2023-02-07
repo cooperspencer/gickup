@@ -126,14 +126,28 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
-		log.Info().
-			Str("stage", "gogs").
-			Str("url", repo.URL).
-			Msgf("grabbing repositories from %s", repo.User)
+		if repo.User == "" {
+			log.Info().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msg("grabbing my repositories")
+		} else {
+			log.Info().
+				Str("stage", "gogs").
+				Str("url", repo.URL).
+				Msgf("grabbing repositories from %s", repo.User)
+		}
 
 		token := repo.GetToken()
 		client := gogs.NewClient(repo.URL, token)
-		gogsrepos, err := client.ListUserRepos(repo.User)
+		var gogsrepos []*gogs.Repository
+		var err error
+
+		if repo.User == "" {
+			gogsrepos, err = client.ListMyRepos()
+		} else {
+			gogsrepos, err = client.ListUserRepos(repo.User)
+		}
 		if err != nil {
 			log.Fatal().
 				Str("stage", "gogs").
@@ -203,7 +217,14 @@ func Get(conf *types.Conf) []types.Repo {
 				}
 			}
 		}
-		orgs, err := client.ListUserOrgs(repo.User)
+
+		var orgs []*gogs.Organization
+
+		if repo.User == "" {
+			orgs, err = client.ListMyOrgs()
+		} else {
+			orgs, err = client.ListUserOrgs(repo.User)
+		}
 		if err != nil {
 			log.Fatal().
 				Str("stage", "gogs").

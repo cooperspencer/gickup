@@ -31,10 +31,17 @@ func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 func Get(conf *types.Conf) []types.Repo {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Github {
-		log.Info().
-			Str("stage", "github").
-			Str("url", "https://github.com").
-			Msgf("grabbing the repositories from %s", repo.User)
+		if repo.User == "" {
+			log.Info().
+				Str("stage", "github").
+				Str("url", "https://github.com").
+				Msg("grabbing my repositories")
+		} else {
+			log.Info().
+				Str("stage", "github").
+				Str("url", "https://github.com").
+				Msgf("grabbing the repositories from %s", repo.User)
+		}
 
 		opt := &github.RepositoryListOptions{
 			ListOptions: github.ListOptions{

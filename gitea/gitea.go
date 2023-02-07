@@ -160,10 +160,17 @@ func Get(conf *types.Conf) []types.Repo {
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
 		}
-		log.Info().
-			Str("stage", "gitea").
-			Str("url", repo.URL).
-			Msgf("grabbing repositories from %s", repo.User)
+		if repo.User == "" {
+			log.Info().
+				Str("stage", "gitea").
+				Str("url", repo.URL).
+				Msg("grabbing my repositories")
+		} else {
+			log.Info().
+				Str("stage", "gitea").
+				Str("url", repo.URL).
+				Msgf("grabbing repositories from %s", repo.User)
+		}
 		opt := gitea.ListReposOptions{}
 		opt.PageSize = 50
 		opt.Page = 1
@@ -178,13 +185,25 @@ func Get(conf *types.Conf) []types.Repo {
 			client, err = gitea.NewClient(repo.URL)
 		}
 
-		for {
+		if token != "" && repo.User == "" {
+			user, _, err := client.GetMyUserInfo()
 			if err != nil {
 				log.Fatal().
 					Str("stage", "gitea").
 					Str("url", repo.URL).
 					Msg(err.Error())
 			}
+			repo.User = user.UserName
+		}
+
+		if err != nil {
+			log.Fatal().
+				Str("stage", "gitea").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
+
+		for {
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
 				log.Fatal().
