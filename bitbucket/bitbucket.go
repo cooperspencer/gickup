@@ -9,9 +9,11 @@ import (
 )
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.BitBucket {
+		ran = true
 		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
 		if repo.User == "" {
 			repo.User = repo.Username
@@ -88,5 +90,5 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }

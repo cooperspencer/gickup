@@ -154,9 +154,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
+		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
 		}
@@ -293,21 +295,22 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		orgopt := gitea.ListOptions{Page: 1, PageSize: 50}
 		orgs := []*gitea.Organization{}
-		for {
-			o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
-			if err != nil {
-				log.Fatal().
-					Str("stage", "gitea").
-					Str("url", repo.URL).
-					Msg(err.Error())
+		if token != "" {
+			for {
+				o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
+				if err != nil {
+					log.Fatal().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Msg(err.Error())
+				}
+				if len(o) == 0 {
+					break
+				}
+				orgs = append(orgs, o...)
+				orgopt.Page++
 			}
-			if len(o) == 0 {
-				break
-			}
-			orgs = append(orgs, o...)
-			orgopt.Page++
 		}
-
 		orgrepos := []*gitea.Repository{}
 		for _, org := range orgs {
 			orgopt.Page = 1
@@ -392,7 +395,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }
 
 func getOrgRepos(client *gitea.Client, org *gitea.Organization,
