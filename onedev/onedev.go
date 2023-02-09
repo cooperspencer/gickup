@@ -8,10 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 
 	for _, repo := range conf.Source.OneDev {
+		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://code.onedev.io/"
 		}
@@ -182,5 +184,5 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }

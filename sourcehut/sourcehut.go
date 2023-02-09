@@ -100,9 +100,11 @@ func getRefs(url, name, token string) (Refs, error) {
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Sourcehut {
+		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://git.sr.ht"
 		}
@@ -251,5 +253,5 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }

@@ -15,9 +15,11 @@ import (
 )
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	if len(conf.Source.Any) > 0 {
+		ran = true
 		log.Info().
 			Str("stage", "whatever").
 			Msgf("adding repos")
@@ -100,5 +102,5 @@ func Get(conf *types.Conf) []types.Repo {
 			})
 		}
 	}
-	return repos
+	return repos, ran
 }

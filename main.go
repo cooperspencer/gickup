@@ -220,39 +220,55 @@ func runBackup(conf *types.Conf, num int) {
 	prometheus.JobsStarted.Inc()
 
 	// Github
-	repos := github.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("github", numstring).Set(float64(len(repos)))
+	repos, ran := github.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("github", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
 	// Gitea
-	repos = gitea.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitea", numstring).Set(float64(len(repos)))
+	repos, ran = gitea.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("gitea", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
 	// Gogs
-	repos = gogs.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gogs", numstring).Set(float64(len(repos)))
+	repos, ran = gogs.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("gogs", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
 	// Gitlab
-	repos = gitlab.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("gitlab", numstring).Set(float64(len(repos)))
+	repos, ran = gitlab.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("gitlab", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
-	repos = bitbucket.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("bitbucket", numstring).Set(float64(len(repos)))
+	repos, ran = bitbucket.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("bitbucket", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
-	repos = whatever.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("whatever", numstring).Set(float64(len(repos)))
+	repos, ran = whatever.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("whatever", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
-	repos = onedev.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("onedev", numstring).Set(float64(len(repos)))
+	repos, ran = onedev.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("onedev", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
-	repos = sourcehut.Get(conf)
-	prometheus.CountReposDiscovered.WithLabelValues("sourcehut", numstring).Set(float64(len(repos)))
+	repos, ran = sourcehut.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("sourcehut", numstring).Set(float64(len(repos)))
+	}
 	backup(repos, conf)
 
 	endTime := time.Now()

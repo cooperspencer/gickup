@@ -128,9 +128,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
+		ran = true
 		if repo.User == "" {
 			log.Info().
 				Str("stage", "gogs").
@@ -336,5 +338,5 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }

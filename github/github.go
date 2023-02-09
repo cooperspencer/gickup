@@ -28,9 +28,11 @@ func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Github {
+		ran = true
 		if repo.User == "" {
 			log.Info().
 				Str("stage", "github").
@@ -194,5 +196,5 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }
