@@ -31,7 +31,7 @@ func getRepoVisibility(visibility string) bool {
 }
 
 // Backup TODO.
-func Backup(r types.Repo, d types.GenRepo, dry bool) {
+func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	orgvisibilty := getOrgVisibility(d.Visibility.Organizations)
 	repovisibility := getRepoVisibility(d.Visibility.Repositories)
 	if d.URL == "" {
@@ -45,15 +45,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 	giteaclient, err := gitea.NewClient(d.URL, gitea.SetToken(d.GetToken()))
 	if err != nil {
-		log.Fatal().Str("stage", "gitea").Str("url", d.URL).Msg(err.Error())
+		log.Error().Str("stage", "gitea").Str("url", d.URL).Msg(err.Error())
+		return false
 	}
 
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
-		log.Fatal().
+		log.Error().
 			Str("stage", "gitea").
 			Str("url", d.URL).
 			Msg(err.Error())
+		return false
 	}
 
 	if d.User == "" && d.CreateOrg {
@@ -69,25 +71,27 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 					Visibility: orgvisibilty,
 				})
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "gitea").
 						Str("url", d.URL).
 						Msg(err.Error())
+					return false
 				}
 				user.ID = org.ID
 				user.UserName = org.UserName
 			} else {
-				log.Fatal().
+				log.Error().
 					Str("stage", "gitea").
 					Str("url", d.URL).
 					Msg(err.Error())
+				return false
 			}
 		}
 
 	}
 
 	if dry {
-		return
+		return true
 	}
 
 	repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
@@ -121,7 +125,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				Str("stage", "gitea").
 				Str("url", d.URL).
 				Err(err)
-			return
+			return false
 		}
 
 		log.Info().
@@ -129,7 +133,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Str("url", d.URL).
 			Msgf("mirrored %s to %s", types.Blue(r.Name), d.URL)
 
-		return
+		return true
 	}
 	if repo.Mirror {
 		log.Info().
@@ -143,7 +147,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 				Str("stage", "gitea").
 				Str("url", d.URL).
 				Err(err)
-			return
+			return false
 		}
 
 		log.Info().
@@ -151,12 +155,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 			Str("url", d.URL).
 			Msgf("successfully synced %s.", types.Blue(r.Name))
 	}
+
+	return true
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
+		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
 		}
@@ -293,21 +301,22 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 		orgopt := gitea.ListOptions{Page: 1, PageSize: 50}
 		orgs := []*gitea.Organization{}
-		for {
-			o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
-			if err != nil {
-				log.Fatal().
-					Str("stage", "gitea").
-					Str("url", repo.URL).
-					Msg(err.Error())
+		if token != "" {
+			for {
+				o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
+				if err != nil {
+					log.Fatal().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Msg(err.Error())
+				}
+				if len(o) == 0 {
+					break
+				}
+				orgs = append(orgs, o...)
+				orgopt.Page++
 			}
-			if len(o) == 0 {
-				break
-			}
-			orgs = append(orgs, o...)
-			orgopt.Page++
 		}
-
 		orgrepos := []*gitea.Repository{}
 		for _, org := range orgs {
 			orgopt.Page = 1
@@ -392,7 +401,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }
 
 func getOrgRepos(client *gitea.Client, org *gitea.Organization,

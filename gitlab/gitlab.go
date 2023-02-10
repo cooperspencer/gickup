@@ -11,7 +11,7 @@ import (
 )
 
 // Backup TODO.
-func Backup(r types.Repo, d types.GenRepo, dry bool) {
+func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	var gitlabclient *gitlab.Client
 	token := d.GetToken()
 	var err error
@@ -23,10 +23,11 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	}
 
 	if err != nil {
-		log.Fatal().
+		log.Error().
 			Str("stage", "gitlab").
 			Str("url", d.URL).
 			Msg(err.Error())
+		return false
 	}
 
 	log.Info().
@@ -43,7 +44,8 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 	projects, _, err := gitlabclient.Projects.ListProjects(&opt)
 	if err != nil {
-		log.Fatal().Str("stage", "gitlab").Str("url", d.URL).Msg(err.Error())
+		log.Error().Str("stage", "gitlab").Str("url", d.URL).Msg(err.Error())
+		return false
 	}
 
 	found := false
@@ -54,7 +56,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 	}
 
 	if dry || found {
-		return
+		return true
 	}
 
 	if r.Token != "" {
@@ -72,17 +74,22 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) {
 
 	_, _, err = gitlabclient.Projects.CreateProject(opts)
 	if err != nil {
-		log.Fatal().
+		log.Error().
 			Str("stage", "gitlab").
 			Str("url", d.URL).
 			Msg(err.Error())
+		return false
 	}
+
+	return true
 }
 
 // Get TODO.
-func Get(conf *types.Conf) []types.Repo {
+func Get(conf *types.Conf) ([]types.Repo, bool) {
+	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitlab {
+		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitlab.com"
 		}
@@ -360,7 +367,7 @@ func Get(conf *types.Conf) []types.Repo {
 		}
 	}
 
-	return repos
+	return repos, ran
 }
 
 func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bool {
