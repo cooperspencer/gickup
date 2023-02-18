@@ -3,7 +3,6 @@ module github.com/cooperspencer/gickup
 go 1.16
 
 require (
-	cloud.google.com/go/compute v1.7.0 // indirect
 	code.gitea.io/sdk/gitea v0.15.1
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
@@ -12,8 +11,6 @@ require (
 	github.com/cloudflare/circl v1.3.2 // indirect
 	github.com/cooperspencer/onedev v0.0.0-20230122104023-a6c4b6001d9e
 	github.com/dsnet/compress v0.0.1 // indirect
-	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/go-git/go-git/v5 v5.5.2
@@ -23,14 +20,11 @@ require (
 	github.com/gookit/color v1.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/ktrysmt/go-bitbucket v0.9.55
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/melbahja/goph v1.3.0
 	github.com/mholt/archiver v3.1.1+incompatible
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
