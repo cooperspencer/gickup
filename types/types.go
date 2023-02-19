@@ -204,11 +204,20 @@ type GenRepo struct {
 	Starred     bool       `yaml:"starred"`
 	CreateOrg   bool       `yaml:"createorg"`
 	Visibility  Visibility `yaml:"visibility"`
+	Filter      Filter     `yaml:"filter"`
 }
 
+// Visibility struct
 type Visibility struct {
 	Repositories  string `yaml:"repositories"`
 	Organizations string `yaml:"organizations"`
+}
+
+// Filter struct
+type Filter struct {
+	LastActivity time.Duration `yaml:"lastactivity"`
+	Stars        int           `yaml:"stars"`
+	Languages    []string      `yaml:"languages"`
 }
 
 // GetToken TODO.

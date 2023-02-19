@@ -75,7 +75,7 @@ func readConfigFile(configfile string) []*types.Conf {
 				log.Fatal().
 					Str("stage", "readconfig").
 					Str("file", configfile).
-					Msg("Cannot map yml config file to interface, possible syntax error")
+					Err(err)
 			}
 		}
 

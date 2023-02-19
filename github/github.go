@@ -2,6 +2,8 @@ package github
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/google/go-github/v41/github"
@@ -129,8 +131,24 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
+		for i := range repo.Filter.Languages {
+			repo.Filter.Languages[i] = strings.ToLower(repo.Filter.Languages[i])
+		}
+		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range githubrepos {
+			if r.Language != nil {
+				if !languages[strings.ToLower(*r.Language)] {
+					continue
+				}
+			}
+			if *r.StargazersCount < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.PushedAt.Time) <= repo.Filter.LastActivity {
+				continue
+			}
+
 			if include[*r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.GetName(),
