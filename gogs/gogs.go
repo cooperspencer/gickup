@@ -1,6 +1,8 @@
 package gogs
 
 import (
+	"time"
+
 	"github.com/cooperspencer/gickup/types"
 	"github.com/gogs/go-gogs-client"
 	"github.com/rs/zerolog/log"
@@ -168,6 +170,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gogsrepos {
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
@@ -279,6 +287,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
