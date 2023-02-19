@@ -215,9 +215,10 @@ type Visibility struct {
 
 // Filter struct
 type Filter struct {
-	LastActivity time.Duration `yaml:"lastactivity"`
-	Stars        int           `yaml:"stars"`
-	Languages    []string      `yaml:"languages"`
+	LastActivity    time.Duration `yaml:"lastactivity"`
+	Stars           int           `yaml:"stars"`
+	Languages       []string      `yaml:"languages"`
+	ExcludeArchived bool          `yaml:"excludearchived"`
 }
 
 // GetToken TODO.
