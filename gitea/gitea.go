@@ -1,6 +1,9 @@
 package gitea
 
 import (
+	"strings"
+	"time"
+
 	"code.gitea.io/sdk/gitea"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
@@ -241,8 +244,46 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		exclude := types.GetMap(repo.Exclude)
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
+		for i := range repo.Filter.Languages {
+			repo.Filter.Languages[i] = strings.ToLower(repo.Filter.Languages[i])
+		}
+		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitearepos {
+			if repo.Filter.ExcludeArchived {
+				if r.Archived {
+					continue
+				}
+			}
+
+			if len(repo.Filter.Languages) > 0 {
+				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
+				if err != nil {
+					log.Error().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Err(err)
+					continue
+				} else {
+					language := ""
+					percentage := int64(0)
+					for lang, percent := range langs {
+						if percent > percentage {
+							language = lang
+						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
+					}
+				}
+			}
+
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
@@ -308,7 +349,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					log.Fatal().
 						Str("stage", "gitea").
 						Str("url", repo.URL).
-						Msg(err.Error())
+						Err(err)
 				}
 				if len(o) == 0 {
 					break
@@ -343,6 +384,40 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if repo.Filter.ExcludeArchived {
+				if r.Archived {
+					continue
+				}
+			}
+
+			if len(repo.Filter.Languages) > 0 {
+				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
+				if err != nil {
+					log.Error().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Err(err)
+					continue
+				} else {
+					language := ""
+					percentage := int64(0)
+					for lang, percent := range langs {
+						if percent > percentage {
+							language = lang
+						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
+					}
+				}
+			}
+
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
