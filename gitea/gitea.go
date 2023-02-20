@@ -205,28 +205,31 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if token != "" && repo.User == "" {
 			user, _, err := client.GetMyUserInfo()
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "gitea").
 					Str("url", repo.URL).
 					Msg(err.Error())
+				continue
 			}
 			repo.User = user.UserName
 		}
 
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitea").
 				Str("url", repo.URL).
 				Msg(err.Error())
+			continue
 		}
 
 		for {
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "gitea").
 					Str("url", repo.URL).
 					Msg(err.Error())
+				continue
 			}
 			if len(repos) == 0 {
 				break
@@ -238,12 +241,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.Starred {
 			starredrepos, _, err := client.GetStarredRepos(repo.User)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "gitea").
 					Str("url", repo.URL).
 					Msg(err.Error())
+			} else {
+				gitearepos = append(gitearepos, starredrepos...)
 			}
-			gitearepos = append(gitearepos, starredrepos...)
 		}
 
 		include := types.GetMap(repo.Include)
@@ -352,7 +356,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			for {
 				o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "gitea").
 						Str("url", repo.URL).
 						Msg(err.Error())
@@ -491,7 +495,7 @@ func getOrgRepos(client *gitea.Client, org *gitea.Organization,
 	o, _, err := client.ListOrgRepos(org.UserName,
 		gitea.ListOrgReposOptions{orgopt})
 	if err != nil {
-		log.Fatal().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
+		log.Error().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
 	}
 
 	return o

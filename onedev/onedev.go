@@ -61,7 +61,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.User == "" {
 			u, err := client.GetMe()
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "onedev").
 					Str("url", repo.URL).
 					Msg("can't find user")
@@ -77,7 +77,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		userrepos, err := client.GetProjects(&query)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "onedev").
 				Str("url", repo.URL).
 				Msg(err.Error())
@@ -95,16 +95,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			urls, err := client.GetCloneUrl(r.ID)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "onedev").
 					Str("url", repo.URL).
 					Msg("couldn't get clone urls")
+				continue
 			}
 
 			defaultbranch, err := client.GetDefaultBranch(r.ID)
 			if err != nil {
 				fmt.Println(err)
-				log.Fatal().
+				log.Error().
 					Str("stage", "onedev").
 					Str("url", repo.URL).
 					Msgf("couldn't get default branch for %s", r.Name)
@@ -169,7 +170,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 				orgrepos, err := client.GetProjects(&query)
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "onedev").
 						Str("url", repo.URL).
 						Msg(err.Error())
@@ -178,15 +179,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for _, r := range orgrepos {
 					urls, err := client.GetCloneUrl(r.ID)
 					if err != nil {
-						log.Fatal().
+						log.Error().
 							Str("stage", "onedev").
 							Str("url", repo.URL).
 							Msg("couldn't get clone urls")
+						continue
 					}
 
 					defaultbranch, err := client.GetDefaultBranch(r.ID)
 					if err != nil {
-						log.Fatal().
+						log.Error().
 							Str("stage", "onedev").
 							Str("url", repo.URL).
 							Msgf("couldn't get default branch for %s", r.Name)

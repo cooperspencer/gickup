@@ -50,18 +50,20 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 					UserName: d.User,
 				})
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "gogs").
 						Str("url", d.URL).
 						Msg(err.Error())
+					return false
 				}
 				user.ID = org.ID
 				user.UserName = org.UserName
 			} else {
-				log.Fatal().
+				log.Error().
 					Str("stage", "gogs").
 					Str("url", d.URL).
 					Msg(err.Error())
+				return false
 			}
 		}
 	}
@@ -164,10 +166,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			gogsrepos, err = client.ListUserRepos(repo.User)
 		}
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", repo.URL).
 				Msg(err.Error())
+			continue
 		}
 
 		include := types.GetMap(repo.Include)
@@ -247,7 +250,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			orgs, err = client.ListUserOrgs(repo.User)
 		}
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gogs").
 				Str("url", repo.URL).
 				Msg(err.Error())
@@ -263,7 +266,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if includeorgs[org.UserName] {
 						o, err := client.ListOrgRepos(org.UserName)
 						if err != nil {
-							log.Fatal().
+							log.Error().
 								Str("stage", "gogs").
 								Str("url", repo.URL).
 								Msg(err.Error())
@@ -278,7 +281,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				} else {
 					o, err := client.ListOrgRepos(org.UserName)
 					if err != nil {
-						log.Fatal().
+						log.Error().
 							Str("stage", "gogs").
 							Str("url", repo.URL).
 							Msg(err.Error())

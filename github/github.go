@@ -79,10 +79,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if token != "" {
 			user, _, err := client.Users.Get(context.TODO(), "")
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "github").
 					Str("url", "https://github.com").
 					Msg(err.Error())
+				continue
 			}
 
 			if repo.User == user.GetLogin() {
@@ -94,10 +95,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			opt.Page = i
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "github").
 					Str("url", "https://github.com").
 					Msg(err.Error())
+				continue
 			}
 
 			if len(repos) == 0 {
@@ -119,7 +121,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				opt.ListOptions.Page = i
 				repos, _, err := client.Activity.ListStarred(context.TODO(), repo.User, opt)
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "github").
 						Str("url", "https://github.com").
 						Msg(err.Error())
