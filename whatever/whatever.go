@@ -56,7 +56,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						log.Error().
 							Str("stage", "whatever").
-							Err(err)
+							Msg(err.Error())
 						continue
 					}
 				}
@@ -67,7 +67,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				log.Error().
 					Str("stage", "whatever").
-					Err(err)
+					Msg(err.Error())
 
 				continue
 			}

@@ -98,7 +98,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
@@ -116,7 +116,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
