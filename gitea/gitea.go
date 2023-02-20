@@ -1,6 +1,9 @@
 package gitea
 
 import (
+	"strings"
+	"time"
+
 	"code.gitea.io/sdk/gitea"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
@@ -124,7 +127,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
@@ -146,7 +149,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
@@ -164,6 +167,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
@@ -185,7 +195,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		gitearepos := []*gitea.Repository{}
 
 		var client *gitea.Client
-		var err error
 		token := repo.GetToken()
 		if token != "" {
 			client, err = gitea.NewClient(repo.URL, gitea.SetToken(token))
@@ -241,8 +250,46 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		exclude := types.GetMap(repo.Exclude)
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
+		for i := range repo.Filter.Languages {
+			repo.Filter.Languages[i] = strings.ToLower(repo.Filter.Languages[i])
+		}
+		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitearepos {
+			if repo.Filter.ExcludeArchived {
+				if r.Archived {
+					continue
+				}
+			}
+
+			if len(repo.Filter.Languages) > 0 {
+				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
+				if err != nil {
+					log.Error().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Msg(err.Error())
+					continue
+				} else {
+					language := ""
+					percentage := int64(0)
+					for lang, percent := range langs {
+						if percent > percentage {
+							language = lang
+						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
+					}
+				}
+			}
+
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
@@ -343,6 +390,40 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if repo.Filter.ExcludeArchived {
+				if r.Archived {
+					continue
+				}
+			}
+
+			if len(repo.Filter.Languages) > 0 {
+				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
+				if err != nil {
+					log.Error().
+						Str("stage", "gitea").
+						Str("url", repo.URL).
+						Msg(err.Error())
+					continue
+				} else {
+					language := ""
+					percentage := int64(0)
+					for lang, percent := range langs {
+						if percent > percentage {
+							language = lang
+						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
+					}
+				}
+			}
+
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,

@@ -204,11 +204,22 @@ type GenRepo struct {
 	Starred     bool       `yaml:"starred"`
 	CreateOrg   bool       `yaml:"createorg"`
 	Visibility  Visibility `yaml:"visibility"`
+	Filter      Filter     `yaml:"filter"`
 }
 
+// Visibility struct
 type Visibility struct {
 	Repositories  string `yaml:"repositories"`
 	Organizations string `yaml:"organizations"`
+}
+
+// Filter struct
+type Filter struct {
+	LastActivityString   string `yaml:"lastactivity"`
+	LastActivityDuration time.Duration
+	Stars                int      `yaml:"stars"`
+	Languages            []string `yaml:"languages"`
+	ExcludeArchived      bool     `yaml:"excludearchived"`
 }
 
 // GetToken TODO.
@@ -218,10 +229,71 @@ func (grepo GenRepo) GetToken() string {
 		log.Fatal().
 			Str("url", grepo.URL).
 			Str("tokenfile", grepo.TokenFile).
-			Err(err)
+			Msg(err.Error())
 	}
 
 	return token
+}
+
+func (f *Filter) ParseDuration() error {
+	rest := strings.Trim(f.LastActivityString, " ")
+	date := time.Now()
+	parsed := false
+	if strings.Contains(rest, "y") {
+		durs := strings.Split(rest, "y")
+		yearsstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		years, err := strconv.Atoi(yearsstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(years*(-1), 0, 0)
+		parsed = true
+	}
+	if strings.Contains(rest, "M") {
+		durs := strings.Split(rest, "M")
+		monthsstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		months, err := strconv.Atoi(monthsstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(0, months*(-1), 0)
+		parsed = true
+	}
+	if strings.Contains(rest, "d") {
+		durs := strings.Split(rest, "d")
+		daysstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		days, err := strconv.Atoi(daysstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(0, 0, days*(-1))
+		parsed = true
+	}
+	restdur := time.Duration(0)
+	if len(rest) > 0 {
+		dur, err := time.ParseDuration(rest)
+		if err != nil {
+			return err
+		}
+		restdur = dur
+		parsed = true
+	}
+
+	if parsed {
+		f.LastActivityDuration = time.Since(date)
+		f.LastActivityDuration += restdur
+	}
+
+	return nil
 }
 
 func resolveToken(tokenString string, tokenFile string) (string, error) {

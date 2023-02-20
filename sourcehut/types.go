@@ -43,3 +43,29 @@ type User struct {
 	Location      interface{} `json:"location"`
 	Bio           interface{} `json:"bio"`
 }
+
+type Commits struct {
+	Next           interface{} `json:"next"`
+	Results        []Results   `json:"results"`
+	Total          int         `json:"total"`
+	ResultsPerPage int         `json:"results_per_page"`
+}
+type Author struct {
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+type Committer struct {
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+type Results struct {
+	ID        string      `json:"id"`
+	ShortID   string      `json:"short_id"`
+	Author    Author      `json:"author"`
+	Committer Committer   `json:"committer"`
+	Timestamp time.Time   `json:"timestamp"`
+	Message   string      `json:"message"`
+	Tree      string      `json:"tree"`
+	Parents   []string    `json:"parents"`
+	Signature interface{} `json:"signature"`
+}

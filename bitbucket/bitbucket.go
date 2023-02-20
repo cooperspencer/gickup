@@ -2,6 +2,7 @@ package bitbucket
 
 import (
 	"net/url"
+	"time"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/ktrysmt/go-bitbucket"
@@ -32,6 +33,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			client.SetApiBaseURL(*bitbucketURL)
 		}
 
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
+
 		log.Info().
 			Str("stage", "bitbucket").
 			Str("url", repo.URL).
@@ -53,6 +62,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if r.Owner != nil {
 				if _, ok := r.Owner["nickname"]; ok {
 					user = r.Owner["nickname"].(string)
+				}
+			}
+
+			updated, err := time.Parse(time.RFC3339, r.UpdatedOn)
+			if err == nil {
+				if time.Since(updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+					continue
 				}
 			}
 
