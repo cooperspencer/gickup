@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
@@ -89,6 +90,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitlab {
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitlab.com"
@@ -167,8 +175,44 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
+		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitlabrepos {
+			if repo.Filter.ExcludeArchived {
+				if r.Archived {
+					continue
+				}
+			}
+
+			if len(repo.Filter.Languages) > 0 {
+				langs, _, err := client.Projects.GetProjectLanguages(r.ID)
+				if err != nil {
+					log.Error().
+						Str("stage", "gitlab").
+						Str("url", repo.URL).
+						Msg(err.Error())
+					continue
+				} else {
+					language := ""
+					percentage := float32(0)
+
+					for lang, percent := range *langs {
+						if percent > percentage {
+							language = lang
+						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
+					}
+				}
+			}
+
+			if r.StarCount < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
+			}
 			if include[r.Name] {
 				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 					repos = append(repos, types.Repo{
@@ -291,6 +335,42 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 			for k, gr := range gitlabgrouprepos {
 				for _, r := range gr {
+					if repo.Filter.ExcludeArchived {
+						if r.Archived {
+							continue
+						}
+					}
+
+					if len(repo.Filter.Languages) > 0 {
+						langs, _, err := client.Projects.GetProjectLanguages(r.ID)
+						if err != nil {
+							log.Error().
+								Str("stage", "gitlab").
+								Str("url", repo.URL).
+								Msg(err.Error())
+							continue
+						} else {
+							language := ""
+							percentage := float32(0)
+
+							for lang, percent := range *langs {
+								if percent > percentage {
+									language = lang
+								}
+							}
+							if !languages[strings.ToLower(language)] {
+								continue
+							}
+						}
+					}
+
+					if r.StarCount < repo.Filter.Stars {
+						continue
+					}
+					if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+						continue
+					}
+
 					if include[r.Name] {
 						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 							repos = append(repos, types.Repo{

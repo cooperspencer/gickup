@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog/log"
@@ -65,6 +66,19 @@ func getRepos(url, token string) (Repositories, error) {
 	return repositories, nil
 }
 
+// getCommits TODO
+func getCommits(url, reponame, token string) (Commits, error) {
+	body, err := doRequest(fmt.Sprintf("%s%s/log", url, reponame), token)
+	if err != nil {
+		return Commits{}, err
+	}
+
+	commits := Commits{}
+	err = json.Unmarshal(body, &commits)
+
+	return commits, nil
+}
+
 // getRefs TODO
 func getRefs(url, name, token string) (Refs, error) {
 	body, err := doRequest(fmt.Sprintf("%s/%s/refs", url, name), token)
@@ -104,6 +118,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Sourcehut {
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://git.sr.ht"
@@ -162,7 +183,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		for _, r := range repositories.Results {
-			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, r.Owner.CanonicalName, r.Name)
+			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, repo.User, r.Name)
 			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
 
 			refs, err := getRefs(apiURL, r.Name, token)
@@ -178,6 +199,20 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if strings.HasPrefix("refs/heads/", ref.Name) {
 					head = strings.TrimLeft(ref.Name, "refs/heads/")
 					break
+				}
+			}
+
+			commits, err := getCommits(apiURL, r.Name, token)
+			if err != nil {
+				log.Error().
+					Str("stage", "sourcehut").
+					Str("url", repo.URL).
+					Msg(err.Error())
+			} else {
+				if len(commits.Results) > 0 {
+					if time.Since(commits.Results[0].Timestamp) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+						continue
+					}
 				}
 			}
 

@@ -1,6 +1,8 @@
 package gogs
 
 import (
+	"time"
+
 	"github.com/cooperspencer/gickup/types"
 	"github.com/gogs/go-gogs-client"
 	"github.com/rs/zerolog/log"
@@ -96,7 +98,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
@@ -114,7 +116,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			log.Error().
 				Str("stage", "gogs").
 				Str("url", d.URL).
-				Err(err)
+				Msg(err.Error())
 			return false
 		}
 
@@ -132,6 +134,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		ran = true
 		if repo.User == "" {
 			log.Info().
@@ -148,7 +157,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		token := repo.GetToken()
 		client := gogs.NewClient(repo.URL, token)
 		var gogsrepos []*gogs.Repository
-		var err error
 
 		if repo.User == "" {
 			gogsrepos, err = client.ListMyRepos()
@@ -168,6 +176,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gogsrepos {
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
+			}
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
@@ -279,6 +293,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if r.Stars < repo.Filter.Stars {
+				continue
+			}
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
