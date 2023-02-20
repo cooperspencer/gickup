@@ -26,6 +26,13 @@ source:
         - bar1
       wiki: true # includes wiki too
       starred: true # includes the user's starred repositories too
+      filter:
+        stars: 100 # only clone repos with 100 stars
+        lastactivity: 1y # only clone repos which had activity during the last year
+        excludearchived: true 
+        languages: # only clone repositories with the following languages
+          - go
+          - java
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -53,6 +60,13 @@ source:
         - bar1
       wiki: true # includes wiki too
       starred: true # includes the user's starred repositories too
+      filter:
+        stars: 100 # only clone repos with 100 stars
+        lastactivity: 1y # only clone repos which had activity during the last year
+        excludearchived: true 
+        languages: # only clone repositories with the following languages
+          - go
+          - java
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -79,6 +93,9 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      filter:
+        stars: 100 # only clone repos with 100 stars
+        lastactivity: 1y # only clone repos which had activity during the last year
   gitlab:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -118,6 +135,8 @@ source:
         - bar
       include:
         - foobar
+      filter:
+        lastactivity: 1y # only clone repos which had activity during the last year
   onedev:
     - user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-onedev # if empty, it uses https://bitbucket.org
@@ -130,6 +149,8 @@ source:
         - bar
       include:
         - foobar
+      filter:
+        lastactivity: 1y # only clone repos which had activity during the last year
   sourcehut:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -150,6 +171,8 @@ source:
       include: # this includes the repo "foobar"
         - foobar
       wiki: true # includes wiki too
+      filter:
+        lastactivity: 1y # only clone repos which had activity during the last year
   any:
     - url: url-to-any-repo # can be https, http or ssh
       username: your-user # user is used to clone the repo with
@@ -202,7 +225,7 @@ log: # optional
     maxage: 7 # keep logs for 7 days
 
 metrics:
-  prometheus: # optional
+  prometheus: # optional, needs to be provided in the first config
     endpoint: /metrics
     listen_addr: ":6178" # default listens on port 6178 on all IPs.
   heartbeat: # optional - upon successful backup, makes a GET http request to one or more URLs. This is useful for use with monitoring services such as healthchecks.io or deadmanssnitch.com
