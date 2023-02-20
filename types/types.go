@@ -226,6 +226,10 @@ func (grepo GenRepo) GetToken() string {
 
 func resolveToken(tokenString string, tokenFile string) (string, error) {
 	if tokenString != "" {
+		envstring := os.Getenv(tokenString)
+		if envstring != "" {
+			return envstring, nil
+		}
 		return tokenString, nil
 	}
 
