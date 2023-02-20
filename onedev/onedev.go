@@ -2,6 +2,7 @@ package onedev
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/onedev"
@@ -108,6 +109,23 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Str("url", repo.URL).
 					Msgf("couldn't get default branch for %s", r.Name)
 				defaultbranch = "main"
+			}
+
+			options := onedev.CommitQueryOptions{Query: fmt.Sprintf("branch(%s)", defaultbranch)}
+			commits, err := client.GetCommits(r.ID, &options)
+			if len(commits) > 0 {
+				commit, err := client.GetCommit(r.ID, commits[0])
+				if err != nil {
+					log.Error().
+						Str("stage", "onedev").
+						Str("url", repo.URL).
+						Msgf("can't get latest commit for %s", defaultbranch)
+				} else {
+					lastactive := time.UnixMicro(commit.Author.When)
+					if time.Since(lastactive) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+						continue
+					}
+				}
 			}
 
 			repos = append(repos, types.Repo{

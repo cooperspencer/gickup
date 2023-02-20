@@ -9,7 +9,7 @@ require (
 	github.com/alecthomas/kong v0.7.1
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.2 // indirect
-	github.com/cooperspencer/onedev v0.0.0-20230122104023-a6c4b6001d9e
+	github.com/cooperspencer/onedev v0.0.0-20230220110259-c2789266f8ed
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
@@ -30,7 +30,7 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/sftp v1.13.5 // indirect
 	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/common v0.39.0 // indirect
+	github.com/prometheus/common v0.40.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.0
