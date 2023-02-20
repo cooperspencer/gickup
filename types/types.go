@@ -215,10 +215,11 @@ type Visibility struct {
 
 // Filter struct
 type Filter struct {
-	LastActivity    time.Duration `yaml:"lastactivity"`
-	Stars           int           `yaml:"stars"`
-	Languages       []string      `yaml:"languages"`
-	ExcludeArchived bool          `yaml:"excludearchived"`
+	LastActivityString   string `yaml:"lastactivity"`
+	LastActivityDuration time.Duration
+	Stars                int      `yaml:"stars"`
+	Languages            []string `yaml:"languages"`
+	ExcludeArchived      bool     `yaml:"excludearchived"`
 }
 
 // GetToken TODO.
@@ -232,6 +233,67 @@ func (grepo GenRepo) GetToken() string {
 	}
 
 	return token
+}
+
+func (f *Filter) ParseDuration() error {
+	rest := strings.Trim(f.LastActivityString, " ")
+	date := time.Now()
+	parsed := false
+	if strings.Contains(rest, "y") {
+		durs := strings.Split(rest, "y")
+		yearsstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		years, err := strconv.Atoi(yearsstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(years*(-1), 0, 0)
+		parsed = true
+	}
+	if strings.Contains(rest, "M") {
+		durs := strings.Split(rest, "M")
+		monthsstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		months, err := strconv.Atoi(monthsstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(0, months*(-1), 0)
+		parsed = true
+	}
+	if strings.Contains(rest, "d") {
+		durs := strings.Split(rest, "d")
+		daysstring := durs[0]
+		if len(durs) >= 2 {
+			rest = strings.Join(durs[1:], "")
+		}
+		days, err := strconv.Atoi(daysstring)
+		if err != nil {
+			return err
+		}
+		date = date.AddDate(0, 0, days*(-1))
+		parsed = true
+	}
+	restdur := time.Duration(0)
+	if len(rest) > 0 {
+		dur, err := time.ParseDuration(rest)
+		if err != nil {
+			return err
+		}
+		restdur = dur
+		parsed = true
+	}
+
+	if parsed {
+		f.LastActivityDuration = time.Since(date)
+		f.LastActivityDuration += restdur
+	}
+
+	return nil
 }
 
 func resolveToken(tokenString string, tokenFile string) (string, error) {

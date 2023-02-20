@@ -167,6 +167,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
@@ -188,7 +195,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		gitearepos := []*gitea.Repository{}
 
 		var client *gitea.Client
-		var err error
 		token := repo.GetToken()
 		if token != "" {
 			client, err = gitea.NewClient(repo.URL, gitea.SetToken(token))
@@ -281,7 +287,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if r.Stars < repo.Filter.Stars {
 				continue
 			}
-			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
 				continue
 			}
 			if include[r.Name] {
@@ -415,7 +421,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if r.Stars < repo.Filter.Stars {
 				continue
 			}
-			if time.Since(r.Updated) <= repo.Filter.LastActivity {
+			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
 				continue
 			}
 			if include[r.Name] {

@@ -17,7 +17,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.URL == "" {
 			repo.URL = "https://code.onedev.io/"
 		}
-
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			log.Error().
+				Str("stage", "bitbucket").
+				Str("url", repo.URL).
+				Msg(err.Error())
+		}
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
