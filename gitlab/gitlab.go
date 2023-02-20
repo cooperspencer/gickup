@@ -183,7 +183,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					log.Error().
 						Str("stage", "gitlab").
 						Str("url", repo.URL).
-						Err(err)
+						Msg(err.Error())
 					continue
 				} else {
 					language := ""
@@ -340,7 +340,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							log.Error().
 								Str("stage", "gitlab").
 								Str("url", repo.URL).
-								Err(err)
+								Msg(err.Error())
 							continue
 						} else {
 							language := ""

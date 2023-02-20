@@ -228,7 +228,7 @@ func (grepo GenRepo) GetToken() string {
 		log.Fatal().
 			Str("url", grepo.URL).
 			Str("tokenfile", grepo.TokenFile).
-			Err(err)
+			Msg(err.Error())
 	}
 
 	return token

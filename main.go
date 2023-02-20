@@ -75,7 +75,7 @@ func readConfigFile(configfile string) []*types.Conf {
 				log.Fatal().
 					Str("stage", "readconfig").
 					Str("file", configfile).
-					Err(err)
+					Msg(err.Error())
 			}
 		}
 

@@ -204,14 +204,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				log.Warn().
 					Str("stage", "locally").
 					Str("path", l.Path).
-					Str("repo", repo.Name).Err(err)
+					Str("repo", repo.Name).Msg(err.Error())
 			}
 			err = os.RemoveAll(repo.Name)
 			if err != nil {
 				log.Warn().
 					Str("stage", "locally").
 					Str("path", l.Path).
-					Str("repo", repo.Name).Err(err)
+					Str("repo", repo.Name).Msg(err.Error())
 			}
 		}
 
@@ -222,7 +222,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				log.Warn().
 					Str("stage", "locally").
 					Str("path", l.Path).
-					Str("repo", repo.Name).Err(err)
+					Str("repo", repo.Name).Msg(err.Error())
 				break
 			}
 
@@ -260,7 +260,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 						log.Warn().
 							Str("stage", "locally").
 							Str("path", l.Path).
-							Str("repo", repo.Name).Err(err)
+							Str("repo", repo.Name).Msg(err.Error())
 					}
 				}
 			}

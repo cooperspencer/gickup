@@ -349,7 +349,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					log.Fatal().
 						Str("stage", "gitea").
 						Str("url", repo.URL).
-						Err(err)
+						Msg(err.Error())
 				}
 				if len(o) == 0 {
 					break
