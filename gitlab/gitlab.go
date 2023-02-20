@@ -111,19 +111,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		token := repo.GetToken()
 		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URL))
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitlab").
 				Str("url", repo.URL).
 				Msg(err.Error())
+			continue
 		}
 
 		opt := &gitlab.ListProjectsOptions{}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "gitlab").
 				Str("url", repo.URL).
 				Msg(err.Error())
+			continue
 		}
 
 		opt.PerPage = 50
@@ -134,7 +136,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					opt.Page = i
 					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
 					if err != nil {
-						log.Fatal().
+						log.Error().
 							Str("stage", "gitlab").
 							Str("url", repo.URL).
 							Msg(err.Error())
@@ -156,7 +158,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						opt.Page = i
 						projects, _, err := client.Projects.ListUserStarredProjects(user.ID, opt)
 						if err != nil {
-							log.Fatal().
+							log.Error().
 								Str("stage", "gitlab").
 								Str("url", repo.URL).
 								Msg(err.Error())
@@ -293,7 +295,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					},
 				})
 				if err != nil {
-					log.Fatal().
+					log.Error().
 						Str("stage", "gitlab").
 						Str("url", repo.URL).Msg(err.Error())
 				}
@@ -314,7 +316,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for {
 					projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
 					if err != nil {
-						log.Fatal().
+						log.Error().
 							Str("stage", "gitlab").
 							Str("url", repo.URL).
 							Msg(err.Error())

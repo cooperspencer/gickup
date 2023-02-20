@@ -142,18 +142,20 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			user := User{}
 			body, err := doRequest(fmt.Sprintf("%suser", apiURL), token)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "sourcehut").
 					Str("url", repo.URL).
 					Msg("no user associated with this token")
+				continue
 			}
 
 			err = json.Unmarshal(body, &user)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "sourcehut").
 					Str("url", repo.URL).
 					Msg("cannot unmarshal user")
+				continue
 			}
 			repo.User = user.Name
 		}
@@ -176,7 +178,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		repositories, err := getRepos(apiURL, token)
 		if err != nil {
-			log.Fatal().
+			log.Error().
 				Str("stage", "sourcehut").
 				Str("url", repo.URL).
 				Msg(err.Error())
@@ -188,7 +190,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			refs, err := getRefs(apiURL, r.Name, token)
 			if err != nil {
-				log.Fatal().
+				log.Error().
 					Str("stage", "sourcehut").
 					Str("url", repo.URL).
 					Msg(err.Error())
