@@ -297,6 +297,9 @@ func (f *Filter) ParseDuration() error {
 }
 
 func resolveToken(tokenString string, tokenFile string) (string, error) {
+	if tokenString == "" && tokenFile == "" {
+		return "", nil
+	}
 	if tokenString != "" {
 		envstring := os.Getenv(tokenString)
 		if envstring != "" {
