@@ -153,9 +153,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 				}
 			}
-			if r.Language != nil {
-				if !languages[strings.ToLower(*r.Language)] {
-					continue
+			if len(repo.Filter.Languages) > 0 {
+				if r.Language != nil {
+					if !languages[strings.ToLower(*r.Language)] {
+						continue
+					}
 				}
 			}
 			if *r.StargazersCount < repo.Filter.Stars {
