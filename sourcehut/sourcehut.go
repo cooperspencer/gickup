@@ -121,7 +121,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			log.Error().
-				Str("stage", "bitbucket").
+				Str("stage", "sourcehut").
 				Str("url", repo.URL).
 				Msg(err.Error())
 		}

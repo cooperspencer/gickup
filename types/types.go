@@ -205,6 +205,7 @@ type GenRepo struct {
 	CreateOrg   bool       `yaml:"createorg"`
 	Visibility  Visibility `yaml:"visibility"`
 	Filter      Filter     `yaml:"filter"`
+	Contributed bool       `yaml:"contributed"`
 }
 
 // Visibility struct
