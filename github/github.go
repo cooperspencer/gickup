@@ -8,8 +8,71 @@ import (
 	"github.com/cooperspencer/gickup/types"
 	"github.com/google/go-github/v41/github"
 	"github.com/rs/zerolog/log"
+	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
+
+type Repository struct {
+	Name  string
+	Owner struct {
+		Login string
+	}
+}
+
+type User struct {
+	Login                     string
+	RepositoriesContributedTo struct {
+		Nodes    []Repository
+		PageInfo struct {
+			EndCursor   githubv4.String
+			HasNextPage bool
+		}
+	} `graphql:"repositoriesContributedTo(contributionTypes: [COMMIT, PULL_REQUEST, REPOSITORY], first: 100, after: $reposCursor)"`
+}
+
+type Query struct {
+	User User `graphql:"user(login: $userLogin)"`
+}
+
+type V4Repo struct {
+	User       string
+	Repository string
+}
+
+func getv4(token, user string) []V4Repo {
+	repos := []V4Repo{}
+	tokenSource := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	oauth2Client := oauth2.NewClient(context.Background(), tokenSource)
+	client := githubv4.NewClient(oauth2Client)
+
+	var query Query
+	variables := map[string]interface{}{
+		"userLogin":   githubv4.String(user), // Replace with the username you want to retrieve contributed projects from
+		"reposCursor": (*githubv4.String)(nil),
+	}
+	for {
+		err := client.Query(context.Background(), &query, variables)
+		if err != nil {
+			log.Error().
+				Str("stage", "github").
+				Msg(err.Error())
+			return []V4Repo{}
+		}
+
+		projects := query.User.RepositoriesContributedTo.Nodes
+		for _, project := range projects {
+			repos = append(repos, V4Repo{User: project.Owner.Login, Repository: project.Name})
+		}
+
+		if !query.User.RepositoriesContributedTo.PageInfo.HasNextPage {
+			break
+		}
+		variables["reposCursor"] = githubv4.NewString(query.User.RepositoriesContributedTo.PageInfo.EndCursor)
+	}
+	return repos
+}
 
 func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 	if !(r.GetHasWiki() && repo.Wiki &&
@@ -37,7 +100,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			log.Error().
-				Str("stage", "bitbucket").
+				Str("stage", "github").
 				Str("url", repo.URL).
 				Msg(err.Error())
 		}
@@ -76,6 +139,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			client = github.NewClient(tc)
 		}
 
+		v4user := repo.User
 		if token != "" {
 			user, _, err := client.Users.Get(context.TODO(), "")
 			if err != nil {
@@ -88,6 +152,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if repo.User == user.GetLogin() {
 				repo.User = ""
+				v4user = user.GetLogin()
+			}
+		}
+
+		if token != "" && v4user != "" && repo.Contributed {
+			for _, r := range getv4(token, v4user) {
+				github_repo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
+				if err != nil {
+					log.Error().
+						Str("stage", "github").
+						Str("url", "https://github.com").
+						Msg(err.Error())
+					continue
+				}
+				githubrepos = append(githubrepos, github_repo)
 			}
 		}
 
