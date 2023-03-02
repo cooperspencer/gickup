@@ -61,7 +61,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # build on feature branches, push only on main branch
           push: ${{ github.event_name != 'pull_request' }}
-          platforms: linux/amd64, linux/arm64, linux/arm64/v8, linux/arm/v7, linux/arm/v6
+          platforms: linux/amd64, linux/arm64/v8, linux/arm/v7, linux/arm/v6
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
