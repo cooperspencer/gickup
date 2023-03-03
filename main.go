@@ -137,6 +137,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			Str("stage", "backup").
 			Msgf("starting backup for %s", r.URL)
 
+		if conf.Destination.Count() == 0 {
+			log.Warn().Str("stage", "backup").Msg("No destinations configured!")
+		}
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
 				d.Path = substituteHomeForTildeInPath(d.Path)
