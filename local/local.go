@@ -111,7 +111,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 						Msg(err.Error())
 					break
 				}
-				if x == tries {
+				if x == tries || l.Force == false {
 					log.Warn().
 						Str("stage", "locally").
 						Str("path", l.Path).
@@ -163,7 +163,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					Str("path", l.Path).
 					Msgf("opening %s locally", types.Green(repo.Name))
 
-				err := updateRepository(repo.Name, auth, dry, l.Bare)
+				err := updateRepository(repo.Name, auth, dry, l.Bare, l.Force)
 				if err != nil {
 					if strings.Contains(err.Error(), "already up-to-date") {
 						log.Info().
@@ -178,7 +178,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 								Str("repo", repo.Name).
 								Msg(err.Error())
 						} else {
-							os.RemoveAll(repo.Name)
+							//os.RemoveAll(repo.Name)
 							log.Warn().
 								Str("stage", "locally").
 								Str("path", l.Path).
@@ -271,7 +271,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	return true
 }
 
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool) error {
+func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool, force bool) error {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
@@ -279,7 +279,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 
 	if !dry {
 		if bare {
-			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Force: force, RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
 		} else {
 			w, err := r.Worktree()
 			if err != nil {
@@ -290,7 +290,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 				Str("stage", "locally").
 				Msgf("pulling %s", types.Green(repoPath))
 
-			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", Force: force, SingleBranch: false})
 		}
 	}
 	return err
