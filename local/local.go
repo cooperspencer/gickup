@@ -165,24 +165,34 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 				err := updateRepository(repo.Name, auth, dry, l.Bare, l.Force)
 				if err != nil {
-					if strings.Contains(err.Error(), "already up-to-date") {
+					if err == git.NoErrAlreadyUpToDate {
 						log.Info().
 							Str("stage", "locally").
 							Str("path", l.Path).
 							Msg(err.Error())
 					} else {
-						if x == tries {
-							log.Fatal().
+						if err == git.ErrNonFastForwardUpdate {
+							log.Error().
 								Str("stage", "locally").
 								Str("path", l.Path).
 								Str("repo", repo.Name).
 								Msg(err.Error())
+							break
+						}
+						if x == tries {
+							log.Error().
+								Str("stage", "locally").
+								Str("path", l.Path).
+								Str("repo", repo.Name).
+								Msg(err.Error())
+							break
 						} else {
 							//os.RemoveAll(repo.Name)
 							log.Warn().
 								Str("stage", "locally").
 								Str("path", l.Path).
 								Str("repo", repo.Name).
+								Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
 							time.Sleep(5 * time.Second)
@@ -279,7 +289,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 
 	if !dry {
 		if bare {
-			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Force: force, RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			return r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Force: force, RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
 		} else {
 			w, err := r.Worktree()
 			if err != nil {
@@ -290,7 +300,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 				Str("stage", "locally").
 				Msgf("pulling %s", types.Green(repoPath))
 
-			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", Force: force, SingleBranch: false})
+			return w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", Force: force, SingleBranch: false})
 		}
 	}
 	return err
