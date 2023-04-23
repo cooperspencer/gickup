@@ -81,6 +81,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			CloneAddr:    r.URL,
 			AuthUsername: r.Token,
 			Private:      repovisibility,
+			Description:  r.Description,
 		}
 
 		if r.Token == "" {
@@ -92,6 +93,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				AuthUsername: r.Origin.User,
 				AuthPassword: r.Origin.Password,
 				Private:      repovisibility,
+				Description:  r.Description,
 			}
 		}
 
@@ -195,6 +197,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -206,6 +210,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 
@@ -226,6 +232,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -237,6 +245,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 			}
@@ -313,6 +323,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -324,6 +336,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 
@@ -344,6 +358,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 
 				if repo.Wiki {
@@ -356,6 +372,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 			}

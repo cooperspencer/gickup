@@ -84,6 +84,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         user,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Is_private,
 				})
 
 				continue
@@ -103,6 +105,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         user,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Is_private,
 				})
 			}
 		}
