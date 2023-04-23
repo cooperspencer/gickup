@@ -228,6 +228,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.Name,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Visibility == "private",
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -239,6 +241,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.Name,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Visibility == "private",
 					})
 				}
 
@@ -259,6 +263,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.Name,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Visibility == "private",
 				})
 				if repo.Wiki {
 					refs, err := getRefs(apiURL, fmt.Sprintf("%s-docs", r.Name), token)
@@ -283,6 +289,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Origin:        repo,
 							Owner:         r.Owner.Name,
 							Hoster:        types.GetHost(repo.URL),
+							Description:   r.Description,
+							Private:       r.Visibility == "private",
 						})
 					}
 				}

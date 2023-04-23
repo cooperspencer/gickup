@@ -67,10 +67,20 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			splittedurl[0], r.Origin.User, r.Origin.Password, splittedurl[1])
 	}
 
+	var visibility gitlab.VisibilityValue
+
+	if r.Private {
+		visibility = gitlab.PrivateVisibility
+	} else {
+		visibility = gitlab.PublicVisibility
+	}
+
 	opts := &gitlab.CreateProjectOptions{
-		Mirror:    &True,
-		ImportURL: &r.URL,
-		Name:      &r.Name,
+		Mirror:      &True,
+		ImportURL:   &r.URL,
+		Name:        &r.Name,
+		Description: &r.Description,
+		Visibility:  gitlab.Visibility(visibility),
 	}
 
 	_, _, err = gitlabclient.Projects.CreateProject(opts)
@@ -226,6 +236,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Namespace.FullPath,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Visibility == gitlab.PrivateVisibility,
 					})
 				}
 
@@ -242,6 +254,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Origin:        repo,
 							Owner:         r.Namespace.FullPath,
 							Hoster:        types.GetHost(repo.URL),
+							Description:   r.Description,
+							Private:       r.Visibility == gitlab.PrivateVisibility,
 						})
 					}
 				}
@@ -262,6 +276,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Namespace.FullPath,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Visibility == gitlab.PrivateVisibility,
 					})
 				}
 
@@ -278,6 +294,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Origin:        repo,
 							Owner:         r.Namespace.FullPath,
 							Hoster:        types.GetHost(repo.URL),
+							Description:   r.Description,
+							Private:       r.Visibility == gitlab.PrivateVisibility,
 						})
 					}
 				}
@@ -384,6 +402,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 								Origin:        repo,
 								Owner:         k,
 								Hoster:        types.GetHost(repo.URL),
+								Description:   r.Description,
+								Private:       r.Visibility == gitlab.PrivateVisibility,
 							})
 						}
 
@@ -400,6 +420,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									Origin:        repo,
 									Owner:         k,
 									Hoster:        types.GetHost(repo.URL),
+									Description:   r.Description,
+									Private:       r.Visibility == gitlab.PrivateVisibility,
 								})
 							}
 						}
@@ -424,6 +446,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									Origin:        repo,
 									Owner:         k,
 									Hoster:        types.GetHost(repo.URL),
+									Description:   r.Description,
+									Private:       r.Visibility == gitlab.PrivateVisibility,
 								})
 							}
 
@@ -432,13 +456,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 									sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 									repos = append(repos, types.Repo{
-										Name:   r.Path + ".wiki",
-										URL:    httpURLToRepo,
-										SSHURL: sshURLToRepo,
-										Token:  token, Defaultbranch: r.DefaultBranch,
-										Origin: repo,
-										Owner:  k,
-										Hoster: types.GetHost(repo.URL),
+										Name:          r.Path + ".wiki",
+										URL:           httpURLToRepo,
+										SSHURL:        sshURLToRepo,
+										Token:         token,
+										Defaultbranch: r.DefaultBranch,
+										Origin:        repo,
+										Owner:         k,
+										Hoster:        types.GetHost(repo.URL),
+										Description:   r.Description,
+										Private:       r.Visibility == gitlab.PrivateVisibility,
 									})
 								}
 							}

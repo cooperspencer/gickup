@@ -338,6 +338,8 @@ type Repo struct {
 	Origin        GenRepo
 	Owner         string
 	Hoster        string
+	Description   string
+	Private       bool
 }
 
 // Site TODO.

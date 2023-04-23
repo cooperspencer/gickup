@@ -89,6 +89,8 @@ func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 		Origin:        repo,
 		Owner:         r.GetOwner().GetLogin(),
 		Hoster:        "github.com",
+		Description:   r.GetDescription(),
+		Private:       r.GetPrivate(),
 	}
 }
 
@@ -256,6 +258,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.GetOwner().GetLogin(),
 					Hoster:        "github.com",
+					Description:   r.GetDescription(),
+					Private:       r.GetPrivate(),
 				})
 				wiki := addWiki(*r, repo, token)
 				if wiki.Name != "" {
@@ -285,6 +289,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Origin:        repo,
 							Owner:         r.GetOwner().GetLogin(),
 							Hoster:        "github.com",
+							Description:   r.GetDescription(),
+							Private:       r.GetPrivate(),
 						})
 						wiki := addWiki(*r, repo, token)
 						if wiki.Name != "" {
@@ -301,6 +307,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.GetOwner().GetLogin(),
 						Hoster:        "github.com",
+						Description:   r.GetDescription(),
+						Private:       r.GetPrivate(),
 					})
 					wiki := addWiki(*r, repo, token)
 					if wiki.Name != "" {

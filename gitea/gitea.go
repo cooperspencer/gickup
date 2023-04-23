@@ -22,21 +22,21 @@ func getOrgVisibility(visibility string) gitea.VisibleType {
 	}
 }
 
-func getRepoVisibility(visibility string) bool {
+func getRepoVisibility(visibility string, private bool) bool {
 	switch visibility {
 	case "public":
 		return false
 	case "private":
 		return true
 	default:
-		return true
+		return private
 	}
 }
 
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	orgvisibilty := getOrgVisibility(d.Visibility.Organizations)
-	repovisibility := getRepoVisibility(d.Visibility.Repositories)
+	repovisibility := getRepoVisibility(d.Visibility.Repositories, r.Private)
 	if d.URL == "" {
 		d.URL = "https://gitea.com/"
 	}
@@ -100,13 +100,14 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
 		opts := gitea.MigrateRepoOption{
-			RepoName:  r.Name,
-			RepoOwner: user.UserName,
-			Mirror:    true,
-			CloneAddr: r.URL,
-			AuthToken: r.Token,
-			Wiki:      r.Origin.Wiki,
-			Private:   repovisibility,
+			RepoName:    r.Name,
+			RepoOwner:   user.UserName,
+			Mirror:      true,
+			CloneAddr:   r.URL,
+			AuthToken:   r.Token,
+			Wiki:        r.Origin.Wiki,
+			Private:     repovisibility,
+			Description: r.Description,
 		}
 
 		if r.Token == "" {
@@ -119,6 +120,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				AuthPassword: r.Origin.Password,
 				Wiki:         r.Origin.Wiki,
 				Private:      repovisibility,
+				Description:  r.Description,
 			}
 		}
 
@@ -304,6 +306,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{
@@ -315,6 +319,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 
@@ -335,6 +341,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{
@@ -346,6 +354,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 			}
@@ -438,6 +448,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{
@@ -449,6 +461,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 
@@ -469,6 +483,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Origin:        repo,
 					Owner:         r.Owner.UserName,
 					Hoster:        types.GetHost(repo.URL),
+					Description:   r.Description,
+					Private:       r.Private,
 				})
 				if r.HasWiki && repo.Wiki && types.StatRemote(r.CloneURL, r.SSHURL, repo) {
 					repos = append(repos, types.Repo{
@@ -480,6 +496,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Origin:        repo,
 						Owner:         r.Owner.UserName,
 						Hoster:        types.GetHost(repo.URL),
+						Description:   r.Description,
+						Private:       r.Private,
 					})
 				}
 			}
