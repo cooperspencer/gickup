@@ -23,7 +23,9 @@ import (
 	"github.com/cooperspencer/gickup/gogs"
 	"github.com/cooperspencer/gickup/local"
 	"github.com/cooperspencer/gickup/logger"
+	"github.com/cooperspencer/gickup/metrics/gotify"
 	"github.com/cooperspencer/gickup/metrics/heartbeat"
+	"github.com/cooperspencer/gickup/metrics/ntfy"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/whatever"
@@ -282,6 +284,26 @@ func runBackup(conf *types.Conf, num int) {
 
 	if len(conf.Metrics.Heartbeat.URLs) > 0 {
 		heartbeat.Send(conf.Metrics.Heartbeat)
+	}
+
+	if len(conf.Metrics.PushConfigs.Ntfy) > 0 {
+		for _, pusher := range conf.Metrics.PushConfigs.Ntfy {
+			pusher.ResolveToken()
+			err := ntfy.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			if err != nil {
+				log.Warn().Str("push", "ntfy").Err(err).Msg("couldn't send message")
+			}
+		}
+	}
+
+	if len(conf.Metrics.PushConfigs.Gotify) > 0 {
+		for _, pusher := range conf.Metrics.PushConfigs.Gotify {
+			pusher.ResolveToken()
+			err := gotify.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			if err != nil {
+				log.Warn().Str("push", "gotify").Err(err).Msg("couldn't send message")
+			}
+		}
 	}
 
 	log.Info().

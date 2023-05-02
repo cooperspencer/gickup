@@ -61,14 +61,48 @@ type PrometheusConfig struct {
 	Endpoint   string `yaml:"endpoint"`
 }
 
+// HeartbeatConfig TODO.
 type HeartbeatConfig struct {
 	URLs []string `yaml:"urls"`
 }
 
+// PushConfig TODO.
+type PushConfig struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Token    string `yaml:"token"`
+	Url      string `yaml:"url"`
+}
+
+func (p *PushConfig) ResolveToken() {
+	if p.Password != "" {
+		p.Password = resolve(p.Password)
+	}
+	if p.Token != "" {
+		p.Token = resolve(p.Token)
+	}
+}
+
+func resolve(value string) string {
+	envtoken := os.Getenv(value)
+	if envtoken != "" {
+		return envtoken
+	}
+
+	return value
+}
+
+// PushConfigs TODO.
+type PushConfigs struct {
+	Ntfy   []*PushConfig `yaml:"ntfy"`
+	Gotify []*PushConfig `yaml:"gotify"`
+}
+
 // Metrics TODO.
 type Metrics struct {
-	Prometheus PrometheusConfig `yaml:"prometheus"`
-	Heartbeat  HeartbeatConfig  `yaml:"heartbeat"`
+	Prometheus  PrometheusConfig `yaml:"prometheus"`
+	Heartbeat   HeartbeatConfig  `yaml:"heartbeat"`
+	PushConfigs PushConfigs      `yaml:"push"`
 }
 
 // Logging TODO.
