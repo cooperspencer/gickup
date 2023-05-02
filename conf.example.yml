@@ -232,7 +232,15 @@ metrics:
     urls:
       - http(s)://url-to-make-request-to
       - http(s)://another-url-to-make-request-to
-
+  push:
+    ntfy:
+    - url: http(s)://url-to-ntfy/your-topic
+      token: your-token 
+      user: your-user
+      password: your-password
+    gotify:
+    - url: http(s)://url-to-gotify
+      token: your-token
 ---
 
 # you can define separate source and destination pairs,
