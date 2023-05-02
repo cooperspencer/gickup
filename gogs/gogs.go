@@ -8,20 +8,20 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func getRepoVisibility(visibility string) bool {
+func getRepoVisibility(visibility string, private bool) bool {
 	switch visibility {
 	case "public":
 		return false
 	case "private":
 		return true
 	default:
-		return true
+		return private
 	}
 }
 
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
-	repovisibility := getRepoVisibility(d.Visibility.Repositories)
+	repovisibility := getRepoVisibility(d.Visibility.Repositories, r.Private)
 	log.Info().
 		Str("stage", "gogs").
 		Str("url", d.URL).
