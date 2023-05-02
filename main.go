@@ -82,6 +82,11 @@ func readConfigFile(configfile string) []*types.Conf {
 		}
 
 		if !reflect.ValueOf(c).IsZero() {
+			if len(conf) > 0 {
+				if len(c.Metrics.PushConfigs.Gotify) == 0 && len(c.Metrics.PushConfigs.Ntfy) == 0 {
+					c.Metrics.PushConfigs = conf[0].Metrics.PushConfigs
+				}
+			}
 			conf = append(conf, c)
 			i++
 		}
