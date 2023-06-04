@@ -262,6 +262,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitearepos {
+			if repo.Filter.ExcludeForks {
+				if r.Fork {
+					continue
+				}
+			}
 			if repo.Filter.ExcludeArchived {
 				if r.Archived {
 					continue
@@ -404,6 +409,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if repo.Filter.ExcludeForks {
+				if r.Fork {
+					continue
+				}
+			}
 			if repo.Filter.ExcludeArchived {
 				if r.Archived {
 					continue
