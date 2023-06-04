@@ -181,6 +181,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gogsrepos {
+			if repo.Filter.ExcludeForks {
+				if r.Fork {
+					continue
+				}
+			}
 			if r.Stars < repo.Filter.Stars {
 				continue
 			}
@@ -306,6 +311,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			if repo.Filter.ExcludeForks {
+				if r.Fork {
+					continue
+				}
+			}
 			if r.Stars < repo.Filter.Stars {
 				continue
 			}

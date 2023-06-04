@@ -255,6 +255,7 @@ type Filter struct {
 	Stars                int      `yaml:"stars"`
 	Languages            []string `yaml:"languages"`
 	ExcludeArchived      bool     `yaml:"excludearchived"`
+	ExcludeForks         bool     `yaml:"excludeforks"`
 }
 
 // GetToken TODO.

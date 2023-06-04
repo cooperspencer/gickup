@@ -190,6 +190,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitlabrepos {
+			if repo.Filter.ExcludeForks {
+				if r.ForkedFromProject != nil {
+					continue
+				}
+			}
 			if repo.Filter.ExcludeArchived {
 				if r.Archived {
 					continue
@@ -355,6 +360,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 			for k, gr := range gitlabgrouprepos {
 				for _, r := range gr {
+					if repo.Filter.ExcludeForks {
+						if r.ForkedFromProject != nil {
+							continue
+						}
+					}
 					if repo.Filter.ExcludeArchived {
 						if r.Archived {
 							continue

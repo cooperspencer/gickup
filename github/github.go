@@ -227,6 +227,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range githubrepos {
+			if repo.Filter.ExcludeForks {
+				if *r.Fork {
+					continue
+				}
+			}
 			if repo.Filter.ExcludeArchived {
 				if r.Archived != nil {
 					if *r.Archived {

@@ -4,3 +4,4 @@ gickup
 conf.yml
 .idea
 dist/
+.vscode

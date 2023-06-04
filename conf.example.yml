@@ -33,6 +33,7 @@ source:
         languages: # only clone repositories with the following languages
           - go
           - java
+        excludeforks: true # exclude forked repositories
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -67,6 +68,7 @@ source:
         languages: # only clone repositories with the following languages
           - go
           - java
+        excludeforks: true # exclude forked repositories
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -96,6 +98,7 @@ source:
       filter:
         stars: 100 # only clone repos with 100 stars
         lastactivity: 1y # only clone repos which had activity during the last year
+        excludeforks: true # exclude forked repositories
   gitlab:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
@@ -123,6 +126,14 @@ source:
         - bar1
       wiki: true # includes wiki too
       starred: true # includes the user's starred repositories too
+      filter:
+        stars: 100 # only clone repos with 100 stars
+        lastactivity: 1y # only clone repos which had activity during the last year
+        excludearchived: true 
+        languages: # only clone repositories with the following languages
+          - go
+          - java
+        excludeforks: true # exclude forked repositories
   bitbucket:
     - user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-bitbucket # if empty, it uses https://bitbucket.org
@@ -151,6 +162,7 @@ source:
         - foobar
       filter:
         lastactivity: 1y # only clone repos which had activity during the last year
+        excludeforks: true # exclude forked repositories
   sourcehut:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
