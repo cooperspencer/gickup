@@ -14,6 +14,7 @@ import (
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -111,7 +112,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 						Msg(err.Error())
 					break
 				}
-				if x == tries {
+				if x == tries || l.Force == false {
 					log.Warn().
 						Str("stage", "locally").
 						Str("path", l.Path).
@@ -163,26 +164,37 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					Str("path", l.Path).
 					Msgf("opening %s locally", types.Green(repo.Name))
 
-				err := updateRepository(repo.Name, auth, dry, l.Bare)
+				err := updateRepository(repo.Name, auth, dry, l.Bare, l.Force)
 				if err != nil {
-					if strings.Contains(err.Error(), "already up-to-date") {
+					switch err {
+					case git.NoErrAlreadyUpToDate:
 						log.Info().
 							Str("stage", "locally").
 							Str("path", l.Path).
 							Msg(err.Error())
-					} else {
+					case git.ErrNonFastForwardUpdate:
+						log.Error().
+							Str("stage", "locally").
+							Str("path", l.Path).
+							Str("repo", repo.Name).
+							Msg(err.Error())
+						updateBranches(repo.Name, l.Path)
+						break
+					default:
 						if x == tries {
-							log.Fatal().
+							log.Error().
 								Str("stage", "locally").
 								Str("path", l.Path).
 								Str("repo", repo.Name).
 								Msg(err.Error())
+							break
 						} else {
-							os.RemoveAll(repo.Name)
+							//os.RemoveAll(repo.Name)
 							log.Warn().
 								Str("stage", "locally").
 								Str("path", l.Path).
 								Str("repo", repo.Name).
+								Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
 							time.Sleep(5 * time.Second)
@@ -271,7 +283,54 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	return true
 }
 
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool) error {
+func updateBranches(repoPath string, path string) error {
+	// Open the local repository
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return err
+	}
+
+	t := time.Now().Format("20060102150405")
+
+	// Get the list of local branches
+	branches, err := r.Branches()
+	if err != nil {
+		return err
+	}
+
+	// Iterate over the branches and rename each one
+	err = branches.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsBranch() {
+			// Get the original branch name
+			oldName := ref.Name().Short()
+
+			// Generate the new branch name using the timestamp and original branch name
+			newName := t + "-" + oldName
+
+			// Check if the branch name already starts with a timestamp
+			if strings.HasPrefix(oldName, "20") && len(oldName) >= 14 {
+				return nil
+			}
+
+			// Rename the branch
+			if err := r.Storer.RemoveReference(ref.Name()); err != nil {
+				return err
+			}
+			if err := r.Storer.SetReference(plumbing.NewReferenceFromStrings("refs/heads/"+newName, ref.Hash().String())); err != nil {
+				return err
+			}
+
+			log.Info().
+				Str("stage", "locally").
+				Str("path", path).
+				Msgf("Renamed branch %s to %s", oldName, newName)
+		}
+		return nil
+	})
+	return err
+}
+
+func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool, force bool) error {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
@@ -279,7 +338,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 
 	if !dry {
 		if bare {
-			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			return r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", Force: force, RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
 		} else {
 			w, err := r.Worktree()
 			if err != nil {
@@ -290,7 +349,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 				Str("stage", "locally").
 				Msgf("pulling %s", types.Green(repoPath))
 
-			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+			return w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", Force: force, SingleBranch: false})
 		}
 	}
 	return err
