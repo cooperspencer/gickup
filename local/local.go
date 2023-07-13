@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/gitcmd"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -23,8 +24,22 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+var (
+	gitc = gitcmd.GitCmd{}
+)
+
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
+	if l.LFS {
+		g, err := gitcmd.New()
+		if err != nil {
+			log.Error().
+				Str("stage", "locally").
+				Str("path", l.Path).
+				Msg(err.Error())
+		}
+		gitc = g
+	}
 	date := time.Now()
 
 	if l.Structured {
@@ -101,7 +116,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				Str("path", l.Path).
 				Msgf("cloning %s", types.Green(repo.Name))
 
-			err := cloneRepository(repo, auth, dry, l.Bare)
+			err := cloneRepository(repo, auth, dry, l)
 			if err != nil {
 				if err.Error() == "repository not found" {
 					log.Warn().
@@ -163,7 +178,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					Str("path", l.Path).
 					Msgf("opening %s locally", types.Green(repo.Name))
 
-				err := updateRepository(repo.Name, auth, dry, l.Bare)
+				err := updateRepository(repo.Name, auth, dry, l)
 				if err != nil {
 					if strings.Contains(err.Error(), "already up-to-date") {
 						log.Info().
@@ -271,17 +286,15 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	return true
 }
 
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare bool) error {
+func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l types.Local) error {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return err
 	}
 
 	if !dry {
-		if bare {
-			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
-		} else {
-			w, err := r.Worktree()
+		if l.LFS {
+			err = os.Chdir(repoPath)
 			if err != nil {
 				return err
 			}
@@ -290,13 +303,31 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, bare
 				Str("stage", "locally").
 				Msgf("pulling %s", types.Green(repoPath))
 
-			err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+			err = gitc.Pull(l.Bare)
+			if err != nil {
+				return err
+			}
+		} else {
+			if l.Bare {
+				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			} else {
+				w, err := r.Worktree()
+				if err != nil {
+					return err
+				}
+
+				log.Info().
+					Str("stage", "locally").
+					Msgf("pulling %s", types.Green(repoPath))
+
+				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+			}
 		}
 	}
 	return err
 }
 
-func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, bare bool) error {
+func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l types.Local) error {
 	if dry {
 		return nil
 	}
@@ -334,11 +365,15 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, bare 
 		return err
 	}
 
-	_, err = git.PlainClone(repo.Name, bare, &git.CloneOptions{
-		URL:          url,
-		Auth:         auth,
-		SingleBranch: false,
-	})
+	if l.LFS {
+		err = gitc.Clone(url, repo.Name, l.Bare)
+	} else {
+		_, err = git.PlainClone(repo.Name, l.Bare, &git.CloneOptions{
+			URL:          url,
+			Auth:         auth,
+			SingleBranch: false,
+		})
+	}
 
 	return err
 }
