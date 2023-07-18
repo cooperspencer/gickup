@@ -44,6 +44,7 @@ type Local struct {
 	Structured bool   `yaml:"structured"`
 	Zip        bool   `yaml:"zip"`
 	Keep       int    `yaml:"keep"`
+	LFS        bool   `yaml:"lfs"`
 }
 
 // Conf TODO.
