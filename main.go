@@ -228,7 +228,16 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					Msgf("mirroring %s to %s", types.Blue(r.Name), "https://github.com")
 
 				if !cli.Dry {
-					temprepo, err := local.TempClone(r)
+					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("github-%x", repotime))
+					if err != nil {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					}
+					defer os.RemoveAll(tempdir)
+					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						log.Error().
 							Str("stage", "tempclone").

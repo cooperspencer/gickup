@@ -18,7 +18,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/melbahja/goph"
 	"github.com/mholt/archiver"
 	"github.com/rs/zerolog/log"
@@ -421,12 +420,12 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 	return goph.AddKnownHost(host, remote, key, "")
 }
 
-func TempClone(repo types.Repo) (*git.Repository, error) {
+func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	auth := &http.BasicAuth{
 		Username: "xyz",
 		Password: repo.Token,
 	}
-	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+	r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
 		URL:  repo.URL,
 		Auth: auth,
 	})
