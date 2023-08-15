@@ -326,3 +326,30 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 	return repos, ran
 }
+
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	token := destination.GetToken()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(context.TODO(), ts)
+
+	client := github.NewClient(tc)
+
+	user, _, err := client.Users.Get(context.TODO(), "")
+	if err != nil {
+		return "", err
+	}
+	r, _, err := client.Repositories.Get(context.TODO(), *user.Login, repo.Name)
+	if err != nil {
+		if !strings.Contains(err.Error(), "404 Not Found") {
+			return "", err
+		}
+		r, _, err = client.Repositories.Create(context.TODO(), "", &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Owner: user})
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return *r.CloneURL, nil
+}
