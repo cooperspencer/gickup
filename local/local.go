@@ -2,7 +2,7 @@ package local
 
 import (
 	"fmt"
-	"io/ioutil"
+	"math/rand"
 	"net"
 	"os"
 	"path"
@@ -232,7 +232,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 		if l.Keep > 0 {
 			parentdir := path.Dir(repo.Name)
-			files, err := ioutil.ReadDir(parentdir)
+			files, err := os.ReadDir(parentdir)
 			if err != nil {
 				log.Warn().
 					Str("stage", "locally").
@@ -418,4 +418,84 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 
 	// Add the new host to known hosts file.
 	return goph.AddKnownHost(host, remote, key, "")
+}
+
+func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
+	var auth transport.AuthMethod
+	if repo.Token != "" {
+		auth = &http.TokenAuth{
+			Token: repo.Token,
+		}
+	}
+	r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
+		URL:          repo.URL,
+		Auth:         auth,
+		SingleBranch: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string) error {
+	token := destination.GetToken()
+	var auth transport.AuthMethod
+	if destination.SSH {
+		if destination.SSHKey == "" {
+			home := os.Getenv("HOME")
+			destination.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+		site := types.Site{}
+
+		err := site.GetValues(url)
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+
+		sshAuth, err := goph.Key(destination.SSHKey, "")
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+
+		err = testSSHConnection(site, sshAuth)
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+		if destination.SSHKey == "" {
+			home := os.Getenv("HOME")
+			destination.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+
+		auth, err = ssh.NewPublicKeysFromFile("git", destination.SSHKey, "")
+		if err != nil {
+			return err
+		}
+	} else {
+		auth = &http.BasicAuth{
+			Username: "xyz",
+			Password: token,
+		}
+	}
+	remoteconfig := config.RemoteConfig{Name: RandomString(8), URLs: []string{url}}
+	remote, err := repo.CreateRemote(&remoteconfig)
+	if err != nil {
+		return err
+	}
+
+	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
+
+	return repo.Push(&pushoptions)
+}
+
+func RandomString(length int) string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }

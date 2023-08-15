@@ -41,12 +41,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		client := &onedev.Client{}
 
 		if repo.Token != "" || repo.TokenFile != "" {
-			client = onedev.NewClientWithToken(repo.URL, repo.GetToken())
+			client = onedev.NewClient(repo.URL, onedev.SetToken(repo.GetToken()))
 		} else {
 			if repo.Password != "" {
-				client = onedev.NewClient(repo.URL, repo.Username, repo.Password)
+				client = onedev.NewClient(repo.URL, onedev.SetBasicAuth(repo.Username, repo.Password))
 			} else {
-				client = onedev.NewClient(repo.URL, "", "")
+				client = onedev.NewClient(repo.URL)
 			}
 		}
 
@@ -59,7 +59,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		user := onedev.User{}
 
 		if repo.User == "" {
-			u, err := client.GetMe()
+			u, _, err := client.GetMe()
 			if err != nil {
 				log.Error().
 					Str("stage", "onedev").
@@ -75,7 +75,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			query.Query = fmt.Sprintf("owned by \"%s\"", repo.User)
 		}
 
-		userrepos, err := client.GetProjects(&query)
+		userrepos, _, err := client.GetProjects(&query)
 		if err != nil {
 			log.Error().
 				Str("stage", "onedev").
@@ -98,7 +98,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				}
 			}
 
-			urls, err := client.GetCloneUrl(r.ID)
+			urls, _, err := client.GetCloneUrl(r.ID)
 			if err != nil {
 				log.Error().
 					Str("stage", "onedev").
@@ -107,9 +107,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
-			defaultbranch, err := client.GetDefaultBranch(r.ID)
+			defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 			if err != nil {
-				fmt.Println(err)
 				log.Error().
 					Str("stage", "onedev").
 					Str("url", repo.URL).
@@ -118,9 +117,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			options := onedev.CommitQueryOptions{Query: fmt.Sprintf("branch(%s)", defaultbranch)}
-			commits, err := client.GetCommits(r.ID, &options)
+			commits, _, err := client.GetCommits(r.ID, &options)
 			if len(commits) > 0 {
-				commit, err := client.GetCommit(r.ID, commits[0])
+				commit, _, err := client.GetCommit(r.ID, commits[0])
 				if err != nil {
 					log.Error().
 						Str("stage", "onedev").
@@ -148,7 +147,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		if repo.Username != "" && repo.Password != "" && len(repo.IncludeOrgs) == 0 && user.Name != "" {
-			memberships, err := client.GetUserMemberships(user.ID)
+			memberships, _, err := client.GetUserMemberships(user.ID)
 			if err != nil {
 				log.Error().
 					Str("stage", "onedev").
@@ -157,7 +156,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			for _, membership := range memberships {
-				group, err := client.GetGroup(membership.GroupID)
+				group, _, err := client.GetGroup(membership.GroupID)
 				if err != nil {
 					log.Error().
 						Str("stage", "onedev").
@@ -174,7 +173,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			for _, org := range repo.IncludeOrgs {
 				query.Query = fmt.Sprintf("children of \"%s\"", org)
 
-				orgrepos, err := client.GetProjects(&query)
+				orgrepos, _, err := client.GetProjects(&query)
 				if err != nil {
 					log.Error().
 						Str("stage", "onedev").
@@ -188,7 +187,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							continue
 						}
 					}
-					urls, err := client.GetCloneUrl(r.ID)
+					urls, _, err := client.GetCloneUrl(r.ID)
 					if err != nil {
 						log.Error().
 							Str("stage", "onedev").
@@ -197,7 +196,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						continue
 					}
 
-					defaultbranch, err := client.GetDefaultBranch(r.ID)
+					defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 					if err != nil {
 						log.Error().
 							Str("stage", "onedev").
@@ -223,4 +222,72 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	}
 
 	return repos, ran
+}
+
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	client := &onedev.Client{}
+	if destination.URL == "" {
+		destination.URL = "https://code.onedev.io/"
+	}
+
+	if destination.Token != "" || destination.TokenFile != "" {
+		client = onedev.NewClient(destination.URL, onedev.SetToken(destination.GetToken()))
+	} else {
+		if destination.Password != "" {
+			client = onedev.NewClient(destination.URL, onedev.SetBasicAuth(destination.Username, destination.Password))
+		} else {
+			client = onedev.NewClient(destination.URL, "", "")
+		}
+	}
+
+	user, _, err := client.GetMe()
+	if err != nil {
+		return "", err
+	}
+
+	query := onedev.ProjectQueryOptions{
+		Query:  fmt.Sprintf("\"Name\" is \"%s\" and children of \"%s\"", repo.Name, user.Name),
+		Offset: 0,
+		Count:  100,
+	}
+	projects, _, err := client.GetProjects(&query)
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, project := range projects {
+		if project.Name == repo.Name {
+			cloneUrls, _, err := client.GetCloneUrl(project.ID)
+			if err != nil {
+				return "", err
+			}
+			return cloneUrls.HTTP, nil
+		}
+	}
+
+	query.Query = fmt.Sprintf("\"Name\" is \"%s\"", user.Name)
+
+	parentid := 0
+	parents, _, err := client.GetProjects(&query)
+	if err != nil {
+		return "", err
+	}
+	for _, parent := range parents {
+		if parent.Name == user.Name {
+			parentid = parent.ID
+		}
+	}
+
+	project, _, err := client.CreateProject(&onedev.CreateProjectOptions{Name: repo.Name, ParentID: parentid, CodeManagement: true})
+	if err != nil {
+		return "", err
+	}
+
+	cloneUrls, _, err := client.GetCloneUrl(project)
+	if err != nil {
+		return "", err
+	}
+
+	return cloneUrls.HTTP, nil
 }
