@@ -196,7 +196,7 @@ destination:
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
-      user: some-nome # can be a user or an organization, it must exist on the system
+      user: some-name # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gitea
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
       visibility:
@@ -205,7 +205,7 @@ destination:
   gogs:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
-      user: some-nome # can be a user or an organization, it must exist on the system
+      user: some-name # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gogs
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
       visibility:
@@ -214,6 +214,23 @@ destination:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gitlab
+  github:
+    - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
+      visibility:
+        repositories: private # private, public, default: private
+  onedev:
+    - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
+      url: http(s)://url-to-onedev
+  sourcehut:
+    - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
+      user: some-name # can be a user or an organization, it must exist on the system
+      sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa, sourcehut needs ssh to push to the repository
+      url: http(s)://url-to-sourcehut
+      visibility:
+        repositories: private # public, unlisted, private, default: public
   local:
     # Export this path from Docker with a volume to make it accessible and more permanent.
     - path: /some/path/gickup
