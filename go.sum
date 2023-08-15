@@ -81,6 +81,8 @@ github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUK
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cooperspencer/onedev v0.0.0-20230220110259-c2789266f8ed h1:WKEYtw1Qy6Idi0Cy0jMWdWghd8wyYrrTkS0fTkD0ZuI=
 github.com/cooperspencer/onedev v0.0.0-20230220110259-c2789266f8ed/go.mod h1:6xF8ZlcuNkJoGf2VnyZZBkQAOGLu2zKOxKqEzPR2DJs=
+github.com/cooperspencer/onedev v0.0.0-20230615161456-95860e5aae3e h1:8ajPtPxbNEwLP9hyDb190ojgc2ZUm29k9JxZzoiyf3Q=
+github.com/cooperspencer/onedev v0.0.0-20230615161456-95860e5aae3e/go.mod h1:6xF8ZlcuNkJoGf2VnyZZBkQAOGLu2zKOxKqEzPR2DJs=
 github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

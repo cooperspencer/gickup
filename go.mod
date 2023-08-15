@@ -5,7 +5,7 @@ go 1.17
 require (
 	code.gitea.io/sdk/gitea v0.15.1
 	github.com/alecthomas/kong v0.7.1
-	github.com/cooperspencer/onedev v0.0.0-20230220110259-c2789266f8ed
+	github.com/cooperspencer/onedev v0.0.0-20230615161456-95860e5aae3e
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
 	github.com/google/go-github/v41 v41.0.0

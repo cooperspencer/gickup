@@ -421,9 +421,11 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 }
 
 func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
-	auth := &http.BasicAuth{
-		Username: "xyz",
-		Password: repo.Token,
+	var auth transport.AuthMethod
+	if repo.Token != "" {
+		auth = &http.TokenAuth{
+			Token: repo.Token,
+		}
 	}
 	r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
 		URL:  repo.URL,
@@ -439,15 +441,13 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 
 func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string) error {
 	token := destination.GetToken()
+	auth := &http.TokenAuth{
+		Token: token,
+	}
 	remoteconfig := config.RemoteConfig{Name: RandomString(8), URLs: []string{url}}
 	remote, err := repo.CreateRemote(&remoteconfig)
 	if err != nil {
 		return err
-	}
-
-	auth := &http.BasicAuth{
-		Username: "xyz",
-		Password: token,
 	}
 
 	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name}

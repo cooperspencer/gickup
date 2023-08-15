@@ -26,6 +26,7 @@ type Destination struct {
 	Github []GenRepo `yaml:"github"`
 	Gitea  []GenRepo `yaml:"gitea"`
 	Gogs   []GenRepo `yaml:"gogs"`
+	OneDev []GenRepo `yaml:"onedev"`
 }
 
 // Count TODO.
@@ -34,7 +35,8 @@ func (dest Destination) Count() int {
 		len(dest.Gitea) +
 		len(dest.Local) +
 		len(dest.Github) +
-		len(dest.Gitlab)
+		len(dest.Gitlab) +
+		len(dest.OneDev)
 }
 
 // Local TODO.
