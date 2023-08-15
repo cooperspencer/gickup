@@ -1,6 +1,7 @@
 package sourcehut
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,23 @@ import (
 // doRequest TODO
 func doRequest(url, token string) ([]byte, error) {
 	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+
+	return body, err
+}
+
+// postRequest TODO
+func postRequest(url string, postbody []byte, token string) ([]byte, error) {
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(postbody))
 
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 
@@ -299,4 +317,42 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	}
 
 	return repos, ran
+}
+
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	if destination.URL == "" {
+		destination.URL = "https://git.sr.ht"
+	}
+
+	if !strings.HasSuffix(destination.URL, "/") {
+		destination.URL += "/"
+	}
+
+	repository := Repository{}
+	body, err := doRequest(fmt.Sprintf("%sapi/repos/%s", destination.URL, repo.Name), destination.GetToken())
+	if err != nil {
+		return "", err
+	}
+
+	err = json.Unmarshal(body, &repository)
+	if err != nil {
+		return "", err
+	}
+	if repository.Name == "" {
+		postRepo := PostRepo{Name: repo.Name}
+		postBody, err := json.Marshal(postRepo)
+		if err != nil {
+			return "", err
+		}
+		body, err := postRequest(fmt.Sprintf("%sapi/repos", destination.URL), postBody, destination.GetToken())
+		if err != nil {
+			return "", err
+		}
+		err = json.Unmarshal(body, &repository)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return fmt.Sprintf("git@%s:%s/%s", types.GetHost(destination.URL), repository.Owner.CanonicalName, repo.Name), nil
 }

@@ -21,12 +21,13 @@ import (
 
 // Destination TODO.
 type Destination struct {
-	Gitlab []GenRepo `yaml:"gitlab"`
-	Local  []Local   `yaml:"local"`
-	Github []GenRepo `yaml:"github"`
-	Gitea  []GenRepo `yaml:"gitea"`
-	Gogs   []GenRepo `yaml:"gogs"`
-	OneDev []GenRepo `yaml:"onedev"`
+	Gitlab    []GenRepo `yaml:"gitlab"`
+	Local     []Local   `yaml:"local"`
+	Github    []GenRepo `yaml:"github"`
+	Gitea     []GenRepo `yaml:"gitea"`
+	Gogs      []GenRepo `yaml:"gogs"`
+	OneDev    []GenRepo `yaml:"onedev"`
+	Sourcehut []GenRepo `yaml:"sourcehut"`
 }
 
 // Count TODO.
@@ -36,7 +37,8 @@ func (dest Destination) Count() int {
 		len(dest.Local) +
 		len(dest.Github) +
 		len(dest.Gitlab) +
-		len(dest.OneDev)
+		len(dest.OneDev) +
+		len(dest.Sourcehut)
 }
 
 // Local TODO.

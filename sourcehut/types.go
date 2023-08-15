@@ -69,3 +69,9 @@ type Results struct {
 	Parents   []string    `json:"parents"`
 	Signature interface{} `json:"signature"`
 }
+
+type PostRepo struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Visibility  string `json:"visibility"`
+}

@@ -428,10 +428,10 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 		}
 	}
 	r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
-		URL:  repo.URL,
-		Auth: auth,
+		URL:          repo.URL,
+		Auth:         auth,
+		SingleBranch: false,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -441,8 +441,42 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 
 func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string) error {
 	token := destination.GetToken()
-	auth := &http.TokenAuth{
-		Token: token,
+	var auth transport.AuthMethod
+	if destination.SSH {
+		if destination.SSHKey == "" {
+			home := os.Getenv("HOME")
+			destination.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+		site := types.Site{}
+
+		err := site.GetValues(url)
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+
+		sshAuth, err := goph.Key(destination.SSHKey, "")
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+
+		err = testSSHConnection(site, sshAuth)
+		if err != nil {
+			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+		}
+		if destination.SSHKey == "" {
+			home := os.Getenv("HOME")
+			destination.SSHKey = path.Join(home, ".ssh", "id_rsa")
+		}
+
+		auth, err = ssh.NewPublicKeysFromFile("git", destination.SSHKey, "")
+		if err != nil {
+			return err
+		}
+	} else {
+		auth = &http.BasicAuth{
+			Username: "xyz",
+			Password: token,
+		}
 	}
 	remoteconfig := config.RemoteConfig{Name: RandomString(8), URLs: []string{url}}
 	remote, err := repo.CreateRemote(&remoteconfig)
@@ -450,7 +484,7 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 		return err
 	}
 
-	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name}
+	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
 
 	return repo.Push(&pushoptions)
 }

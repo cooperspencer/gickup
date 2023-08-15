@@ -109,7 +109,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 			if err != nil {
-				fmt.Println(err)
 				log.Error().
 					Str("stage", "onedev").
 					Str("url", repo.URL).
@@ -289,8 +288,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println(cloneUrls.HTTP)
 
 	return cloneUrls.HTTP, nil
 }

@@ -236,7 +236,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
-					defer os.RemoveAll(tempdir)
+					//defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						log.Error().
@@ -328,6 +328,66 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("onedev").Inc()
+				}
+			}
+		}
+
+		for _, d := range conf.Destination.Sourcehut {
+			if !strings.HasSuffix(r.Name, "-docs") {
+				repotime := time.Now()
+				status := 0
+				d.SSH = true
+				if d.URL == "" {
+					d.URL = "https://git.sr.ht"
+				}
+
+				log.Info().
+					Str("stage", "sourcehut").
+					Str("url", d.URL).
+					Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+				if !cli.Dry {
+					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("sourcehut-%x", repotime))
+					if err != nil {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					}
+					defer os.RemoveAll(tempdir)
+					temprepo, err := local.TempClone(r, tempdir)
+					if err != nil {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					}
+
+					cloneurl, err := sourcehut.GetOrCreate(d, r)
+					if err != nil {
+						log.Error().
+							Str("stage", "sourcehut").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					}
+
+					err = local.CreateRemotePush(temprepo, d, cloneurl)
+					if err != nil {
+						log.Error().
+							Str("stage", "sourcehut").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					} else {
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+					}
+
+					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(float64(status))
+					prometheus.DestinationBackupsComplete.WithLabelValues("sourcehut").Inc()
 				}
 			}
 		}
