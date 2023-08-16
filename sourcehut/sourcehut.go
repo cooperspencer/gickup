@@ -340,7 +340,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		return "", err
 	}
 	if repository.Name == "" {
-		if destination.Visibility.Repositories != "public" || destination.Visibility.Repositories != "private" || destination.Visibility.Repositories == "unlisted" {
+		if destination.Visibility.Repositories != "public" && destination.Visibility.Repositories != "private" && destination.Visibility.Repositories != "unlisted" {
 			destination.Visibility.Repositories = "public"
 		}
 		postRepo := PostRepo{Name: repo.Name, Visibility: destination.Visibility.Repositories}
