@@ -35,6 +35,7 @@ func postRequest(url string, postbody []byte, token string) ([]byte, error) {
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(postbody))
 
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
+	req.Header.Add("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -339,7 +340,10 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		return "", err
 	}
 	if repository.Name == "" {
-		postRepo := PostRepo{Name: repo.Name}
+		if destination.Visibility.Repositories != "public" && destination.Visibility.Repositories != "private" && destination.Visibility.Repositories != "unlisted" {
+			destination.Visibility.Repositories = "public"
+		}
+		postRepo := PostRepo{Name: repo.Name, Visibility: destination.Visibility.Repositories}
 		postBody, err := json.Marshal(postRepo)
 		if err != nil {
 			return "", err
