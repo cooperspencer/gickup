@@ -180,7 +180,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 				err := updateRepository(repo.Name, auth, dry, l)
 				if err != nil {
-					if strings.Contains(err.Error(), "already up-to-date") {
+					if err == git.NoErrAlreadyUpToDate {
 						log.Info().
 							Str("stage", "locally").
 							Str("path", l.Path).
@@ -423,8 +423,9 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	var auth transport.AuthMethod
 	if repo.Token != "" {
-		auth = &http.TokenAuth{
-			Token: repo.Token,
+		auth = &http.BasicAuth{
+			Username: "xyz",
+			Password: repo.Token,
 		}
 	}
 	r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
@@ -434,6 +435,13 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	err = r.Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*"},
+	})
+	if err != nil {
+		return r, err
 	}
 
 	return r, nil
@@ -484,11 +492,18 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 		return err
 	}
 
-	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
+	headref, _ := repo.Head()
 
-	return repo.Push(&pushoptions)
+	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("%s:%s", headref.Name(), headref.Name()))}}
+
+	err = repo.Push(&pushoptions)
+	if err == git.NoErrAlreadyUpToDate {
+		pushoptions = git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"+refs/heads/*:refs/remotes/origin/*", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*"}}
+
+		return repo.Push(&pushoptions)
+	}
+	return err
 }
-
 func RandomString(length int) string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))

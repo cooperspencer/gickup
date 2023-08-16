@@ -72,6 +72,6 @@ type Results struct {
 
 type PostRepo struct {
 	Name        string `json:"name"`
-	Description string `json:"description"`
-	Visibility  string `json:"visibility"`
+	Description string `json:"description,omitempty"`
+	Visibility  string `json:"visibility,omitempty"`
 }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/sourcehut"
+	"github.com/go-git/go-git/v5"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -236,14 +237,22 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
-					//defer os.RemoveAll(tempdir)
+					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						log.Error().
-							Str("stage", "tempclone").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
 
 					cloneurl, err := github.GetOrCreate(d, r)
@@ -252,23 +261,33 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "github").
 							Str("url", r.URL).
 							Msg(err.Error())
+						os.RemoveAll(tempdir)
 						continue
 					}
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl)
 					if err != nil {
-						log.Error().
-							Str("stage", "github").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
-					} else {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(time.Since(repotime).Seconds())
-						status = 1
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "github").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "github").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
+
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(time.Since(repotime).Seconds())
+					status = 1
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("github").Inc()
+					os.RemoveAll(tempdir)
 				}
 			}
 		}
@@ -295,14 +314,21 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
-					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						log.Error().
-							Str("stage", "tempclone").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
 
 					cloneurl, err := onedev.GetOrCreate(d, r)
@@ -311,23 +337,33 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "onedev").
 							Str("url", r.URL).
 							Msg(err.Error())
+						os.RemoveAll(tempdir)
 						continue
 					}
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl)
 					if err != nil {
-						log.Error().
-							Str("stage", "onedev").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
-					} else {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(time.Since(repotime).Seconds())
-						status = 1
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
+
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("onedev").Inc()
+					os.RemoveAll(tempdir)
 				}
 			}
 		}
@@ -355,14 +391,21 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
-					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						log.Error().
-							Str("stage", "tempclone").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
 
 					cloneurl, err := sourcehut.GetOrCreate(d, r)
@@ -371,23 +414,33 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "sourcehut").
 							Str("url", r.URL).
 							Msg(err.Error())
+						os.RemoveAll(tempdir)
 						continue
 					}
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl)
 					if err != nil {
-						log.Error().
-							Str("stage", "sourcehut").
-							Str("url", r.URL).
-							Msg(err.Error())
-						continue
-					} else {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(time.Since(repotime).Seconds())
-						status = 1
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "onedev").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "sourcehut").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
 					}
+
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("sourcehut").Inc()
+					os.RemoveAll(tempdir)
 				}
 			}
 		}

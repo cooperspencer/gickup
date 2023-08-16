@@ -228,7 +228,7 @@ destination:
       # token_file: token.txt # alternatively, specify token in a file
       user: some-name # can be a user or an organization, it must exist on the system
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa, sourcehut needs ssh to push to the repository
-      url: http(s)://url-to-sourcehut
+      url: http(s)://url-to-sourcehut # if empty, it uses https://git.sr.ht
       visibility:
         repositories: private # public, unlisted, private, default: public
   local:
