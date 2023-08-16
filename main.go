@@ -237,6 +237,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
+          
 					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
@@ -314,6 +315,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
+          
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
@@ -391,6 +393,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Msg(err.Error())
 						continue
 					}
+          
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {

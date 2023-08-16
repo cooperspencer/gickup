@@ -443,7 +443,6 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	if err != nil {
 		return r, err
 	}
-
 	return r, nil
 }
 
@@ -504,6 +503,7 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 	}
 	return err
 }
+
 func RandomString(length int) string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
