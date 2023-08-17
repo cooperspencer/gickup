@@ -17,9 +17,12 @@ You can clone/mirror repositories from:
 - Any
 
 You can clone/mirror them to:
+- Github
 - Gitlab
 - Gitea
 - Gogs
+- OneDev
+- Sourcehut
 - Local
 
 [Official Documentation](https://cooperspencer.github.io/gickup-documentation/)
