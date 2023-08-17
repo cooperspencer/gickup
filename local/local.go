@@ -499,7 +499,13 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 	if err == nil || err == git.NoErrAlreadyUpToDate {
 		pushoptions = git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
 
-		return repo.Push(&pushoptions)
+		err2 := repo.Push(&pushoptions)
+
+		if err2 == git.NoErrAlreadyUpToDate {
+			return nil
+		} else {
+			return err2
+		}
 	}
 	return err
 }
