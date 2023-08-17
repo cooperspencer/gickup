@@ -440,10 +440,11 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	err = r.Fetch(&git.FetchOptions{
 		RefSpecs: []config.RefSpec{"refs/*:refs/*"},
 	})
-	if err != nil {
+	if err == git.NoErrAlreadyUpToDate {
+		return r, nil
+	} else {
 		return r, err
 	}
-	return r, nil
 }
 
 func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string) error {
@@ -499,13 +500,7 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 	if err == nil || err == git.NoErrAlreadyUpToDate {
 		pushoptions = git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
 
-		err2 := repo.Push(&pushoptions)
-
-		if err2 == git.NoErrAlreadyUpToDate {
-			return nil
-		} else {
-			return err2
-		}
+		return repo.Push(&pushoptions)
 	}
 	return err
 }
