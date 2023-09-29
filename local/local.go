@@ -494,11 +494,11 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 
 	headref, _ := repo.Head()
 
-	pushoptions := git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("%s:%s", headref.Name(), headref.Name()))}}
+	pushoptions := git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("%s:%s", headref.Name(), headref.Name()))}}
 
 	err = repo.Push(&pushoptions)
 	if err == nil || err == git.NoErrAlreadyUpToDate {
-		pushoptions = git.PushOptions{Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
+		pushoptions = git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
 
 		return repo.Push(&pushoptions)
 	}
