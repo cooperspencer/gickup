@@ -220,11 +220,13 @@ destination:
       organization: whatever # name of the organization to want to backup to
       visibility:
         repositories: private # private, public, default: private
+      force: false # force push to destination
   onedev:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-onedev
       organization: whatever # name of the parent project you want to backup to
+      force: false # force push to destination
   sourcehut:
     - token: some-token # as of now only the legacy api works, use the legacy token
       # token_file: token.txt # alternatively, specify token in a file
@@ -233,6 +235,7 @@ destination:
       url: http(s)://url-to-sourcehut # if empty, it uses https://git.sr.ht
       visibility:
         repositories: private # public, unlisted, private, default: public
+      force: false # force push to destination
   local:
     # Export this path from Docker with a volume to make it accessible and more permanent.
     - path: /some/path/gickup
