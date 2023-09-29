@@ -240,13 +240,20 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		}
 	}
 
-	user, _, err := client.GetMe()
-	if err != nil {
-		return "", err
+	dest := ""
+
+	if destination.Organization == "" {
+		user, _, err := client.GetMe()
+		if err != nil {
+			return "", err
+		}
+		dest = user.Name
+	} else {
+		dest = destination.Organization
 	}
 
 	query := onedev.ProjectQueryOptions{
-		Query:  fmt.Sprintf("\"Name\" is \"%s\" and children of \"%s\"", repo.Name, user.Name),
+		Query:  fmt.Sprintf("\"Name\" is \"%s\" and children of \"%s\"", repo.Name, dest),
 		Offset: 0,
 		Count:  100,
 	}
@@ -266,7 +273,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		}
 	}
 
-	query.Query = fmt.Sprintf("\"Name\" is \"%s\"", user.Name)
+	query.Query = fmt.Sprintf("\"Name\" is \"%s\"", dest)
 
 	parentid := 0
 	parents, _, err := client.GetProjects(&query)
@@ -274,8 +281,9 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		return "", err
 	}
 	for _, parent := range parents {
-		if parent.Name == user.Name {
+		if parent.Name == dest {
 			parentid = parent.ID
+			break
 		}
 	}
 

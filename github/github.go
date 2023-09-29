@@ -336,18 +336,42 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 
 	client := github.NewClient(tc)
 
-	user, _, err := client.Users.Get(context.TODO(), "")
-	if err != nil {
-		return "", err
+	dest := types.GithubDestination{}
+	login := ""
+	if destination.Organization == "" {
+		user, _, err := client.Users.Get(context.TODO(), "")
+		if err != nil {
+			return "", err
+		}
+		dest.User = user
+		login = *user.Login
+	} else {
+		organization, _, err := client.Organizations.Get(context.TODO(), destination.Organization)
+		if err != nil {
+			return "", err
+		}
+		dest.Organization = organization
+		login = *organization.Login
 	}
-	r, _, err := client.Repositories.Get(context.TODO(), *user.Login, repo.Name)
+
+	r, _, err := client.Repositories.Get(context.TODO(), login, repo.Name)
 	if err != nil {
 		if !strings.Contains(err.Error(), "404 Not Found") {
 			return "", err
 		}
-		r, _, err = client.Repositories.Create(context.TODO(), "", &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Owner: user})
-		if err != nil {
-			return "", err
+		if destination.Organization == "" {
+			r, _, err = client.Repositories.Create(context.TODO(), "", &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Owner: dest.User})
+			if err != nil {
+				return "", err
+			}
+		} else {
+			if destination.Visibility.Repositories == "" {
+				destination.Visibility.Repositories = "private"
+			}
+			r, _, err = client.Repositories.Create(context.TODO(), *dest.Organization.Login, &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Organization: dest.Organization})
+			if err != nil {
+				return "", err
+			}
 		}
 	}
 

@@ -217,12 +217,14 @@ destination:
   github:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
+      organization: whatever # name of the organization to want to backup to
       visibility:
         repositories: private # private, public, default: private
   onedev:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-onedev
+      organization: whatever # name of the parent project you want to backup to
   sourcehut:
     - token: some-token # as of now only the legacy api works, use the legacy token
       # token_file: token.txt # alternatively, specify token in a file

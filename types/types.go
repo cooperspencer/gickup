@@ -14,6 +14,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/google/go-github/v41/github"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -227,24 +228,25 @@ func (source Source) Count() int {
 
 // GenRepo Generell Repo.
 type GenRepo struct {
-	Token       string     `yaml:"token"`
-	TokenFile   string     `yaml:"token_file"`
-	User        string     `yaml:"user"`
-	SSH         bool       `yaml:"ssh"`
-	SSHKey      string     `yaml:"sshkey"`
-	Username    string     `yaml:"username"`
-	Password    string     `yaml:"password"`
-	URL         string     `yaml:"url"`
-	Exclude     []string   `yaml:"exclude"`
-	ExcludeOrgs []string   `yaml:"excludeorgs"`
-	Include     []string   `yaml:"include"`
-	IncludeOrgs []string   `yaml:"includeorgs"`
-	Wiki        bool       `yaml:"wiki"`
-	Starred     bool       `yaml:"starred"`
-	CreateOrg   bool       `yaml:"createorg"`
-	Visibility  Visibility `yaml:"visibility"`
-	Filter      Filter     `yaml:"filter"`
-	Contributed bool       `yaml:"contributed"`
+	Token        string     `yaml:"token"`
+	TokenFile    string     `yaml:"token_file"`
+	User         string     `yaml:"user"`
+	Organization string     `yaml:"organization"`
+	SSH          bool       `yaml:"ssh"`
+	SSHKey       string     `yaml:"sshkey"`
+	Username     string     `yaml:"username"`
+	Password     string     `yaml:"password"`
+	URL          string     `yaml:"url"`
+	Exclude      []string   `yaml:"exclude"`
+	ExcludeOrgs  []string   `yaml:"excludeorgs"`
+	Include      []string   `yaml:"include"`
+	IncludeOrgs  []string   `yaml:"includeorgs"`
+	Wiki         bool       `yaml:"wiki"`
+	Starred      bool       `yaml:"starred"`
+	CreateOrg    bool       `yaml:"createorg"`
+	Visibility   Visibility `yaml:"visibility"`
+	Filter       Filter     `yaml:"filter"`
+	Contributed  bool       `yaml:"contributed"`
 }
 
 // Visibility struct
@@ -387,6 +389,12 @@ type Site struct {
 	URL  string
 	User string
 	Port int
+}
+
+// GithubDestination TODO
+type GithubDestination struct {
+	User         *github.User
+	Organization *github.Organization
 }
 
 // GetHost TODO.
