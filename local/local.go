@@ -19,7 +19,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
-	"github.com/mholt/archiver"
+	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog/log"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -321,6 +321,9 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 					Msgf("pulling %s", types.Green(repoPath))
 
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
