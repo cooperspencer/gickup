@@ -100,27 +100,29 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	repo, _, err := giteaclient.GetRepo(user.UserName, r.Name)
 	if err != nil {
 		opts := gitea.MigrateRepoOption{
-			RepoName:    r.Name,
-			RepoOwner:   user.UserName,
-			Mirror:      true,
-			CloneAddr:   r.URL,
-			AuthToken:   r.Token,
-			Wiki:        r.Origin.Wiki,
-			Private:     repovisibility,
-			Description: r.Description,
+			RepoName:       r.Name,
+			RepoOwner:      user.UserName,
+			Mirror:         true,
+			CloneAddr:      r.URL,
+			AuthToken:      r.Token,
+			Wiki:           r.Origin.Wiki,
+			Private:        repovisibility,
+			Description:    r.Description,
+			MirrorInterval: d.MirrorInterval,
 		}
 
 		if r.Token == "" {
 			opts = gitea.MigrateRepoOption{
-				RepoName:     r.Name,
-				RepoOwner:    user.UserName,
-				Mirror:       true,
-				CloneAddr:    r.URL,
-				AuthUsername: r.Origin.User,
-				AuthPassword: r.Origin.Password,
-				Wiki:         r.Origin.Wiki,
-				Private:      repovisibility,
-				Description:  r.Description,
+				RepoName:       r.Name,
+				RepoOwner:      user.UserName,
+				Mirror:         true,
+				CloneAddr:      r.URL,
+				AuthUsername:   r.Origin.User,
+				AuthPassword:   r.Origin.Password,
+				Wiki:           r.Origin.Wiki,
+				Private:        repovisibility,
+				Description:    r.Description,
+				MirrorInterval: d.MirrorInterval,
 			}
 		}
 
@@ -130,6 +132,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				Str("stage", "gitea").
 				Str("url", d.URL).
 				Msg(err.Error())
+			log.Info().
+				Str("stage", "gitea").
+				Str("url", d.URL).
+				Msgf("deleting %s again", types.Blue(r.Name))
+			_, err = giteaclient.DeleteRepo(user.UserName, r.Name)
+			if err != nil {
+				log.Error().
+					Str("stage", "gitea").
+					Str("url", d.URL).
+					Msgf("couldn't delete %s!", types.Red(r.Name))
+			}
 			return false
 		}
 
