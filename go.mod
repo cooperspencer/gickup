@@ -1,6 +1,6 @@
 module github.com/cooperspencer/gickup
 
-go 1.17
+go 1.21
 
 require (
 	code.gitea.io/sdk/gitea v0.16.0
