@@ -103,6 +103,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				Str("stage", "gogs").
 				Str("url", d.URL).
 				Msg(err.Error())
+			log.Info().
+				Str("stage", "gogs").
+				Str("url", d.URL).
+				Msgf("deleting %s again", types.Blue(r.Name))
+			err = gogsclient.DeleteRepo(user.UserName, r.Name)
+			if err != nil {
+				log.Error().
+					Str("stage", "gogs").
+					Str("url", d.URL).
+					Msgf("couldn't delete %s!", types.Red(r.Name))
+			}
 			return false
 		}
 

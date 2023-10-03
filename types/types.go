@@ -228,26 +228,27 @@ func (source Source) Count() int {
 
 // GenRepo Generell Repo.
 type GenRepo struct {
-	Token        string     `yaml:"token"`
-	TokenFile    string     `yaml:"token_file"`
-	User         string     `yaml:"user"`
-	Organization string     `yaml:"organization"`
-	SSH          bool       `yaml:"ssh"`
-	SSHKey       string     `yaml:"sshkey"`
-	Username     string     `yaml:"username"`
-	Password     string     `yaml:"password"`
-	URL          string     `yaml:"url"`
-	Exclude      []string   `yaml:"exclude"`
-	ExcludeOrgs  []string   `yaml:"excludeorgs"`
-	Include      []string   `yaml:"include"`
-	IncludeOrgs  []string   `yaml:"includeorgs"`
-	Wiki         bool       `yaml:"wiki"`
-	Starred      bool       `yaml:"starred"`
-	CreateOrg    bool       `yaml:"createorg"`
-	Visibility   Visibility `yaml:"visibility"`
-	Filter       Filter     `yaml:"filter"`
-	Force        bool       `yaml:"force"`
-	Contributed  bool       `yaml:"contributed"`
+	Token          string     `yaml:"token"`
+	TokenFile      string     `yaml:"token_file"`
+	User           string     `yaml:"user"`
+	Organization   string     `yaml:"organization"`
+	SSH            bool       `yaml:"ssh"`
+	SSHKey         string     `yaml:"sshkey"`
+	Username       string     `yaml:"username"`
+	Password       string     `yaml:"password"`
+	URL            string     `yaml:"url"`
+	Exclude        []string   `yaml:"exclude"`
+	ExcludeOrgs    []string   `yaml:"excludeorgs"`
+	Include        []string   `yaml:"include"`
+	IncludeOrgs    []string   `yaml:"includeorgs"`
+	Wiki           bool       `yaml:"wiki"`
+	Starred        bool       `yaml:"starred"`
+	CreateOrg      bool       `yaml:"createorg"`
+	Visibility     Visibility `yaml:"visibility"`
+	Filter         Filter     `yaml:"filter"`
+	Force          bool       `yaml:"force"`
+	Contributed    bool       `yaml:"contributed"`
+	MirrorInterval string     `yaml:"mirrorinterval"`
 }
 
 // Visibility struct
