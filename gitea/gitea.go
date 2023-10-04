@@ -45,7 +45,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	if d.URL == "" {
 		d.URL = "https://gitea.com/"
 	}
-	sub := logger.CreateSubLogger("gitea", d.URL)
+	sub = logger.CreateSubLogger("stage", "gitea", "url", d.URL)
 	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
@@ -184,7 +184,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
 		}
-		sub := logger.CreateSubLogger("gitea", repo.URL)
+		sub = logger.CreateSubLogger("stage", "gitea", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			sub.Error().

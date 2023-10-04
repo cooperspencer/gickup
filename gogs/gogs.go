@@ -3,9 +3,14 @@ package gogs
 import (
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/gogs/go-gogs-client"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 func getRepoVisibility(visibility string, private bool) bool {
@@ -22,18 +27,15 @@ func getRepoVisibility(visibility string, private bool) bool {
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	repovisibility := getRepoVisibility(d.Visibility.Repositories, r.Private)
-	log.Info().
-		Str("stage", "gogs").
-		Str("url", d.URL).
+	sub = logger.CreateSubLogger("stage", "gogs", "url", d.URL)
+	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
 	gogsclient := gogs.NewClient(d.URL, d.GetToken())
 
 	user, err := gogsclient.GetSelfInfo()
 	if err != nil {
-		log.Error().
-			Str("stage", "gogs").
-			Str("url", d.URL).
+		sub.Error().
 			Msg(err.Error())
 		return false
 	}
@@ -50,18 +52,14 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 					UserName: d.User,
 				})
 				if err != nil {
-					log.Error().
-						Str("stage", "gogs").
-						Str("url", d.URL).
+					sub.Error().
 						Msg(err.Error())
 					return false
 				}
 				user.ID = org.ID
 				user.UserName = org.UserName
 			} else {
-				log.Error().
-					Str("stage", "gogs").
-					Str("url", d.URL).
+				sub.Error().
 					Msg(err.Error())
 				return false
 			}
@@ -99,19 +97,13 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 		_, err := gogsclient.MigrateRepo(opts)
 		if err != nil {
-			log.Error().
-				Str("stage", "gogs").
-				Str("url", d.URL).
+			sub.Error().
 				Msg(err.Error())
-			log.Info().
-				Str("stage", "gogs").
-				Str("url", d.URL).
+			sub.Info().
 				Msgf("deleting %s again", types.Blue(r.Name))
 			err = gogsclient.DeleteRepo(user.UserName, r.Name)
 			if err != nil {
-				log.Error().
-					Str("stage", "gogs").
-					Str("url", d.URL).
+				sub.Error().
 					Msgf("couldn't delete %s!", types.Red(r.Name))
 			}
 			return false
@@ -121,23 +113,17 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	}
 
 	if repo.Mirror {
-		log.Info().
-			Str("stage", "gogs").
-			Str("url", d.URL).
+		sub.Info().
 			Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
 
 		err := gogsclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Error().
-				Str("stage", "gogs").
-				Str("url", d.URL).
+			sub.Error().
 				Msg(err.Error())
 			return false
 		}
 
-		log.Info().
-			Str("stage", "gogs").
-			Str("url", d.URL).
+		sub.Info().
 			Msgf("successfully synced %s.", types.Blue(r.Name))
 	}
 
@@ -149,23 +135,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gogs {
+		sub = logger.CreateSubLogger("stage", "gogs", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			log.Error().
-				Str("stage", "gogs").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 		ran = true
 		if repo.User == "" {
-			log.Info().
-				Str("stage", "gogs").
-				Str("url", repo.URL).
+			sub.Info().
 				Msg("grabbing my repositories")
 		} else {
-			log.Info().
-				Str("stage", "gogs").
-				Str("url", repo.URL).
+			sub.Info().
 				Msgf("grabbing repositories from %s", repo.User)
 		}
 
@@ -179,9 +160,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			gogsrepos, err = client.ListUserRepos(repo.User)
 		}
 		if err != nil {
-			log.Error().
-				Str("stage", "gogs").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 			continue
 		}
@@ -276,9 +255,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			orgs, err = client.ListUserOrgs(repo.User)
 		}
 		if err != nil {
-			log.Error().
-				Str("stage", "gogs").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 
@@ -292,9 +269,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if includeorgs[org.UserName] {
 						o, err := client.ListOrgRepos(org.UserName)
 						if err != nil {
-							log.Error().
-								Str("stage", "gogs").
-								Str("url", repo.URL).
+							sub.Error().
 								Msg(err.Error())
 						}
 
@@ -307,9 +282,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				} else {
 					o, err := client.ListOrgRepos(org.UserName)
 					if err != nil {
-						log.Error().
-							Str("stage", "gogs").
-							Str("url", repo.URL).
+						sub.Error().
 							Msg(err.Error())
 					}
 

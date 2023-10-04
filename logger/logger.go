@@ -47,6 +47,17 @@ func CreateLogger(conf types.Logging) zerolog.Logger {
 	return zerolog.New(mw).With().Timestamp().Logger()
 }
 
-func CreateSubLogger(stage, url string) zerolog.Logger {
-	return log.With().Str("stage", stage).Str("url", url).Logger()
+// CreateSubLogger create a sublogger for modules
+func CreateSubLogger(args ...string) zerolog.Logger {
+	sub := log.With()
+	for i := 0; i < len(args); i += 2 {
+		if i+1 < len(args) {
+			key := args[i]
+			value := args[i+1]
+
+			// Add key-value pairs to the sublogger
+			sub = sub.Str(key, value)
+		}
+	}
+	return sub.Logger()
 }

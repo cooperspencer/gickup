@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/cooperspencer/gickup/gitcmd"
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -20,22 +21,22 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
 	"github.com/mholt/archiver/v3"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	gossh "golang.org/x/crypto/ssh"
 )
 
 var (
 	gitc = gitcmd.GitCmd{}
+	sub  zerolog.Logger
 )
 
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
+	sub = logger.CreateSubLogger("stage", "locally", "path", l.Path)
 	if l.LFS {
 		g, err := gitcmd.New()
 		if err != nil {
-			log.Error().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Error().
 				Msg(err.Error())
 		}
 		gitc = g
@@ -57,9 +58,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	stat, err := os.Stat(l.Path)
 	if os.IsNotExist(err) && !dry {
 		if err := os.MkdirAll(l.Path, 0o777); err != nil {
-			log.Error().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Error().
 				Msg(err.Error())
 			return false
 		}
@@ -69,9 +68,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 	if stat != nil && stat.IsDir() {
 		if err := os.Chdir(l.Path); err != nil {
-			log.Error().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Error().
 				Msg(err.Error())
 			return false
 		}
@@ -90,9 +87,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 		auth, err = ssh.NewPublicKeysFromFile("git", repo.Origin.SSHKey, "")
 		if err != nil {
-			log.Error().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Error().
 				Msg(err.Error())
 			return false
 		}
@@ -111,25 +106,19 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	for x := 1; x <= tries; x++ {
 		stat, err := os.Stat(repo.Name)
 		if os.IsNotExist(err) {
-			log.Info().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Info().
 				Msgf("cloning %s", types.Green(repo.Name))
 
 			err := cloneRepository(repo, auth, dry, l)
 			if err != nil {
 				if err.Error() == "repository not found" {
-					log.Warn().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Warn().
 						Str("repo", repo.Name).
 						Msg(err.Error())
 					break
 				}
 				if x == tries {
-					log.Warn().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Warn().
 						Str("repo", repo.Name).
 						Msg(err.Error())
 
@@ -137,9 +126,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				}
 
 				if strings.Contains(err.Error(), "ERR access denied or repository not exported") {
-					log.Warn().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Warn().
 						Str("repo", repo.Name).
 						Msgf("%s doesn't exist.", repo.Name)
 
@@ -147,18 +134,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				}
 
 				if strings.Contains(err.Error(), "remote repository is empty") {
-					log.Warn().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Warn().
 						Str("repo", repo.Name).
 						Msg(err.Error())
 
 					break
 				}
 
-				log.Warn().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Warn().
 					Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
 				time.Sleep(5 * time.Second)
@@ -167,36 +150,26 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			}
 		} else {
 			if !stat.IsDir() {
-				log.Warn().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Warn().
 					Str("repo", repo.Name).
 					Msgf("%s is a file", types.Red(repo.Name))
 			} else {
-				log.Info().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Info().
 					Msgf("opening %s locally", types.Green(repo.Name))
 
 				err := updateRepository(repo.Name, auth, dry, l)
 				if err != nil {
 					if err == git.NoErrAlreadyUpToDate {
-						log.Info().
-							Str("stage", "locally").
-							Str("path", l.Path).
+						sub.Info().
 							Msg(err.Error())
 					} else {
 						if x == tries {
-							log.Fatal().
-								Str("stage", "locally").
-								Str("path", l.Path).
+							sub.Fatal().
 								Str("repo", repo.Name).
 								Msg(err.Error())
 						} else {
 							os.RemoveAll(repo.Name)
-							log.Warn().
-								Str("stage", "locally").
-								Str("path", l.Path).
+							sub.Warn().
 								Str("repo", repo.Name).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
@@ -210,22 +183,16 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if l.Zip {
-			log.Info().
-				Str("stage", "locally").
-				Str("path", l.Path).
+			sub.Info().
 				Msgf("zipping %s", types.Green(repo.Name))
 			err := archiver.Archive([]string{repo.Name}, fmt.Sprintf("%s.zip", repo.Name))
 			if err != nil {
-				log.Warn().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
 			}
 			err = os.RemoveAll(repo.Name)
 			if err != nil {
-				log.Warn().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
 			}
 		}
@@ -234,9 +201,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			parentdir := path.Dir(repo.Name)
 			files, err := os.ReadDir(parentdir)
 			if err != nil {
-				log.Warn().
-					Str("stage", "locally").
-					Str("path", l.Path).
+				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
 				break
 			}
@@ -249,9 +214,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				}
 				_, err := strconv.ParseInt(fname, 10, 64)
 				if err != nil {
-					log.Warn().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Warn().
 						Str("repo", repo.Name).
 						Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
 				}
@@ -266,15 +229,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			if len(keep) > l.Keep {
 				toremove := keep[l.Keep:]
 				for _, file := range toremove {
-					log.Info().
-						Str("stage", "locally").
-						Str("path", l.Path).
+					sub.Info().
 						Msgf("removing %s", types.Red(path.Join(parentdir, file)))
 					err := os.RemoveAll(path.Join(parentdir, file))
 					if err != nil {
-						log.Warn().
-							Str("stage", "locally").
-							Str("path", l.Path).
+						sub.Warn().
 							Str("repo", repo.Name).Msg(err.Error())
 					}
 				}
@@ -299,8 +258,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 				return err
 			}
 
-			log.Info().
-				Str("stage", "locally").
+			sub.Info().
 				Msgf("pulling %s", types.Green(repoPath))
 
 			err = gitc.Pull(l.Bare)
@@ -316,8 +274,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 					return err
 				}
 
-				log.Info().
-					Str("stage", "locally").
+				sub.Info().
 					Msgf("pulling %s", types.Green(repoPath))
 
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
@@ -342,17 +299,17 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 
 		err := site.GetValues(url)
 		if err != nil {
-			log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
+			sub.Fatal().Str("repo", repo.Name).Msg(err.Error())
 		}
 
 		sshAuth, err := goph.Key(repo.Origin.SSHKey, "")
 		if err != nil {
-			log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
+			sub.Fatal().Str("repo", repo.Name).Msg(err.Error())
 		}
 
 		err = testSSHConnection(site, sshAuth)
 		if err != nil {
-			log.Fatal().Str("stage", "locally").Str("repo", repo.Name).Msg(err.Error())
+			sub.Fatal().Str("repo", repo.Name).Msg(err.Error())
 		}
 	}
 
@@ -451,6 +408,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 }
 
 func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string) error {
+	sub = logger.CreateSubLogger("stage", "tempclone", "url", url)
 	token := destination.GetToken()
 	var auth transport.AuthMethod
 	if destination.SSH {
@@ -462,17 +420,17 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 
 		err := site.GetValues(url)
 		if err != nil {
-			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+			sub.Fatal().Msg(err.Error())
 		}
 
 		sshAuth, err := goph.Key(destination.SSHKey, "")
 		if err != nil {
-			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+			sub.Fatal().Msg(err.Error())
 		}
 
 		err = testSSHConnection(site, sshAuth)
 		if err != nil {
-			log.Fatal().Str("stage", "tempclone").Str("url", url).Msg(err.Error())
+			sub.Fatal().Msg(err.Error())
 		}
 		if destination.SSHKey == "" {
 			home := os.Getenv("HOME")

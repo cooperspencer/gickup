@@ -4,9 +4,14 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/ktrysmt/go-bitbucket"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 // Get TODO.
@@ -22,12 +27,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		if repo.URL == "" {
 			repo.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
+			sub = logger.CreateSubLogger("stage", "bitbucket", "url", repo.URL)
 		} else {
 			bitbucketURL, err := url.Parse(repo.URL)
+			sub = logger.CreateSubLogger("stage", "bitbucket", "url", repo.URL)
 			if err != nil {
-				log.Error().
-					Str("stage", "bitbucket").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 				continue
 			}
@@ -36,22 +41,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			log.Error().
-				Str("stage", "bitbucket").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 
-		log.Info().
-			Str("stage", "bitbucket").
-			Str("url", repo.URL).
+		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
 		repositories, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
 		if err != nil {
-			log.Error().
-				Str("stage", "bitbucket").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 			continue
 		}
@@ -67,11 +66,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				}
 			}
 
-			updated, err := time.Parse(time.RFC3339, r.UpdatedOn)
-			if err == nil {
-				if time.Since(updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-					continue
-				}
+			if time.Since(*r.UpdatedOnTime) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+				continue
 			}
 
 			if include[r.Name] {

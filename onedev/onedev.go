@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/onedev"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 func Get(conf *types.Conf) ([]types.Repo, bool) {
@@ -18,20 +23,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.URL == "" {
 			repo.URL = "https://code.onedev.io/"
 		}
+		sub = logger.CreateSubLogger("stage", "onedev", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			log.Error().
-				Str("stage", "onedev").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
-		log.Info().
-			Str("stage", "onedev").
-			Str("url", repo.URL).
+		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
 		if repo.Password == "" && repo.Token != "" {
@@ -61,9 +63,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.User == "" {
 			u, _, err := client.GetMe()
 			if err != nil {
-				log.Error().
-					Str("stage", "onedev").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg("can't find user")
 				break
 			}
@@ -77,9 +77,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		userrepos, _, err := client.GetProjects(&query)
 		if err != nil {
-			log.Error().
-				Str("stage", "onedev").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 
@@ -100,18 +98,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			urls, _, err := client.GetCloneUrl(r.ID)
 			if err != nil {
-				log.Error().
-					Str("stage", "onedev").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg("couldn't get clone urls")
 				continue
 			}
 
 			defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 			if err != nil {
-				log.Error().
-					Str("stage", "onedev").
-					Str("url", repo.URL).
+				sub.Error().
 					Msgf("couldn't get default branch for %s", r.Name)
 				defaultbranch = "main"
 			}
@@ -121,9 +115,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if len(commits) > 0 {
 				commit, _, err := client.GetCommit(r.ID, commits[0])
 				if err != nil {
-					log.Error().
-						Str("stage", "onedev").
-						Str("url", repo.URL).
+					sub.Error().
 						Msgf("can't get latest commit for %s", defaultbranch)
 				} else {
 					lastactive := time.UnixMicro(commit.Author.When)
@@ -149,18 +141,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.Username != "" && repo.Password != "" && len(repo.IncludeOrgs) == 0 && user.Name != "" {
 			memberships, _, err := client.GetUserMemberships(user.ID)
 			if err != nil {
-				log.Error().
-					Str("stage", "onedev").
-					Str("url", repo.URL).
+				sub.Error().
 					Msgf("couldn't get memberships for %s", user.Name)
 			}
 
 			for _, membership := range memberships {
 				group, _, err := client.GetGroup(membership.GroupID)
 				if err != nil {
-					log.Error().
-						Str("stage", "onedev").
-						Str("url", repo.URL).
+					sub.Error().
 						Msgf("couldn't get group with id %d", membership.GroupID)
 				}
 				if !excludeorgs[group.Name] {
@@ -175,9 +163,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 				orgrepos, _, err := client.GetProjects(&query)
 				if err != nil {
-					log.Error().
-						Str("stage", "onedev").
-						Str("url", repo.URL).
+					sub.Error().
 						Msg(err.Error())
 				}
 
@@ -189,18 +175,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 					urls, _, err := client.GetCloneUrl(r.ID)
 					if err != nil {
-						log.Error().
-							Str("stage", "onedev").
-							Str("url", repo.URL).
+						sub.Error().
 							Msg("couldn't get clone urls")
 						continue
 					}
 
 					defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 					if err != nil {
-						log.Error().
-							Str("stage", "onedev").
-							Str("url", repo.URL).
+						sub.Error().
 							Msgf("couldn't get default branch for %s", r.Name)
 						defaultbranch = "main"
 					}
@@ -229,6 +211,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	if destination.URL == "" {
 		destination.URL = "https://code.onedev.io/"
 	}
+	sub = logger.CreateSubLogger("stage", "onedev", "url", destination.URL)
 
 	if destination.Token != "" || destination.TokenFile != "" {
 		client = onedev.NewClient(destination.URL, onedev.SetToken(destination.GetToken()))

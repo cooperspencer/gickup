@@ -6,9 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"github.com/xanzy/go-gitlab"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 // Backup TODO.
@@ -22,18 +27,15 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	} else {
 		gitlabclient, err = gitlab.NewClient(token, gitlab.WithBaseURL(d.URL))
 	}
+	sub = logger.CreateSubLogger("stage", "gitlab", "url", d.URL)
 
 	if err != nil {
-		log.Error().
-			Str("stage", "gitlab").
-			Str("url", d.URL).
+		sub.Error().
 			Msg(err.Error())
 		return false
 	}
 
-	log.Info().
-		Str("stage", "gitlab").
-		Str("url", d.URL).
+	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
 	True := true
@@ -45,7 +47,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 	projects, _, err := gitlabclient.Projects.ListProjects(&opt)
 	if err != nil {
-		log.Error().Str("stage", "gitlab").Str("url", d.URL).Msg(err.Error())
+		sub.Error().Msg(err.Error())
 		return false
 	}
 
@@ -85,9 +87,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 	_, _, err = gitlabclient.Projects.CreateProject(opts)
 	if err != nil {
-		log.Error().
-			Str("stage", "gitlab").
-			Str("url", d.URL).
+		sub.Error().
 			Msg(err.Error())
 		return false
 	}
@@ -101,10 +101,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitlab {
 		err := repo.Filter.ParseDuration()
+		sub = logger.CreateSubLogger("stage", "gitlab", "url", repo.URL)
 		if err != nil {
-			log.Error().
-				Str("stage", "gitlab").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 		ran = true
@@ -112,18 +111,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			repo.URL = "https://gitlab.com"
 		}
 
-		log.Info().
-			Str("stage", "gitlab").
-			Str("url", repo.URL).
+		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 		gitlabrepos := []*gitlab.Project{}
 		gitlabgrouprepos := map[string][]*gitlab.Project{}
 		token := repo.GetToken()
 		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URL))
 		if err != nil {
-			log.Error().
-				Str("stage", "gitlab").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 			continue
 		}
@@ -131,9 +126,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		opt := &gitlab.ListProjectsOptions{}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
 		if err != nil {
-			log.Error().
-				Str("stage", "gitlab").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 			continue
 		}
@@ -146,9 +139,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					opt.Page = i
 					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
 					if err != nil {
-						log.Error().
-							Str("stage", "gitlab").
-							Str("url", repo.URL).
+						sub.Error().
 							Msg(err.Error())
 					}
 					if len(projects) == 0 {
@@ -168,9 +159,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						opt.Page = i
 						projects, _, err := client.Projects.ListUserStarredProjects(user.ID, opt)
 						if err != nil {
-							log.Error().
-								Str("stage", "gitlab").
-								Str("url", repo.URL).
+							sub.Error().
 								Msg(err.Error())
 						}
 						if len(projects) == 0 {
@@ -204,9 +193,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if len(repo.Filter.Languages) > 0 {
 				langs, _, err := client.Projects.GetProjectLanguages(r.ID)
 				if err != nil {
-					log.Error().
-						Str("stage", "gitlab").
-						Str("url", repo.URL).
+					sub.Error().
 						Msg(err.Error())
 					continue
 				} else {
@@ -318,9 +305,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					},
 				})
 				if err != nil {
-					log.Error().
-						Str("stage", "gitlab").
-						Str("url", repo.URL).Msg(err.Error())
+					sub.Error().Msg(err.Error())
 				}
 
 				if len(g) == 0 {
@@ -339,9 +324,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for {
 					projects, _, err := client.Groups.ListGroupProjects(group.ID, gopt)
 					if err != nil {
-						log.Error().
-							Str("stage", "gitlab").
-							Str("url", repo.URL).
+						sub.Error().
 							Msg(err.Error())
 					}
 					if len(projects) == 0 {
@@ -374,9 +357,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if len(repo.Filter.Languages) > 0 {
 						langs, _, err := client.Projects.GetProjectLanguages(r.ID)
 						if err != nil {
-							log.Error().
-								Str("stage", "gitlab").
-								Str("url", repo.URL).
+							sub.Error().
 								Msg(err.Error())
 							continue
 						} else {
@@ -496,9 +477,7 @@ func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bo
 
 	wikis, _, err := client.Wikis.ListWikis(r.ID, wikilistoptions)
 	if err != nil {
-		log.Warn().
-			Str("stage", "gitlab").
-			Str("url", repo.URL).
+		sub.Warn().
 			Msg(err.Error())
 	}
 
