@@ -109,6 +109,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			Private:        repovisibility,
 			Description:    r.Description,
 			MirrorInterval: d.MirrorInterval,
+			LFS:            d.LFS,
 		}
 
 		if r.Token == "" {
@@ -123,6 +124,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				Private:        repovisibility,
 				Description:    r.Description,
 				MirrorInterval: d.MirrorInterval,
+				LFS:            d.LFS,
 			}
 		}
 
