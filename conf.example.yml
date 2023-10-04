@@ -200,6 +200,7 @@ destination:
       url: http(s)://url-to-gitea
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
       mirrorinterval: 2h0m0s # interval to pull changes from source repo
+      lfs: false # trigger to enable lfs on gitea
       visibility:
         repositories: private # private, public, default: private
         organizations: private # private, limited, public, default: private

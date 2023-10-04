@@ -249,6 +249,7 @@ type GenRepo struct {
 	Force          bool       `yaml:"force"`
 	Contributed    bool       `yaml:"contributed"`
 	MirrorInterval string     `yaml:"mirrorinterval"`
+	LFS            bool       `yaml:"lfs"`
 }
 
 // Visibility struct
