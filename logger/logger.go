@@ -46,3 +46,7 @@ func CreateLogger(conf types.Logging) zerolog.Logger {
 
 	return zerolog.New(mw).With().Timestamp().Logger()
 }
+
+func CreateSubLogger(stage, url string) zerolog.Logger {
+	return log.With().Str("stage", stage).Str("url", url).Logger()
+}
