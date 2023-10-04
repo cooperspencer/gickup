@@ -153,6 +153,18 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 		return true
 	}
+
+	if d.MirrorInterval != repo.MirrorInterval {
+		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &d.MirrorInterval})
+		if err != nil {
+			log.Error().
+				Str("stage", "gitea").
+				Str("url", d.URL).
+				Msgf("Couldn't update %s", types.Red(r.Name))
+		}
+		return false
+	}
+
 	if repo.Mirror {
 		log.Info().
 			Str("stage", "gitea").
