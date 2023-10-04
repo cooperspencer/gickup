@@ -1,6 +1,7 @@
 linters:
   enable-all: true
   disable:
+    - tagalign
     - cyclop # duplicate of gocyclo
     - exhaustivestruct # not revelent
     - gochecknoglobals
