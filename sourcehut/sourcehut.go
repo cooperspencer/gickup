@@ -9,8 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 // doRequest TODO
@@ -137,11 +142,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Sourcehut {
+		sub = logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			log.Error().
-				Str("stage", "sourcehut").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 		ran = true
@@ -161,27 +165,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			user := User{}
 			body, err := doRequest(fmt.Sprintf("%suser", apiURL), token)
 			if err != nil {
-				log.Error().
-					Str("stage", "sourcehut").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg("no user associated with this token")
 				continue
 			}
 
 			err = json.Unmarshal(body, &user)
 			if err != nil {
-				log.Error().
-					Str("stage", "sourcehut").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg("cannot unmarshal user")
 				continue
 			}
 			repo.User = user.Name
 		}
 
-		log.Info().
-			Str("stage", "sourcehut").
-			Str("url", repo.URL).
+		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
 		if repo.User != "" {
@@ -197,9 +195,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		repositories, err := getRepos(apiURL, token)
 		if err != nil {
-			log.Error().
-				Str("stage", "sourcehut").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 
@@ -209,9 +205,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			refs, err := getRefs(apiURL, r.Name, token)
 			if err != nil {
-				log.Error().
-					Str("stage", "sourcehut").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 			}
 
@@ -225,9 +219,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			commits, err := getCommits(apiURL, r.Name, token)
 			if err != nil {
-				log.Error().
-					Str("stage", "sourcehut").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 			} else {
 				if len(commits.Results) > 0 {
@@ -324,6 +316,8 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	if destination.URL == "" {
 		destination.URL = "https://git.sr.ht"
 	}
+
+	sub = logger.CreateSubLogger("stage", "sourcehut", "url", destination.URL)
 
 	if !strings.HasSuffix(destination.URL, "/") {
 		destination.URL += "/"

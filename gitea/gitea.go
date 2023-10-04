@@ -5,8 +5,13 @@ import (
 	"time"
 
 	"code.gitea.io/sdk/gitea"
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 func getOrgVisibility(visibility string) gitea.VisibleType {
@@ -40,23 +45,19 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	if d.URL == "" {
 		d.URL = "https://gitea.com/"
 	}
-
-	log.Info().
-		Str("stage", "gitea").
-		Str("url", d.URL).
+	sub = logger.CreateSubLogger("stage", "gitea", "url", d.URL)
+	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
 	giteaclient, err := gitea.NewClient(d.URL, gitea.SetToken(d.GetToken()))
 	if err != nil {
-		log.Error().Str("stage", "gitea").Str("url", d.URL).Msg(err.Error())
+		sub.Error().Msg(err.Error())
 		return false
 	}
 
 	user, _, err := giteaclient.GetMyUserInfo()
 	if err != nil {
-		log.Error().
-			Str("stage", "gitea").
-			Str("url", d.URL).
+		sub.Error().
 			Msg(err.Error())
 		return false
 	}
@@ -74,18 +75,14 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 					Visibility: orgvisibilty,
 				})
 				if err != nil {
-					log.Error().
-						Str("stage", "gitea").
-						Str("url", d.URL).
+					sub.Error().
 						Msg(err.Error())
 					return false
 				}
 				user.ID = org.ID
 				user.UserName = org.UserName
 			} else {
-				log.Error().
-					Str("stage", "gitea").
-					Str("url", d.URL).
+				sub.Error().
 					Msg(err.Error())
 				return false
 			}
@@ -130,17 +127,13 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 		_, _, err := giteaclient.MigrateRepo(opts)
 		if err != nil {
-			log.Error().
-				Str("stage", "gitea").
-				Str("url", d.URL).
+			sub.Error().
 				Msg(err.Error())
-			log.Info().
-				Str("stage", "gitea").
-				Str("url", d.URL).
+			sub.Info().
 				Msgf("deleting %s again", types.Blue(r.Name))
 			_, err = giteaclient.DeleteRepo(user.UserName, r.Name)
 			if err != nil {
-				log.Error().
+				sub.Error().
 					Str("stage", "gitea").
 					Str("url", d.URL).
 					Msgf("couldn't delete %s!", types.Red(r.Name))
@@ -148,9 +141,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			return false
 		}
 
-		log.Info().
-			Str("stage", "gitea").
-			Str("url", d.URL).
+		sub.Info().
 			Msgf("mirrored %s to %s", types.Blue(r.Name), d.URL)
 
 		return true
@@ -159,30 +150,26 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	if d.MirrorInterval != repo.MirrorInterval {
 		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &d.MirrorInterval})
 		if err != nil {
-			log.Error().
-				Str("stage", "gitea").
-				Str("url", d.URL).
+			sub.Error().
 				Msgf("Couldn't update %s", types.Red(r.Name))
 		}
 		return false
 	}
 
 	if repo.Mirror {
-		log.Info().
-			Str("stage", "gitea").
-			Str("url", d.URL).
+		sub.Info().
 			Msgf("mirror of %s already exists, syncing instead", types.Blue(r.Name))
 
 		_, err := giteaclient.MirrorSync(user.UserName, repo.Name)
 		if err != nil {
-			log.Error().
+			sub.Error().
 				Str("stage", "gitea").
 				Str("url", d.URL).
 				Msg(err.Error())
 			return false
 		}
 
-		log.Info().
+		sub.Info().
 			Str("stage", "gitea").
 			Str("url", d.URL).
 			Msgf("successfully synced %s.", types.Blue(r.Name))
@@ -196,26 +183,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitea {
-		err := repo.Filter.ParseDuration()
-		if err != nil {
-			log.Error().
-				Str("stage", "gitea").
-				Str("url", repo.URL).
-				Msg(err.Error())
-		}
-		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://gitea.com"
 		}
+		sub = logger.CreateSubLogger("stage", "gitea", "url", repo.URL)
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			sub.Error().
+				Msg(err.Error())
+		}
+		ran = true
 		if repo.User == "" {
-			log.Info().
-				Str("stage", "gitea").
-				Str("url", repo.URL).
+			sub.Info().
 				Msg("grabbing my repositories")
 		} else {
-			log.Info().
-				Str("stage", "gitea").
-				Str("url", repo.URL).
+			sub.Info().
 				Msgf("grabbing repositories from %s", repo.User)
 		}
 		opt := gitea.ListReposOptions{}
@@ -234,9 +216,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if token != "" && repo.User == "" {
 			user, _, err := client.GetMyUserInfo()
 			if err != nil {
-				log.Error().
-					Str("stage", "gitea").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 				continue
 			}
@@ -244,9 +224,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		if err != nil {
-			log.Error().
-				Str("stage", "gitea").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 			continue
 		}
@@ -254,9 +232,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		for {
 			repos, _, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
-				log.Error().
-					Str("stage", "gitea").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 				continue
 			}
@@ -270,9 +246,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.Starred {
 			starredrepos, _, err := client.GetStarredRepos(repo.User)
 			if err != nil {
-				log.Error().
-					Str("stage", "gitea").
-					Str("url", repo.URL).
+				sub.Error().
 					Msg(err.Error())
 			} else {
 				gitearepos = append(gitearepos, starredrepos...)
@@ -303,9 +277,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if len(repo.Filter.Languages) > 0 {
 				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
 				if err != nil {
-					log.Error().
-						Str("stage", "gitea").
-						Str("url", repo.URL).
+					sub.Error().
 						Msg(err.Error())
 					continue
 				} else {
@@ -398,9 +370,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			for {
 				o, _, err := client.ListUserOrgs(repo.User, gitea.ListOrgsOptions{ListOptions: orgopt})
 				if err != nil {
-					log.Error().
-						Str("stage", "gitea").
-						Str("url", repo.URL).
+					sub.Error().
 						Msg(err.Error())
 				}
 				if len(o) == 0 {
@@ -450,9 +420,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if len(repo.Filter.Languages) > 0 {
 				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
 				if err != nil {
-					log.Error().
-						Str("stage", "gitea").
-						Str("url", repo.URL).
+					sub.Error().
 						Msg(err.Error())
 					continue
 				} else {
@@ -550,7 +518,7 @@ func getOrgRepos(client *gitea.Client, org *gitea.Organization,
 	o, _, err := client.ListOrgRepos(org.UserName,
 		gitea.ListOrgReposOptions{orgopt})
 	if err != nil {
-		log.Error().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
+		sub.Error().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
 	}
 
 	return o

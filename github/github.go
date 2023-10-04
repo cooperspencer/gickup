@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/google/go-github/v41/github"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -39,6 +40,10 @@ type V4Repo struct {
 	Repository string
 }
 
+var (
+	sub zerolog.Logger
+)
+
 func getv4(token, user string) []V4Repo {
 	repos := []V4Repo{}
 	tokenSource := oauth2.StaticTokenSource(
@@ -55,8 +60,7 @@ func getv4(token, user string) []V4Repo {
 	for {
 		err := client.Query(context.Background(), &query, variables)
 		if err != nil {
-			log.Error().
-				Str("stage", "github").
+			sub.Error().
 				Msg(err.Error())
 			return []V4Repo{}
 		}
@@ -99,23 +103,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Github {
+		sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			log.Error().
-				Str("stage", "github").
-				Str("url", repo.URL).
+			sub.Error().
 				Msg(err.Error())
 		}
 		ran = true
 		if repo.User == "" {
-			log.Info().
-				Str("stage", "github").
-				Str("url", "https://github.com").
+			sub.Info().
 				Msg("grabbing my repositories")
 		} else {
-			log.Info().
-				Str("stage", "github").
-				Str("url", "https://github.com").
+			sub.Info().
 				Msgf("grabbing the repositories from %s", repo.User)
 		}
 
@@ -145,9 +144,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if token != "" {
 			user, _, err := client.Users.Get(context.TODO(), "")
 			if err != nil {
-				log.Error().
-					Str("stage", "github").
-					Str("url", "https://github.com").
+				sub.Error().
 					Msg(err.Error())
 				continue
 			}
@@ -162,9 +159,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			for _, r := range getv4(token, v4user) {
 				github_repo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
 				if err != nil {
-					log.Error().
-						Str("stage", "github").
-						Str("url", "https://github.com").
+					sub.Error().
 						Msg(err.Error())
 					continue
 				}
@@ -176,9 +171,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			opt.Page = i
 			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
-				log.Error().
-					Str("stage", "github").
-					Str("url", "https://github.com").
+				sub.Error().
 					Msg(err.Error())
 				continue
 			}
@@ -202,9 +195,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				opt.ListOptions.Page = i
 				repos, _, err := client.Activity.ListStarred(context.TODO(), repo.User, opt)
 				if err != nil {
-					log.Error().
-						Str("stage", "github").
-						Str("url", "https://github.com").
+					sub.Error().
 						Msg(err.Error())
 				}
 				if len(repos) == 0 {
@@ -328,6 +319,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 }
 
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
 	token := destination.GetToken()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
