@@ -1,0 +1,8 @@
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-10-18T18:08:16+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-10-18T18:08:16+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-10-18T18:08:16+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"info","duration":"2.0548641s","time":"2023-10-18T18:08:18+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-10-18T19:09:48+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-10-18T19:09:48+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-10-18T19:09:48+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"info","duration":"2.0279846s","time":"2023-10-18T19:09:50+02:00","message":"Backup run complete"}

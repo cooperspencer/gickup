@@ -1,0 +1,26 @@
+FROM golang:1.21-alpine as builder
+
+# Install dependencies for copy
+RUN apk add -U --no-cache ca-certificates tzdata git
+
+# Use an valid GOPATH and copy the files
+WORKDIR /go/src/github.com/cooperspencer/gickup
+COPY go.mod .
+COPY go.sum .
+RUN go mod tidy
+COPY . .
+
+# Fetching dependencies and build the app
+RUN go get -d -v ./...
+RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o gickup .
+
+# Use ubuntu as production environment
+FROM ubuntu as production
+WORKDIR /
+RUN apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y git git-lfs ssl-cert tzdata && rm -rf /var/lib/apt/lists/*
+RUN git lfs install
+# Copy the main executable from the builder
+COPY --from=builder /go/src/github.com/cooperspencer/gickup/gickup /gickup/gickup
+
+ENTRYPOINT [ "/gickup/gickup" ]
+CMD [ "/gickup/conf.yml" ]
