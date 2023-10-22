@@ -6,9 +6,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-
-function SourceConfig() {
+function SourceConfig(props) {
   const [selectedSource, setSelectedSource] = useState('');
+  const [error, setError] = useState('');
   const [sourceConfig, setSourceConfig] = useState({
     token: '',
     user: '',
@@ -20,7 +20,7 @@ function SourceConfig() {
 
   const handleSourceChange = (e) => {
     setSelectedSource(e.target.value);
-    // Reset sourceConfig when source changes
+    
     setSourceConfig({
       token: '',
       user: '',
@@ -39,11 +39,22 @@ function SourceConfig() {
       [name]: inputValue,
     });
   };
-
-  const handleSave = () => {
-    // Handle saving sourceConfig based on the selected source option
-    // For example, send it to your backend API to save it to the file.
-    console.log('Configuration saved:', sourceConfig);
+  const handleNext = () => {
+    const { token, user, ssh, sshkey } = sourceConfig;
+  
+    if (token.trim() === '' && user.trim() === '') {
+      setError('Either User or Token is required for selected source');
+    } else if (ssh && sshkey.trim() === '') {
+      setError('SSH Key Path is required for SSH authentication.');
+    }
+    else {
+      
+      props.nextStep();
+    }
+  };
+  
+  const handlePrevious = () => {
+    props.previousStep(); 
   };
 
   return (
@@ -135,9 +146,11 @@ function SourceConfig() {
               margin="normal"
             />
           )}
-
-          <Button variant="contained" color="primary" onClick={handleSave} style={{ marginTop: '1rem' }}>
-            Save Configuration
+          <Button variant="contained" color="primary" onClick={handlePrevious} style={{  marginRight: '10px' , marginTop: '1rem' }}>
+            Previous
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleNext} style={{ marginTop: '1rem' }}>
+            Next
           </Button>
         </div>
       )}

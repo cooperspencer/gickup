@@ -9,8 +9,9 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 
-function DestinationConfig() {
+function DestinationConfig(props) {
   const [selectedDestination, setSelectedDestination] = useState('');
+  const [error, setError] = useState('');
   const [destinationConfig, setDestinationConfig] = useState({
     token: '',
     token_file: '',
@@ -42,25 +43,23 @@ function DestinationConfig() {
     });
   };
 
-  const handleSave = () => {
-    const configurationObject = {
-      // ... configuration data
-    };
-  
-    fetch('http://localhost:5000/api/saveConfiguration', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(configurationObject),
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Configuration saved:', data);
-      })
-      .catch(error => {
-        console.error('Error saving configuration:', error);
-      });
+  const handleNext = () => {
+  const { token, token_file } = destinationConfig;
+ 
+  if (token.trim() === '' && token_file.trim() === '') {
+    setError('Either User or Token is required for selected source');
+  } 
+  else {
+    
+    props.nextStep();
+  }
+};
+
+  const handlePrevious = () => {
+    
+    if (props.previousStep) {
+      props.previousStep();
+    }
   };
 
   return (
@@ -112,9 +111,12 @@ function DestinationConfig() {
         </div>
       )}
 
-      <Button variant="contained" color="primary" onClick={handleSave} style={{ marginTop: 20 }}>
-        Save Configuration
-      </Button>
+          <Button variant="contained" color="primary" onClick={handlePrevious} style={{  marginRight: '10px' , marginTop: '1rem' }}>
+            Previous
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleNext} style={{ marginTop: '1rem' }}>
+            Next
+          </Button>
     </div>
   );
 }

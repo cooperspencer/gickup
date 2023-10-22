@@ -5,10 +5,12 @@ import TextField from '@mui/material/TextField';
 import FormGroup from '@mui/material/FormGroup'; 
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
-function SchedulerConfig() {
+function SchedulerConfig(props) {
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedTime, setSelectedTime] = useState('12:00');
+  const [error, setError] = useState('');
 
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -29,6 +31,25 @@ function SchedulerConfig() {
     const [hour, minute] = selectedTime.split(':');
     return `0 ${minute} ${hour} ? * ${daysOfWeek}`;
   };
+
+  const handleNext = () => {
+       
+    if (selectedDays.length === 0) {
+      setError('Please select atleast on day of the Week');
+    } 
+    else {
+      
+      props.nextStep();
+    }
+  };
+  
+    const handlePrevious = () => {
+      
+      if (props.previousStep) {
+        props.previousStep();
+      }
+    };
+  
 
   return (
     <div style={{ padding: 20 }}>
@@ -76,8 +97,15 @@ function SchedulerConfig() {
           />
         </Grid>
       </Grid>
-    </div>
-  );
+      
+      <Button variant="contained" color="primary" onClick={handlePrevious} style={{  marginRight: '10px' , marginTop: '1rem' }}>
+        Previous
+      </Button>
+      <Button variant="contained" color="primary" onClick={handleNext} style={{ marginTop: '1rem' }}>
+        Next
+      </Button>
+</div>
+);
 }
 
 export default SchedulerConfig;
