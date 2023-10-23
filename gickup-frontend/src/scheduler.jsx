@@ -33,14 +33,19 @@ function SchedulerConfig(props) {
   };
 
   const handleNext = () => {
-       
     if (selectedDays.length === 0) {
-      setError('Please select atleast on day of the Week');
-    } 
-    else {
-      
+      setError('Please select at least one day of the week');
+    } else {
+        const cronExpression = getCronExpression(); 
+        const data = {
+          daysOfWeek: selectedDays,
+          selectedTime: selectedTime,
+          cronExpression: cronExpression,
+      };
+      localStorage.setItem('Step4', JSON.stringify(data));
       props.nextStep();
     }
+
   };
   
     const handlePrevious = () => {

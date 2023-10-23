@@ -15,13 +15,15 @@ const DescriptionStep = (props) => {
   };
 
   const handleNextClick = () => {
-    
-    if (name.trim() === '') {
-      setError('Name field cannot be empty.');
+    if (name.trim() === '' || description.trim() === '') {
+      setError('Both Name and Description fields cannot be empty.');
     } else {
-    
       setError('');
-
+      const data = {
+        name: name,
+        description: description,
+      };
+      localStorage.setItem('Step1', JSON.stringify(data));
       props.nextStep();
     }
   };

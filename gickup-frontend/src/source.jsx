@@ -40,7 +40,7 @@ function SourceConfig(props) {
     });
   };
   const handleNext = () => {
-    const { token, user, ssh, sshkey } = sourceConfig;
+    const { token, user, ssh, sshkey , selectedSource } = sourceConfig;
   
     if (token.trim() === '' && user.trim() === '') {
       setError('Either User or Token is required for selected source');
@@ -48,6 +48,14 @@ function SourceConfig(props) {
       setError('SSH Key Path is required for SSH authentication.');
     }
     else {
+      const data = {
+          token: token,
+          user: user,
+          ssh: ssh,
+          sshkey: sshkey,
+          selectedSource,
+      };
+      localStorage.setItem('Step2', JSON.stringify(data));
       
       props.nextStep();
     }
