@@ -44,7 +44,8 @@ function DestinationConfig(props) {
   };
 
   const handleNext = () => {
-  const { token, token_file , selectedDestination } = destinationConfig;
+  const { token, token_file ,  } = destinationConfig;
+  const SelectedDestination = selectedDestination; 
  
   if (token.trim() === '' && token_file.trim() === '') {
     setError('Either User or Token is required for selected source');
@@ -53,10 +54,12 @@ function DestinationConfig(props) {
     const data = {
       token: token,
       token_file: token_file,
-      selectedDestination,
+      SelectedDestination,
   };
+
+  console.log('Selected destination:', SelectedDestination);
   localStorage.setItem('Step3', JSON.stringify(data));
-    
+  
     props.nextStep();
   }
 };
