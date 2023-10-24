@@ -25,14 +25,11 @@ function App() {
             <Button component={Link} to="/wizard" variant="contained" style={{  marginRight: '10px' }}>
                 Create Backup Job
               </Button>
-              <Button component={Link} to="/source" variant="contained" style={{ marginRight: '10px' }}>
-                Source Code Repository
+              <Button component={Link} to="" variant="contained" style={{ marginRight: '10px' }}>
+                Backup History
               </Button>
-              <Button component={Link} to="/destination" variant="contained" style={{ marginRight: '10px' }}>
-                Destination Backup Repository
-              </Button>
-              <Button component={Link} to="/scheduler" variant="contained"style={{ marginRight: '10px' }}>
-                Backup Scheduler
+              <Button component={Link} to="" variant="contained"style={{ marginRight: '10px' }}>
+                Backup Jobs
               </Button>
               <Button component={Link} to="/stats" variant="contained">
                 Backup Statistics

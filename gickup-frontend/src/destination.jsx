@@ -37,35 +37,55 @@ function DestinationConfig(props) {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const inputValue = type === 'checkbox' ? checked : value;
-    setDestinationConfig({
+    let updatedConfig = {
       ...destinationConfig,
       [name]: inputValue,
-    });
+    };
+
+    if (selectedDestination === 'Localpath') {
+     
+      const localpathFields = ['path', 'structured', 'zip', 'keep', 'bare', 'lfs'];
+      
+      localpathFields.forEach((field) => {
+        if (!Object.keys(destinationConfig).includes(field)) {
+          updatedConfig[field] = ''; 
+        }
+      });
+    }
+
+    setDestinationConfig(updatedConfig);
   };
 
   const handleNext = () => {
-  const { token, token_file ,  } = destinationConfig;
-  const SelectedDestination = selectedDestination; 
- 
-  if (token.trim() === '' && token_file.trim() === '') {
-    setError('Either User or Token is required for selected source');
-  } 
-  else {
-    const data = {
-      token: token,
-      token_file: token_file,
-      SelectedDestination,
+    const { token, token_file, path, structured, zip, keep, bare, lfs} = destinationConfig;
+    const SelectedDestination = selectedDestination;
+  
+    if (
+      (SelectedDestination === 'Localpath' && path.trim() === '') ||
+      (SelectedDestination !== 'Localpath' && (token.trim() === '' || token_file.trim() === ''))
+    ) {
+      setError('Please fill out all required fields.');
+    } else {
+      const data = {
+        token: token,
+        token_file: token_file,
+        SelectedDestination,
+        path: path, 
+        structured: structured,
+        zip: zip,
+        keep: keep,
+        bare: bare,
+        lfs: lfs,
+      };
+  
+      console.log('Selected destination:', SelectedDestination);
+      localStorage.setItem('Step3', JSON.stringify(data));
+  
+      props.nextStep();
+    }
   };
 
-  console.log('Selected destination:', SelectedDestination);
-  localStorage.setItem('Step3', JSON.stringify(data));
-  
-    props.nextStep();
-  }
-};
-
   const handlePrevious = () => {
-    
     if (props.previousStep) {
       props.previousStep();
     }
@@ -96,7 +116,7 @@ function DestinationConfig(props) {
         </Select>
       </FormControl>
 
-      {selectedDestination && (
+      {selectedDestination !== 'Localpath' && (
         <div style={{ marginTop: 20 }}>
           <TextField
             fullWidth
@@ -116,16 +136,67 @@ function DestinationConfig(props) {
             onChange={handleInputChange}
             margin="normal"
           />
-          {/* Add more destination-specific fields using TextField, Checkbox, etc. */}
+          
         </div>
       )}
 
-          <Button variant="contained" color="primary" onClick={handlePrevious} style={{  marginRight: '10px' , marginTop: '1rem' }}>
-            Previous
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleNext} style={{ marginTop: '1rem' }}>
-            Next
-          </Button>
+      {selectedDestination === 'Localpath' && (
+        <div style={{ marginTop: 20 }}>
+          <TextField
+            fullWidth
+            label="Path"
+            variant="outlined"
+            name="path"
+            value={destinationConfig.path}
+            onChange={handleInputChange}
+            margin="normal"
+            multiline
+            helperText="Export this path from Docker with a volume to make it accessible and more permanent"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={destinationConfig.structured} onChange={handleInputChange} name="structured" />}
+            label="Structured"
+            multiline
+            helperText="structures repos output like hostersite/user|organization/repo"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={destinationConfig.zip} onChange={handleInputChange} name="zip" />}
+            label="Zip"
+            multiline
+            helperText="Zips the Backup repo"
+          />
+          <TextField
+            fullWidth
+            label="Retention"
+            variant="outlined"
+            name="Keep"
+            value={destinationConfig.keep}
+            onChange={handleInputChange}
+            margin="normal"
+            multiline
+            helperText="only keeps x backups"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={destinationConfig.bare} onChange={handleInputChange} name="bare" />}
+            label="Bare"
+            multiline
+            helperText="Backup the repositories as bare"
+          />
+          <FormControlLabel
+            control={<Checkbox checked={destinationConfig.lfs} onChange={handleInputChange} name="lfs" />}
+            label="LFS"
+            multiline
+            helperText="(LFS) replaces large files media samples with text pointers"
+          />
+        </div>
+      )}
+
+      <Button variant="contained" color="primary" onClick={handlePrevious} style={{ marginRight: '10px', marginTop: '1rem' }}>
+        Previous
+      </Button>
+      <Button variant="contained" color="primary" onClick={handleNext} style={{ marginTop: '1rem' }}>
+        Next
+      </Button>
     </div>
   );
 }
