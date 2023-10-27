@@ -26,7 +26,7 @@ function DestinationConfig(props) {
     path: '',
     structured: false,
     zip: false,
-    keep: 0,
+    keep: '',
     bare: false,
   });
 
@@ -57,7 +57,7 @@ function DestinationConfig(props) {
   };
 
   const handleNext = () => {
-    const { token, token_file, path, structured, zip, keep, bare, lfs} = destinationConfig;
+    const { token, token_file, path, structured, zip, keep, bare, lfs } = destinationConfig;
     const SelectedDestination = selectedDestination;
   
     if (
@@ -169,7 +169,7 @@ function DestinationConfig(props) {
             fullWidth
             label="Retention"
             variant="outlined"
-            name="Keep"
+            name="keep"
             value={destinationConfig.keep}
             onChange={handleInputChange}
             margin="normal"
