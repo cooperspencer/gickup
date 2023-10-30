@@ -61,6 +61,7 @@ jobs:
         with:
           # relative path to the place where source code with Dockerfile is located
           context: .
+          file: Dockerfile.ubuntu
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # build on feature branches, push only on main branch
