@@ -11,10 +11,10 @@ app.use(cors());
 
 
 app.post('/api/saveConfiguration', (req, res) => {
-  const { yamlConfig } = req.body;
+  const { yamlConfig, fileName } = req.body;
 
-  // Write the YAML content to a file on the server
-  const filePath = path.join(__dirname, 'config.yml');
+
+  const filePath = path.join(__dirname, fileName );
   fs.writeFile(filePath, yamlConfig, 'utf8', (err) => {
     if (err) {
       console.error('Error writing configuration file:', err);
@@ -28,10 +28,9 @@ app.post('/api/saveConfiguration', (req, res) => {
 
 app.post('/api/runGoApp', (req, res) => {
   const { exec } = require('child_process');
-  
-  // Use forward slashes or double backslashes for file paths
-  const goAppPath = path.join(__dirname, '..', 'main.go'); // Assuming gickup.exe is one level up from the server file
-  const configFilePath = path.join(__dirname, 'config.yml');
+  const { fileName } = req.body;
+  const goAppPath = path.join(__dirname, '..', 'main.go'); 
+  const configFilePath = path.join(__dirname, fileName);
   
   const command = `"${goAppPath}" "${configFilePath}"`;
   console.log('Executing command:', command);

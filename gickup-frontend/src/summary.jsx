@@ -64,14 +64,16 @@ const Summary = () => {
   
     const yamlConfig = jsYaml.dump(configData, { skipInvalid: true });
   
-
+    const name = step1Data.name || 'backup-config'; 
+    const fileName = `${name}.yml`;
+  
     // Step 1: Save the configuration
     fetch('http://localhost:5000/api/saveConfiguration', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ yamlConfig }),
+      body: JSON.stringify({ yamlConfig , fileName }),
     })
       .then(response => response.json())
       .then(data => {
@@ -80,6 +82,10 @@ const Summary = () => {
         // Step 2: Trigger the execution of the Go app
         fetch('http://localhost:5000/api/runGoApp', {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ fileName }), 
         })
           .then(response => response.json())
           .then(data => {
