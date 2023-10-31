@@ -50,6 +50,7 @@ function App() {
             <Route path="/scheduler" element={<SchedulerConfig />} />
             <Route path="/stats" element={<Stats />} />
             <Route path="/joblist" element={<Jobs />} />
+            <Route path="/" element={<Jobs />} />
             <Route
               path="/wizard"
               element={
