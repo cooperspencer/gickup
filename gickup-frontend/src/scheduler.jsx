@@ -27,9 +27,9 @@ function SchedulerConfig(props) {
   };
 
   const getCronExpression = () => {
-    const daysOfWeek = selectedDays.length > 0 ? selectedDays.join(',') : '*';
+    const daysOfWeek = selectedDays.map(day => weekdays.indexOf(day)).join(',');
     const [hour, minute] = selectedTime.split(':');
-    return `0 ${minute} ${hour} ? * ${daysOfWeek}`;
+    return `${minute} ${hour} * * ${daysOfWeek}`;
   };
 
   const handleNext = () => {

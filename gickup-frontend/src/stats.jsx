@@ -7,7 +7,7 @@ function Stats() {
   useEffect(() => {
     // Fetch data from the API endpoint when the component mounts
     axios
-      .get('/api/backupStatistics')
+      .get('http://localhost:5000/api/backupStatistics')
       .then(response => {
         setBackupStatistics(response.data.backupStatistics);
       })

@@ -3,16 +3,50 @@ const bodyParser = require('body-parser');
 const app = express();
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
+
 
 app.use(bodyParser.json());
+app.use(cors());
 
-// Define your API endpoints here
+
 app.post('/api/saveConfiguration', (req, res) => {
-  const configurationData = req.body;
-  // Handle saving the configuration data here (to a file, database, etc.)
-  console.log('Configuration saved:', configurationData);
-  res.json({ success: true });
+  const { yamlConfig } = req.body;
+
+  // Write the YAML content to a file on the server
+  const filePath = path.join(__dirname, 'config.yml');
+  fs.writeFile(filePath, yamlConfig, 'utf8', (err) => {
+    if (err) {
+      console.error('Error writing configuration file:', err);
+      res.status(500).json({ error: 'Error writing configuration file' });
+    } else {
+      console.log('Configuration saved to file:', filePath);
+      res.json({ success: true });
+    }
+  });
 });
+
+app.post('/api/runGoApp', (req, res) => {
+  const { exec } = require('child_process');
+  
+  // Use forward slashes or double backslashes for file paths
+  const goAppPath = path.join(__dirname, '..', 'main.go'); // Assuming gickup.exe is one level up from the server file
+  const configFilePath = path.join(__dirname, 'config.yml');
+  
+  const command = `"${goAppPath}" "${configFilePath}"`;
+  console.log('Executing command:', command);
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Error executing Go app:', error);
+      res.status(500).json({ error: 'Error executing Go app' });
+    } else {
+      console.log('Executing command:', command);
+      console.log('Go app executed successfully');
+      res.json({ success: true });
+    }
+  });
+});
+
 
 app.get('/api/backupStatistics', (req, res) => {
   const logFilePath = path.join(__dirname, 'var', 'logs', 'gickup.log'); // Corrected log file path

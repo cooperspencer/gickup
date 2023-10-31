@@ -1,0 +1,12 @@
+'# Commented YAML Lines':
+  - '# name: OpenShift OKD'
+  - '# description: asdfgh'
+source:
+  Github:
+    - token: dskjdslk
+      filter: {}
+destination:
+  Gitea:
+    - token: dskjdslk
+      token_file: ds.xldslmd
+cron: 01 13 * * 0,1,2

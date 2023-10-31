@@ -22,7 +22,7 @@ const Summary = () => {
       destination: {},
       cron: step4Data.cronExpression,
     };
-
+  
     if (step2Data.selectedSource) {
       configData.source[step2Data.selectedSource] = [
         {
@@ -46,7 +46,7 @@ const Summary = () => {
         }
       ];
     }
-
+  
     if (step3Data.SelectedDestination) {
       configData.destination[step3Data.SelectedDestination] = [
         {
@@ -58,27 +58,43 @@ const Summary = () => {
           ...(step3Data.keep ? { keep: step3Data.keep } : {}),
           ...(step3Data.bare ? { bare: step3Data.bare } : {}),
           ...(step3Data.lfs ? { lfs: step3Data.lfs } : {}),
-
         },
       ];
     }
-
+  
     const yamlConfig = jsYaml.dump(configData, { skipInvalid: true });
-    const blob = new Blob([yamlConfig], { type: 'application/yaml' });
-    const url = window.URL.createObjectURL(blob);
+  
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${step1Data.name}.yml`;
-    document.body.appendChild(a);
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-
+    // Step 1: Save the configuration
+    fetch('http://localhost:5000/api/saveConfiguration', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ yamlConfig }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Configuration saved:', data);
+        
+        // Step 2: Trigger the execution of the Go app
+        fetch('http://localhost:5000/api/runGoApp', {
+          method: 'POST',
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Go app executed successfully:', data);
+          })
+          .catch(error => {
+            console.error('Error executing Go app:', error);
+          });
+      })
+      .catch(error => {
+        console.error('Error saving configuration:', error);
+      });
+  
     console.log('Finish button clicked');
   };
-
 
   const cancel = () => {
     console.log('Cancel button clicked');
