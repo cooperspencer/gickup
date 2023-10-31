@@ -48,7 +48,7 @@ app.post('/api/runGoApp', (req, res) => {
 
 
 app.get('/api/backupStatistics', (req, res) => {
-  const logFilePath = path.join(__dirname, 'var', 'logs', 'gickup.log'); // Corrected log file path
+  const logFilePath = path.join(__dirname, 'var', 'logs', 'gickup.log');
 
   fs.readFile(logFilePath, 'utf8', (err, data) => {
     if (err) {
@@ -59,32 +59,70 @@ app.get('/api/backupStatistics', (req, res) => {
 
     const logEntries = data.trim().split('\n').map((line) => {
       try {
-        return JSON.parse(line);
+        const parsedEntry = JSON.parse(line);
+        if (parsedEntry && parsedEntry.level === 'info' && parsedEntry.message === 'Backup run complete') {
+          const duration = parseFloat(parsedEntry.duration.replace('s', ''));
+          if (!isNaN(duration)) {
+            parsedEntry.duration = duration; // Add duration to the log entry
+            return parsedEntry;
+          }
+        }
       } catch (error) {
         console.error('Error parsing log entry:', error);
-        return null; // Ignore malformed log entries
+      }
+      return null; // Ignore malformed or incomplete log entries
+    }).filter(entry => entry !== null); // Remove null entries
+
+    const successfulRuns = logEntries.length; // Count of successful runs
+
+    // Calculate total duration and individual durations
+    const totalDuration = logEntries.reduce((acc, entry) => {
+      acc.total += entry.duration;
+      acc.individualDurations.push(entry.duration);
+      return acc;
+    }, { total: 0, individualDurations: [] });
+
+    // Respond with the processed backup statistics
+    res.json({ backupData: { successfulRuns, totalDuration, individualDurations: totalDuration.individualDurations } });
+  });
+});
+
+const yaml = require('js-yaml');
+
+app.get('/api/configFiles', (req, res) => {
+  const configFolder = path.join(__dirname);
+  const yamlFiles = [];
+
+  fs.readdir(configFolder, (err, files) => {
+    if (err) {
+      console.error('Error reading config files:', err);
+      res.status(500).json({ error: 'Error reading config files' });
+      return;
+    }
+
+    files.forEach(fileName => {
+      if (fileName.endsWith('.yml')) {
+        const filePath = path.join(configFolder, fileName);
+        try {
+          const fileContent = fs.readFileSync(filePath, 'utf-8');
+          const parsedYAML = yaml.load(fileContent); 
+          if (parsedYAML && parsedYAML.source && parsedYAML.destination) {
+            const source = Object.keys(parsedYAML.source)[0]; 
+            const destination = Object.keys(parsedYAML.destination)[0]; 
+            yamlFiles.push({ fileName: fileName, source, destination });
+          } else {
+            console.error(`Error parsing YAML file ${fileName}: Invalid format`);
+          }
+        } catch (error) {
+          console.error(`Error reading/parsing YAML file ${fileName}:`, error);
+        }
       }
     });
 
-    // Process backup statistics
-    const successfulRuns = logEntries.filter(
-      (entry) => entry && entry.level === 'info' && entry.message === 'Backup run complete'
-    ).length;
-
-    const totalDuration = logEntries.reduce((acc, entry) => {
-      if (entry && entry.duration) {
-        const duration = parseFloat(entry.duration.replace('s', ''));
-        if (!isNaN(duration)) {
-          acc += duration;
-        }
-      }
-      return acc;
-    }, 0);
-
-    // Respond with the processed backup statistics
-    res.json({ backupStatistics: { successfulRuns, totalDuration } });
+    res.json({ files: yamlFiles });
   });
 });
+
 
 // Start the server
 const PORT = 5000;
