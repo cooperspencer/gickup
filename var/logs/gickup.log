@@ -158,3 +158,5 @@
 {"level":"warn","stage":"locally","path":"C:\\backups","repo":"ASDK-nested/1699344556","time":"2023-11-07T10:09:16+02:00","message":"remote repository is empty"}
 {"level":"info","stage":"backup","time":"2023-11-07T10:09:16+02:00","message":"starting backup for https://github.com/mritsurgeon/cockroach.git"}
 {"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:09:16+02:00","message":"cloning \u001b[32mcockroach/1699344556\u001b[0m"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T12:41:19+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:41:19+02:00","message":"Next cron run"}

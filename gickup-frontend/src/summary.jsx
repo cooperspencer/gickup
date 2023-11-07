@@ -109,10 +109,12 @@ const Summary = () => {
 
   
     console.log('Finish button clicked');
+    window.location.href = '/';
   };
 
   const cancel = () => {
     console.log('Cancel button clicked');
+    window.location.href = '/';
 
   };
   console.log("Step2 Data:", step2Data);

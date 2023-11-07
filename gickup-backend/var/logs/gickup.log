@@ -21,3 +21,17 @@
 {"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T10:50:52+02:00","message":"Next cron run"}
 {"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T11:08:49+02:00","message":"Configuration loaded"}
 {"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T11:08:49+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T12:29:19+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:29:19+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T12:33:21+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:33:21+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":0,"pairs":0,"time":"2023-11-07T12:34:22+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:34:22+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":0,"pairs":0,"time":"2023-11-07T12:34:27+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T12:34:27+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T12:34:27+02:00","message":"grabbing my repositories"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T12:34:27+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"378.8095ms","time":"2023-11-07T12:34:27+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:34:27+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T12:36:52+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T12:36:52+02:00","message":"Next cron run"}
