@@ -32,7 +32,7 @@ app.post('/api/runGoApp', (req, res) => {
   const goAppPath = path.join(__dirname, '..', 'main.go'); 
   const configFilePath = path.join(__dirname, fileName);
 
-  let command = `"${goAppPath}" "${configFilePath}"`;
+  let command = `go run "${goAppPath}" "${configFilePath}"`; // Use go run command
 
   if (runNow) {
     command += ' --runnow'; 

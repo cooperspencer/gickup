@@ -1,0 +1,20 @@
+'# Commented YAML Lines':
+  - '# name: vb365SaaS'
+  - '# description: my github project '
+source:
+  github:
+    - token: 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
+      user: mritsurgeon
+      starred: true
+      filter:
+        stars: 1
+        excludeforks: true
+destination:
+  local:
+    - path: /backups
+cron: 00 12 * * 1
+log:
+  timeformat: '2006-01-02 15:04:05'
+  file-logging:
+    dir: var/logs
+    file: gickup.log

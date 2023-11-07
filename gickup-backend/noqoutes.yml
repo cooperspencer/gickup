@@ -1,0 +1,20 @@
+'# Commented YAML Lines':
+  - '# name: noqoutes'
+  - '# description: 123'
+source:
+  github:
+    - token: dskjdslk
+      user: mritsurgeon
+      filter:
+        stars: 10
+        lastactivity: 1yr
+destination:
+  local:
+    - path: /backups
+      keep: 10
+cron: 00 12 * * 1
+log:
+  timeformat: '2006-01-02 15:04:05'
+  file-logging:
+    dir: var/logs
+    file: gickup.log

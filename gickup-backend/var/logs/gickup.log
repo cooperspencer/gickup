@@ -6,3 +6,18 @@
 {"level":"info","time":"2023-10-18T19:09:48+02:00","message":"Backup run starting"}
 {"level":"info","stage":"github","url":"https://github.com","time":"2023-10-18T19:09:48+02:00","message":"grabbing the repositories from mritsurgeon"}
 {"level":"info","duration":"2.0279846s","time":"2023-10-18T19:09:50+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T10:50:47+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:50:47+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T10:50:47+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:50:49+02:00","message":"starting backup for https://github.com/fareszekri/Microsoft-Veeam.git"}
+{"level":"info","stage":"locally","path":"/backups","time":"2023-11-07T10:50:49+02:00","message":"cloning \u001b[32mMicrosoft-Veeam\u001b[0m"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:50:50+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-as-a-Service.git"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:50:50+02:00","message":"cloning \u001b[32mVB365-as-a-Service\u001b[0m"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:50:52+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-as-a-Service.git"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:50:52+02:00","message":"opening \u001b[32mVB365-as-a-Service\u001b[0m locally"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:50:52+02:00","message":"pulling \u001b[32mVB365-as-a-Service\u001b[0m"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:50:52+02:00","message":"already up-to-date"}
+{"level":"info","duration":"4.8568396s","time":"2023-11-07T10:50:52+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T10:50:52+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T11:08:49+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T11:08:49+02:00","message":"Next cron run"}

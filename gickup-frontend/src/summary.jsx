@@ -45,7 +45,7 @@ const Summary = () => {
           ...(step2Data.wiki ? { wiki: step2Data.wiki } : {}),
           ...(step2Data.starred ? { starred: step2Data.starred } : {}),
           filter: {
-            ...(step2Data.filterstars ? { stars: step2Data.filterstars } : {}),
+            ...(step2Data.filterstars ? { stars: parseInt(step2Data.filterstars) } : {}),
             ...(step2Data.lastactivity ? { lastactivity: step2Data.lastactivity } : {}),
             ...(step2Data.excludearchived ? { excludearchived: step2Data.excludearchived } : {}),
             ...(step2Data.languages ? { languages: step2Data.languages.split(',') } : {}),
@@ -63,14 +63,14 @@ const Summary = () => {
           ...(step3Data.path ? { path: step3Data.path } : {}),
           ...(step3Data.structured ? { structured: step3Data.structured } : {}),
           ...(step3Data.zip ? { zip: step3Data.zip } : {}),
-          ...(step3Data.keep ? { keep: step3Data.keep } : {}),
+          ...(step3Data.keep ? { keep: parseInt(step3Data.keep) } : {}),
           ...(step3Data.bare ? { bare: step3Data.bare } : {}),
           ...(step3Data.lfs ? { lfs: step3Data.lfs } : {}),
         },
       ];
     }
   
-    const yamlConfig = jsYaml.dump(configData, { skipInvalid: true });
+    const yamlConfig = jsYaml.dump(configData, { skipInvalid: true , noQuotes: true });
   
     const name = step1Data.name || 'backup-config'; 
     const fileName = `${name}.yml`;
