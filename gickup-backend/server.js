@@ -28,24 +28,27 @@ app.post('/api/saveConfiguration', (req, res) => {
 
 app.post('/api/runGoApp', (req, res) => {
   const { exec } = require('child_process');
-  const { fileName } = req.body;
+  const { fileName, runNow } = req.body;
   const goAppPath = path.join(__dirname, '..', 'main.go'); 
   const configFilePath = path.join(__dirname, fileName);
-  
-  const command = `"${goAppPath}" "${configFilePath}"`;
+
+  let command = `"${goAppPath}" "${configFilePath}"`;
+
+  if (runNow) {
+    command += ' --runnow'; 
+  }
+
   console.log('Executing command:', command);
   exec(command, (error, stdout, stderr) => {
     if (error) {
       console.error('Error executing Go app:', error);
       res.status(500).json({ error: 'Error executing Go app' });
     } else {
-      console.log('Executing command:', command);
       console.log('Go app executed successfully');
       res.json({ success: true });
     }
   });
 });
-
 
 app.get('/api/backupStatistics', (req, res) => {
   const logFilePath = path.join(__dirname, 'var', 'logs', 'gickup.log');

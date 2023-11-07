@@ -107,14 +107,14 @@ function SourceConfig(props) {
         margin="normal"
       >
         <MenuItem value="">Select a source</MenuItem>
-        <MenuItem value="Github">GitHub</MenuItem>
-        <MenuItem value="Gitea">Gitea</MenuItem>
-        <MenuItem value="Gogs">Gogs</MenuItem>
-        <MenuItem value="Gitlab">Gitlab</MenuItem>
-        <MenuItem value="Bitbucket">Bitbucket</MenuItem>
-        <MenuItem value="Onedev">Onedev</MenuItem>
-        <MenuItem value="Sourcehut">Sourcehut</MenuItem>
-        <MenuItem value="Other">Other</MenuItem>
+        <MenuItem value="github">GitHub</MenuItem>
+        <MenuItem value="gitea">Gitea</MenuItem>
+        <MenuItem value="gogs">Gogs</MenuItem>
+        <MenuItem value="gitlab">Gitlab</MenuItem>
+        <MenuItem value="gitbucket">Bitbucket</MenuItem>
+        <MenuItem value="onedev">Onedev</MenuItem>
+        <MenuItem value="sourcehut">Sourcehut</MenuItem>
+        <MenuItem value="other">Other</MenuItem>
       </TextField>
 
       {selectedSource && (

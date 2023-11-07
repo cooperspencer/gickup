@@ -134,14 +134,14 @@ const Summary = () => {
           <Typography variant="h5">Source Configuration:</Typography>
           {step2Data.selectedSource && <Typography><strong>Selected Source:</strong> {step2Data.selectedSource}</Typography>}
           {step2Data.token && <Typography><strong>Token:</strong> {step2Data.token}</Typography>}
-          {/* ... (similarly format other source configuration fields) */}
+          
         </div>
 
         <div style={{ marginBottom: '20px' }}>
           <Typography variant="h5">Destination Configuration:</Typography>
           {step3Data.SelectedDestination && <Typography><strong>Selected Destination:</strong> {step3Data.SelectedDestination}</Typography>}
           {step3Data.token && <Typography><strong>Token:</strong> {step3Data.token}</Typography>}
-          {/* ... (similarly format other destination configuration fields) */}
+          
         </div>
 
         <div style={{ marginBottom: '20px' }}>

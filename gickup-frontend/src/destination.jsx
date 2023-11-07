@@ -78,6 +78,9 @@ function DestinationConfig(props) {
         lfs: lfs,
       };
   
+      if (SelectedDestination === 'Localpath') {
+        data.SelectedDestination = 'local';
+      }
       console.log('Selected destination:', SelectedDestination);
       localStorage.setItem('Step3', JSON.stringify(data));
   

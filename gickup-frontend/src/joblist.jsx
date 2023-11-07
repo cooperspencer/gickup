@@ -18,8 +18,13 @@ function JobsList() {
   }, []);
 
   const handleRunNow = (jobName) => {
-    // Implement logic to run the job with the given jobName
-    console.log(`Running job: ${jobName}`);
+    axios.post('http://localhost:5000/api/runGoApp', { fileName: jobName, runNow: true })
+      .then(response => {
+        console.log(`Job ${jobName} has been triggered successfully with --runnow flag.`);
+      })
+      .catch(error => {
+        console.error(`Error triggering job ${jobName}:`, error);
+      });
   };
 
   return (

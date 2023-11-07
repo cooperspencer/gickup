@@ -1,0 +1,160 @@
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T09:27:49+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T09:27:49+02:00","message":"Backup run starting"}
+{"level":"info","duration":"0s","time":"2023-11-07T09:27:49+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T09:27:49+02:00","message":"Next cron run"}
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T09:49:14+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T09:49:14+02:00","message":"Backup run starting"}
+{"level":"info","duration":"0s","time":"2023-11-07T09:49:14+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-12 12:00:00 +0200 SAST","cron":"00 12 * * 0","time":"2023-11-07T09:49:14+02:00","message":"Next cron run"}
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T10:04:18+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:04:18+02:00","message":"Backup run starting"}
+{"level":"info","duration":"0s","time":"2023-11-07T10:04:18+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-12 12:00:00 +0200 SAST","cron":"00 12 * * 0","time":"2023-11-07T10:04:18+02:00","message":"Next cron run"}
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T10:04:54+02:00","message":"Configuration loaded"}
+{"level":"info","next":"2023-11-12 12:00:00 +0200 SAST","cron":"00 12 * * 0","time":"2023-11-07T10:04:54+02:00","message":"Next cron run"}
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T10:05:12+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:05:12+02:00","message":"Backup run starting"}
+{"level":"info","duration":"501.1µs","time":"2023-11-07T10:05:12+02:00","message":"Backup run complete"}
+{"level":"info","sources":0,"destinations":0,"pairs":0,"time":"2023-11-07T10:05:39+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:05:39+02:00","message":"Backup run starting"}
+{"level":"info","duration":"0s","time":"2023-11-07T10:05:39+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":0,"pairs":0,"time":"2023-11-07T10:06:56+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:06:56+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T10:06:56+02:00","message":"grabbing my repositories"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/fareszekri/Microsoft-Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDk.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDK-nested.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/cockroach.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/code.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/Commercial-Marketplace-SaaS-Accelerator.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/covid19za.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/Envious-Remote-Goose-React.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/kanister.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/Kastendemo.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/microservices-demo-Open-Shift-.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/project_pace.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/SourceCodeBackup.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-as-a-Service.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-Marketplace-SaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/VBMSaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/mritsurgeon/Watch.io.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"starting backup for https://github.com/VeeamCommunity/veeamcommunity-2023-Team-1.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:06:57+02:00","message":"No destinations configured!"}
+{"level":"info","duration":"1.5648622s","time":"2023-11-07T10:06:57+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":0,"pairs":0,"time":"2023-11-07T10:07:15+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:07:15+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T10:07:15+02:00","message":"grabbing my repositories"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/fareszekri/Microsoft-Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDk.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDK-nested.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/cockroach.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/code.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/Commercial-Marketplace-SaaS-Accelerator.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/covid19za.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/Envious-Remote-Goose-React.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/kanister.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/Kastendemo.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/microservices-demo-Open-Shift-.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/project_pace.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/SourceCodeBackup.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-as-a-Service.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-Marketplace-SaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/VBMSaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/mritsurgeon/Watch.io.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"starting backup for https://github.com/VeeamCommunity/veeamcommunity-2023-Team-1.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:07:16+02:00","message":"No destinations configured!"}
+{"level":"info","duration":"1.5727462s","time":"2023-11-07T10:07:16+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":0,"pairs":0,"time":"2023-11-07T10:08:12+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:08:12+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T10:08:12+02:00","message":"grabbing my repositories"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/fareszekri/Microsoft-Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDk.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDK-nested.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/cockroach.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/code.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/Commercial-Marketplace-SaaS-Accelerator.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/covid19za.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/Envious-Remote-Goose-React.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/kanister.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/Kastendemo.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/microservices-demo-Open-Shift-.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/project_pace.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/SourceCodeBackup.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-as-a-Service.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/VB365-Marketplace-SaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/VBMSaaS.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/Veeam.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/mritsurgeon/Watch.io.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"starting backup for https://github.com/VeeamCommunity/veeamcommunity-2023-Team-1.git"}
+{"level":"warn","stage":"backup","time":"2023-11-07T10:08:13+02:00","message":"No destinations configured!"}
+{"level":"info","duration":"1.2066899s","time":"2023-11-07T10:08:13+02:00","message":"Backup run complete"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T10:09:13+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T10:09:13+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T10:09:13+02:00","message":"grabbing my repositories"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:09:14+02:00","message":"starting backup for https://github.com/fareszekri/Microsoft-Veeam.git"}
+{"level":"info","stage":"locally","path":"\\backups","time":"2023-11-07T10:09:14+02:00","message":"cloning \u001b[32mMicrosoft-Veeam/1699344554\u001b[0m"}
+{"level":"info","stage":"locally","path":"\\backups","time":"2023-11-07T10:09:15+02:00","message":"zipping \u001b[32mMicrosoft-Veeam/1699344554\u001b[0m"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:09:15+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDk.git"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:09:15+02:00","message":"cloning \u001b[32mASDk/1699344555\u001b[0m"}
+{"level":"warn","stage":"locally","path":"C:\\backups","repo":"ASDk/1699344555","time":"2023-11-07T10:09:16+02:00","message":"remote repository is empty"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:09:16+02:00","message":"starting backup for https://github.com/mritsurgeon/ASDK-nested.git"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:09:16+02:00","message":"cloning \u001b[32mASDK-nested/1699344556\u001b[0m"}
+{"level":"warn","stage":"locally","path":"C:\\backups","repo":"ASDK-nested/1699344556","time":"2023-11-07T10:09:16+02:00","message":"remote repository is empty"}
+{"level":"info","stage":"backup","time":"2023-11-07T10:09:16+02:00","message":"starting backup for https://github.com/mritsurgeon/cockroach.git"}
+{"level":"info","stage":"locally","path":"C:\\backups","time":"2023-11-07T10:09:16+02:00","message":"cloning \u001b[32mcockroach/1699344556\u001b[0m"}
