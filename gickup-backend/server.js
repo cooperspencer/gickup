@@ -26,27 +26,44 @@ app.post('/api/saveConfiguration', (req, res) => {
   });
 });
 
+const { spawn } = require('child_process');
+
 app.post('/api/runGoApp', (req, res) => {
-  const { exec } = require('child_process');
   const { fileName, runNow } = req.body;
-  const goAppPath = path.join(__dirname, '..', 'main.go'); 
+  const goAppPath = path.join(__dirname, '..', 'main.go');
   const configFilePath = path.join(__dirname, fileName);
 
-  let command = `go run "${goAppPath}" "${configFilePath}"`; // Use go run command
-
+  let command = ['run', goAppPath, configFilePath];
+  
   if (runNow) {
-    command += ' --runnow'; 
+    command.push('--runnow');
   }
 
-  console.log('Executing command:', command);
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Error executing Go app:', error);
-      res.status(500).json({ error: 'Error executing Go app' });
-    } else {
-      console.log('Go app executed successfully');
-      res.json({ success: true });
-    }
+  console.log('Executing command:', command.join(' '));
+  const goProcess = spawn('go', command);
+
+  let output = '';
+
+  goProcess.stdout.on('data', (data) => {
+    const lines = data.toString().split('\n');
+    lines.forEach(line => {
+      if (line.includes('INF')) {
+        console.log('INF:', line); // Log INF lines to the terminal
+      } else if (line.includes('ERR')) {
+        console.error('ERR:', line); // Log ERR lines to the terminal
+      }
+    });
+    res.write(data); // Stream data to the client (React app)
+  });
+
+  goProcess.stderr.on('data', (data) => {
+    console.error('ERROR:', data.toString()); // Log errors to the terminal
+    res.write(data); // Stream errors to the client (React app)
+  });
+
+  goProcess.on('close', (code) => {
+    console.log(`Go process exited with code ${code}`);
+    res.end(); // End the response stream when the process exits
   });
 });
 

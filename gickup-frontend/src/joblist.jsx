@@ -4,16 +4,16 @@ import { List, ListItem, ListItemText, Typography, Button, Box } from '@mui/mate
 
 function JobsList() {
   const [jobFiles, setJobFiles] = useState([]);
-  const [error, setError] = useState(null); // Define error state
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/configFiles')
       .then(response => {
-        setJobFiles(response.data.files); // Contains fileName, source, and destination
+        setJobFiles(response.data.files); 
       })
       .catch(error => {
         console.error('Error fetching job files:', error);
-        setError('Error fetching job files. Please try again later.'); // Set error state on fetch failure
+        setError('Error fetching job files. Please try again later.'); 
       });
   }, []);
 
@@ -32,7 +32,7 @@ function JobsList() {
       <Typography variant="h4" mb={3}>
         Jobs
       </Typography>
-      {error && <Typography variant="body1" color="error" mb={2}>{error}</Typography>} {/* Display error message if error state is set */}
+      {error && <Typography variant="body1" color="error" mb={2}>{error}</Typography>} 
       <List>
         {jobFiles.map((fileData, index) => (
           <ListItem key={index} sx={{ borderRadius: 2, bgcolor: 'white', mb: 2, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

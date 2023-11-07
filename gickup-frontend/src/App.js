@@ -12,6 +12,7 @@ import DestinationConfig from './destination';
 import SchedulerConfig from './scheduler';
 import Stats from './stats';
 import Jobs from './joblist';
+import History from './history';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
             <Button component={Link} to="/wizard" variant="contained" style={{  marginRight: '10px' }}>
                 Create Backup Job
               </Button>
-              <Button component={Link} to="" variant="contained" style={{ marginRight: '10px' }}>
+              <Button component={Link} to="/history" variant="contained" style={{ marginRight: '10px' }}>
                 Backup History
               </Button>
               <Button component={Link} to="/joblist" variant="contained"style={{ marginRight: '10px' }}>
@@ -51,6 +52,7 @@ function App() {
             <Route path="/stats" element={<Stats />} />
             <Route path="/joblist" element={<Jobs />} />
             <Route path="/" element={<Jobs />} />
+            <Route path="/history" element={<History />} />
             <Route
               path="/wizard"
               element={
