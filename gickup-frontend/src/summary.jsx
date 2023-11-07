@@ -11,6 +11,7 @@ const Summary = () => {
   const step2Data = JSON.parse(localStorage.getItem('Step2')) || {};
   const step3Data = JSON.parse(localStorage.getItem('Step3')) || {};
   const step4Data = JSON.parse(localStorage.getItem('Step4')) || {};
+  
 
   const finish = () => {
     const configData = {
@@ -21,8 +22,15 @@ const Summary = () => {
       source: {},
       destination: {},
       cron: step4Data.cronExpression,
+      log: {
+        timeformat: '2006-01-02 15:04:05',
+        'file-logging': {
+          dir: 'var/logs',
+          file: 'gickup.log'
+        }
+      }
     };
-  
+    
     if (step2Data.selectedSource) {
       configData.source[step2Data.selectedSource] = [
         {
@@ -98,6 +106,7 @@ const Summary = () => {
       .catch(error => {
         console.error('Error saving configuration:', error);
       });
+
   
     console.log('Finish button clicked');
   };
