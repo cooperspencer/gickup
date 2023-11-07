@@ -4,6 +4,9 @@ const app = express();
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
+const AnsiToHtml = require('ansi-to-html');
+const ansiToHtml = new AnsiToHtml();
+
 
 
 app.use(bodyParser.json());
@@ -34,37 +37,65 @@ app.post('/api/runGoApp', (req, res) => {
   const configFilePath = path.join(__dirname, fileName);
 
   let command = ['run', goAppPath, configFilePath];
-  
+
   if (runNow) {
     command.push('--runnow');
   }
 
   console.log('Executing command:', command.join(' '));
-  const goProcess = spawn('go', command);
 
-  let output = '';
+  
+  const logStream = fs.createWriteStream(path.join(__dirname, 'history', 'run.log'), { flags: 'a' });
+
+  const goProcess = spawn('go', command);
 
   goProcess.stdout.on('data', (data) => {
     const lines = data.toString().split('\n');
     lines.forEach(line => {
       if (line.includes('INF')) {
-        console.log('INF:', line); // Log INF lines to the terminal
+        console.log('INF:', line); 
       } else if (line.includes('ERR')) {
-        console.error('ERR:', line); // Log ERR lines to the terminal
+        console.error('ERR:', line); 
       }
     });
-    res.write(data); // Stream data to the client (React app)
+
+    
+    logStream.write(data);
+
+    res.write(data); 
   });
 
   goProcess.stderr.on('data', (data) => {
-    console.error('ERROR:', data.toString()); // Log errors to the terminal
-    res.write(data); // Stream errors to the client (React app)
+    console.error('ERROR:', data.toString()); 
+
+    
+    logStream.write(data);
+
+    res.write(data); 
   });
 
   goProcess.on('close', (code) => {
     console.log(`Go process exited with code ${code}`);
-    res.end(); // End the response stream when the process exits
+    res.end(); 
+
+   
+    logStream.end();
   });
+});
+
+app.get('/api/fetchLogFile', (req, res) => {
+  const logFilePath = path.join(__dirname, 'history', 'run.log');
+
+  try {
+    const data = fs.readFileSync(logFilePath, 'utf8');
+    const formattedData = ansiToHtml.toHtml(data); 
+    console.log('unfomated data', data)
+    console.log('fomated data' , formattedData )
+    res.send(formattedData);
+  } catch (err) {
+    console.error('Error reading log file:', err);
+    res.status(500).send('Error reading log file');
+  }
 });
 
 app.get('/api/backupStatistics', (req, res) => {
@@ -90,19 +121,19 @@ app.get('/api/backupStatistics', (req, res) => {
       } catch (error) {
         console.error('Error parsing log entry:', error);
       }
-      return null; // Ignore malformed or incomplete log entries
-    }).filter(entry => entry !== null); // Remove null entries
+      return null; 
+    }).filter(entry => entry !== null);
 
-    const successfulRuns = logEntries.length; // Count of successful runs
+    const successfulRuns = logEntries.length; 
 
-    // Calculate total duration and individual durations
+    
     const totalDuration = logEntries.reduce((acc, entry) => {
       acc.total += entry.duration;
       acc.individualDurations.push(entry.duration);
       return acc;
     }, { total: 0, individualDurations: [] });
 
-    // Respond with the processed backup statistics
+    
     res.json({ backupData: { successfulRuns, totalDuration, individualDurations: totalDuration.individualDurations } });
   });
 });

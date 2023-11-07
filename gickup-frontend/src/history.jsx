@@ -1,40 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-
-const BackupHistory = ({ backupHistory }) => {
-  return (
-    <TableContainer component={Paper} style={{ marginTop: '20px' }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Details</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {backupHistory.map((backup, index) => (
-            <TableRow key={index}>
-              <TableCell>{backup.date}</TableCell>
-              <TableCell>{backup.status}</TableCell>
-              <TableCell>{backup.details}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-};
+import React, { useEffect, useState } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 
 const History = () => {
   const [backupHistory, setBackupHistory] = useState([]);
 
   useEffect(() => {
-    // Fetch backup history data from the API endpoint
-    fetch('http://localhost:5000/api/backupHistory') // Replace with your actual API endpoint
-      .then((response) => response.json())
+    fetch('http://localhost:5000/api/fetchLogFile')
+      .then((response) => response.text())
       .then((data) => {
-        setBackupHistory(data); // Assuming the API response is an array of backup history objects
+        // Split the log data into lines
+        const lines = data.split('\n');
+        
+        const formattedData = lines.map((line) => {
+          const type = line.includes('ERR') ? 'ERR' : 'INF';
+          const [timestamp, message] = line.split(type).map((item) => item.trim());
+          return { type, timestamp, message };
+        });
+        setBackupHistory(formattedData);
       })
       .catch((error) => {
         console.error('Error fetching backup history:', error);
@@ -44,7 +34,26 @@ const History = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>Backup History</h1>
-      <BackupHistory backupHistory={backupHistory} />
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Type</TableCell>
+              <TableCell>Timestamp</TableCell>
+              <TableCell>Message</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {backupHistory.map((row, index) => (
+              <TableRow key={index}>
+                <TableCell>{row.type}</TableCell>
+                <TableCell dangerouslySetInnerHTML={{ __html: row.timestamp }} />
+                <TableCell dangerouslySetInnerHTML={{ __html: row.message }} />
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };

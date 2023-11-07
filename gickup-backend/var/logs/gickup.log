@@ -71,3 +71,33 @@
 {"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T13:30:55+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
 {"level":"info","duration":"388.8944ms","time":"2023-11-07T13:30:55+02:00","message":"Backup run complete"}
 {"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T13:30:55+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T17:06:22+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T17:06:22+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T17:06:22+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T17:06:23+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"329.4658ms","time":"2023-11-07T17:06:23+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T17:06:23+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T17:43:04+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T17:43:04+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T17:43:04+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T17:43:05+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"1.0957521s","time":"2023-11-07T17:43:05+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T17:43:05+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T18:19:57+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T18:19:57+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T18:19:57+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T18:19:58+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"1.0675291s","time":"2023-11-07T18:19:58+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T18:19:58+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T18:21:33+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T18:21:33+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T18:21:33+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T18:21:34+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"1.1354247s","time":"2023-11-07T18:21:34+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T18:21:34+02:00","message":"Next cron run"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2023-11-07T18:24:11+02:00","message":"Configuration loaded"}
+{"level":"info","time":"2023-11-07T18:24:11+02:00","message":"Backup run starting"}
+{"level":"info","stage":"github","url":"https://github.com","time":"2023-11-07T18:24:11+02:00","message":"grabbing the repositories from mritsurgeon"}
+{"level":"error","stage":"github","url":"https://github.com","time":"2023-11-07T18:24:12+02:00","message":"GET https://api.github.com/user: 401 Bad credentials []"}
+{"level":"info","duration":"1.0700397s","time":"2023-11-07T18:24:12+02:00","message":"Backup run complete"}
+{"level":"info","next":"2023-11-13 12:00:00 +0200 SAST","cron":"00 12 * * 1","time":"2023-11-07T18:24:12+02:00","message":"Next cron run"}
