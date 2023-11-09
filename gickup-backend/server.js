@@ -205,7 +205,17 @@ function readDirectoryRecursive(directoryPath) {
       result.files.push(file);
     }
   });
-
+  app.get('/api/files/content', (req, res) => {
+    const filePath = req.query.path;
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      res.send(content);
+    } catch (error) {
+      console.error('Error reading file content:', error);
+      res.status(500).json({ error: 'Error reading file content' });
+    }
+  });
+  
   return result;
 }
 

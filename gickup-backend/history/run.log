@@ -1,7 +1,0 @@
-[90m2023-11-09T09:44:17+02:00[0m [32mINF[0m Reading [32mC:\Users\ian.engelbrecht\OneDrive - Veeam Software Corporation\code\SourceCodeBackupv1\SourceCodeBackup\gickup-backend\mritsRepo.yml[0m [36mfile=[0m"C:\\Users\\ian.engelbrecht\\OneDrive - Veeam Software Corporation\\code\\SourceCodeBackupv1\\SourceCodeBackup\\gickup-backend\\mritsRepo.yml"
-[90m2023-11-09 09:44:17[0m [32mINF[0m Configuration loaded [36mdestinations=[0m1 [36mpairs=[0m1 [36msources=[0m1
-[90m2023-11-09 09:44:17[0m [32mINF[0m Backup run starting
-[90m2023-11-09 09:44:17[0m [32mINF[0m grabbing the repositories from mritsurgeon [36mstage=[0mgithub [36murl=[0mhttps://github.com
-[90m2023-11-09 09:44:17[0m [1m[31mERR[0m[0m GET https://api.github.com/user: 401 Bad credentials [] [36mstage=[0mgithub [36murl=[0mhttps://github.com
-[90m2023-11-09 09:44:17[0m [32mINF[0m Backup run complete [36mduration=[0m336.1058ms
-[90m2023-11-09 09:44:17[0m [32mINF[0m Next cron run [36mcron=[0m"00 12 * * 1" [36mnext=[0m"2023-11-13 12:00:00 +0200 SAST"
