@@ -1,0 +1,20 @@
+'# Commented YAML Lines':
+  - '# name: mritsRepo'
+  - '# description: my repo '
+source:
+  github:
+    - token: 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
+      user: mritsurgeon
+      filter:
+        excludeforks: true
+destination:
+  local:
+    - path: /backups
+      structured: true
+      keep: 2
+cron: 00 12 * * 1
+log:
+  timeformat: '2006-01-02 15:04:05'
+  file-logging:
+    dir: var/logs
+    file: gickup.log

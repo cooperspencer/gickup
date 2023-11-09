@@ -16,20 +16,25 @@ const History = () => {
     fetch('http://localhost:5000/api/fetchLogFile')
       .then((response) => response.text())
       .then((data) => {
-        // Split the log data into lines
         const lines = data.split('\n');
-        
+
         const formattedData = lines.map((line) => {
-          const type = line.includes('ERR') ? 'ERR' : 'INF';
+          let type = '';
+          if (line.includes('ERR')) {
+            type = 'ERR';
+          } else if (line.includes('WRN')) {
+            type = 'WRN';
+          } else {
+            type = 'INF';
+          }
+
           const [timestamp, message] = line.split(type).map((item) => item.trim());
           return { type, timestamp, message };
         });
+
         setBackupHistory(formattedData);
-      })
-      .catch((error) => {
-        console.error('Error fetching backup history:', error);
       });
-  }, []);
+  }, []); 
 
   return (
     <div style={{ padding: '20px' }}>
@@ -45,7 +50,12 @@ const History = () => {
           </TableHead>
           <TableBody>
             {backupHistory.map((row, index) => (
-              <TableRow key={index}>
+              <TableRow
+                key={index}
+                style={{
+                  backgroundColor: row.type === 'WRN' ? 'lightyellow' : row.type === 'ERR' ? 'lightcoral' : 'transparent',
+                }}
+              >
                 <TableCell>{row.type}</TableCell>
                 <TableCell dangerouslySetInnerHTML={{ __html: row.timestamp }} />
                 <TableCell dangerouslySetInnerHTML={{ __html: row.message }} />
