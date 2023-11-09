@@ -1,15 +1,15 @@
 '# Commented YAML Lines':
-  - '# name: 123'
-  - '# description: 123'
+  - '# name: mritsurgeon'
+  - '# description: my github'
 source:
   github:
-    - token: dskjdslk
+    - user: mritsurgeon
       filter: {}
 destination:
   local:
-    - path: /b
-      keep: 1
-cron: 00 12 * * 1
+    - path: /backups
+      keep: 2
+cron: 00 12 * * 0,1
 log:
   timeformat: '2006-01-02 15:04:05'
   file-logging:

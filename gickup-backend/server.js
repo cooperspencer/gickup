@@ -7,10 +7,9 @@ const cors = require('cors');
 const AnsiToHtml = require('ansi-to-html');
 const ansiToHtml = new AnsiToHtml();
 
-
-
 app.use(bodyParser.json());
 app.use(cors());
+app.use(express.json());
 
 
 app.post('/api/saveConfiguration', (req, res) => {
@@ -114,7 +113,7 @@ app.get('/api/backupStatistics', (req, res) => {
         if (parsedEntry && parsedEntry.level === 'info' && parsedEntry.message === 'Backup run complete') {
           const duration = parseFloat(parsedEntry.duration.replace('s', ''));
           if (!isNaN(duration)) {
-            parsedEntry.duration = duration; // Add duration to the log entry
+            parsedEntry.duration = duration; 
             return parsedEntry;
           }
         }
@@ -174,6 +173,41 @@ app.get('/api/configFiles', (req, res) => {
   });
 });
 
+const baseDirectory = '/backups';
+
+app.get('/api/files', (req, res) => {
+  const requestedPath = req.query.path || '';
+  const directoryPath = path.join(baseDirectory, requestedPath);
+
+  try {
+    const result = readDirectoryRecursive(directoryPath);
+    res.json(result);
+  } catch (error) {
+    console.error('Error reading directory:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+function readDirectoryRecursive(directoryPath) {
+  const files = fs.readdirSync(directoryPath);
+  const result = {
+    files: [],
+    folders: {}
+  };
+
+  files.forEach(file => {
+    const filePath = path.join(directoryPath, file);
+    const isDirectory = fs.statSync(filePath).isDirectory();
+    if (isDirectory) {
+      const subdirectoryContents = readDirectoryRecursive(filePath);
+      result.folders[file] = subdirectoryContents;
+    } else {
+      result.files.push(file);
+    }
+  });
+
+  return result;
+}
 
 // Start the server
 const PORT = 5000;

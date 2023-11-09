@@ -13,6 +13,7 @@ import SchedulerConfig from './scheduler';
 import Stats from './stats';
 import Jobs from './joblist';
 import History from './history';
+import FileBrowser from './filebrowser';
 
 function App() {
   return (
@@ -32,6 +33,9 @@ function App() {
               </Button>
               <Button component={Link} to="/joblist" variant="contained"style={{ marginRight: '10px' }}>
                 Backup Jobs
+              </Button>
+              <Button component={Link} to="/filebrowser" variant="contained"style={{ marginRight: '10px' }}>
+                Browse Backups
               </Button>
               <Button component={Link} to="/stats" variant="contained">
                 Backup Statistics
@@ -53,6 +57,7 @@ function App() {
             <Route path="/joblist" element={<Jobs />} />
             <Route path="/" element={<Jobs />} />
             <Route path="/history" element={<History />} />
+            <Route path="/filebrowser" element={<FileBrowser />} />
             <Route
               path="/wizard"
               element={

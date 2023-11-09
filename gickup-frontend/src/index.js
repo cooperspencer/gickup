@@ -3,6 +3,11 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { setChonkyDefaults } from 'chonky';
+import { ChonkyIconFA } from 'chonky-icon-fontawesome';
+
+// Set Chonky defaults
+setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
