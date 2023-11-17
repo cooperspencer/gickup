@@ -42,7 +42,10 @@ var cli struct {
 	Dry         bool     `flag name:"dryrun" help:"Make a dry-run."`
 	Quiet       bool     `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
 	Silent      bool     `flag name:"silent" help:"Suppress all stderr log output"`
+<<<<<<< HEAD
 	RunNow      bool     `flag name:"runnow" help:"Run backups immediately without waiting for cron schedules"`
+=======
+>>>>>>> upstream/main
 }
 
 var version = "unknown"
@@ -578,6 +581,10 @@ func main() {
 
 	if cli.Version {
 		fmt.Println(version)
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main
 		return
 	}
 
@@ -634,7 +641,11 @@ func main() {
 			conf.Cron = confs[0].Cron
 		}
 
+<<<<<<< HEAD
 		if conf.HasValidCronSpec() && validcron && !cli.RunNow {
+=======
+		if conf.HasValidCronSpec() && validcron {
+>>>>>>> upstream/main
 			conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
 			num := num
 
@@ -651,11 +662,19 @@ func main() {
 					Msg(err.Error())
 			}
 		} else {
+<<<<<<< HEAD
 			runBackup(conf, num) // Run backup immediately if no valid cron schedule or --runnow flag is provided
 		}
 	}
 
 	if validcron && !cli.RunNow {
+=======
+			runBackup(conf, num)
+		}
+	}
+
+	if validcron {
+>>>>>>> upstream/main
 		if confs[0].HasAllPrometheusConf() {
 			prometheus.CountSourcesConfigured.Add(float64(sourcecount))
 			prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
