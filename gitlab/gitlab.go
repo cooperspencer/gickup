@@ -3,6 +3,7 @@ package gitlab
 import (
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -100,6 +101,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitlab {
+		if repo.URL == "" {
+			repo.URL = "https://gitlab.com"
+		}
 		err := repo.Filter.ParseDuration()
 		sub = logger.CreateSubLogger("stage", "gitlab", "url", repo.URL)
 		if err != nil {
@@ -107,9 +111,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Msg(err.Error())
 		}
 		ran = true
-		if repo.URL == "" {
-			repo.URL = "https://gitlab.com"
-		}
 
 		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
@@ -230,6 +231,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Visibility == gitlab.PrivateVisibility,
+						Issues:        GetIssues(r, client, repo),
 					})
 				}
 
@@ -270,6 +272,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Visibility == gitlab.PrivateVisibility,
+						Issues:        GetIssues(r, client, repo),
 					})
 				}
 
@@ -395,6 +398,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 								Hoster:        types.GetHost(repo.URL),
 								Description:   r.Description,
 								Private:       r.Visibility == gitlab.PrivateVisibility,
+								Issues:        GetIssues(r, client, repo),
 							})
 						}
 
@@ -439,6 +443,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									Hoster:        types.GetHost(repo.URL),
 									Description:   r.Description,
 									Private:       r.Visibility == gitlab.PrivateVisibility,
+									Issues:        GetIssues(r, client, repo),
 								})
 							}
 
@@ -482,4 +487,28 @@ func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bo
 	}
 
 	return len(wikis) > 0
+}
+
+// GetIssues get issues
+func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) map[string]interface{} {
+	issues := map[string]interface{}{}
+	if conf.Issues {
+		listOptions := &gitlab.ListProjectIssuesOptions{ListOptions: gitlab.ListOptions{PerPage: 100}}
+		for {
+			i, _, err := client.Issues.ListProjectIssues(repo.ID, listOptions)
+			if err != nil {
+				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+			} else {
+				if len(i) > 0 {
+					for _, issue := range i {
+						issues[strconv.Itoa(issue.IID)] = issue
+					}
+				} else {
+					break
+				}
+				listOptions.Page++
+			}
+		}
+	}
+	return issues
 }
