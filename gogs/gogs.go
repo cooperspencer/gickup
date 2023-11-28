@@ -1,6 +1,7 @@
 package gogs
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/cooperspencer/gickup/logger"
@@ -194,6 +195,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Hoster:        types.GetHost(repo.URL),
 					Description:   r.Description,
 					Private:       r.Private,
+					Issues:        GetIssues(r, client, repo),
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -229,6 +231,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Hoster:        types.GetHost(repo.URL),
 					Description:   r.Description,
 					Private:       r.Private,
+					Issues:        GetIssues(r, client, repo),
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -319,6 +322,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Hoster:        types.GetHost(repo.URL),
 					Description:   r.Description,
 					Private:       r.Private,
+					Issues:        GetIssues(r, client, repo),
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -354,6 +358,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Hoster:        types.GetHost(repo.URL),
 					Description:   r.Description,
 					Private:       r.Private,
+					Issues:        GetIssues(r, client, repo),
 				})
 
 				if repo.Wiki {
@@ -375,4 +380,28 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	}
 
 	return repos, ran
+}
+
+// GetIssues get issues
+func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) map[string]interface{} {
+	issues := map[string]interface{}{}
+	if conf.Issues {
+		listOptions := gogs.ListIssueOption{State: "all"}
+		for {
+			i, err := client.ListRepoIssues(repo.Owner.UserName, repo.Name, listOptions)
+			if err != nil {
+				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+			} else {
+				if len(i) > 0 {
+					for _, issue := range i {
+						issues[strconv.Itoa(int(issue.Index))] = issue
+					}
+				} else {
+					break
+				}
+				listOptions.Page++
+			}
+		}
+	}
+	return issues
 }
