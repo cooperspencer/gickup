@@ -12,6 +12,7 @@ source:
       username: your-user # user is used to clone the repo with
       password: your-password
       ssh: true # can be true or false
+      issues: true # back up issues
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa
       exclude: # this excludes the repos "foo" and "bar"
         - foo

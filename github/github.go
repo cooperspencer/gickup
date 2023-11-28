@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -256,6 +257,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Hoster:        "github.com",
 					Description:   r.GetDescription(),
 					Private:       r.GetPrivate(),
+					Issues:        GetIssues(r, client, repo),
 				})
 				wiki := addWiki(*r, repo, token)
 				if wiki.Name != "" {
@@ -287,11 +289,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Hoster:        "github.com",
 							Description:   r.GetDescription(),
 							Private:       r.GetPrivate(),
+							Issues:        GetIssues(r, client, repo),
 						})
 						wiki := addWiki(*r, repo, token)
 						if wiki.Name != "" {
 							repos = append(repos, wiki)
 						}
+
 					}
 				} else {
 					repos = append(repos, types.Repo{
@@ -305,6 +309,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        "github.com",
 						Description:   r.GetDescription(),
 						Private:       r.GetPrivate(),
+						Issues:        GetIssues(r, client, repo),
 					})
 					wiki := addWiki(*r, repo, token)
 					if wiki.Name != "" {
@@ -318,6 +323,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	return repos, ran
 }
 
+// GetOrCreate Get or create a repository
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
 	token := destination.GetToken()
@@ -368,4 +374,28 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	}
 
 	return *r.CloneURL, nil
+}
+
+// GetIssues get issues
+func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRepo) map[string]interface{} {
+	issues := map[string]interface{}{}
+	if conf.Issues {
+		listOptions := &github.IssueListByRepoOptions{State: "all", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
+		for {
+			i, _, err := client.Issues.ListByRepo(context.Background(), *repo.Owner.Login, *repo.Name, listOptions)
+			if err != nil {
+				sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
+			} else {
+				if len(i) > 0 {
+					for _, issue := range i {
+						issues[strconv.Itoa(*issue.Number)] = issue
+					}
+				} else {
+					break
+				}
+				listOptions.Page++
+			}
+		}
+	}
+	return issues
 }
