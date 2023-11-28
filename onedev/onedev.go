@@ -2,6 +2,8 @@ package onedev
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cooperspencer/gickup/logger"
@@ -135,6 +137,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Owner:         repo.User,
 				Hoster:        types.GetHost(repo.URL),
 				Description:   r.Description,
+				Issues:        GetIssues(&r, client, repo, urls.HTTP),
 			})
 		}
 
@@ -197,6 +200,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Owner:         org,
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
+						Issues:        GetIssues(&r, client, repo, urls.HTTP),
 					})
 				}
 			}
@@ -281,4 +285,42 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	}
 
 	return cloneUrls.HTTP, nil
+}
+
+// GetIssues get issues
+func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, repourl string) map[string]interface{} {
+	issues := map[string]interface{}{}
+	if conf.Issues {
+		name := strings.TrimPrefix(repourl, conf.URL)
+		listOptions := &onedev.IssueQueryOptions{Count: 100, Offset: 0, Query: fmt.Sprintf("\"Project\" is \"%s\"", name)}
+		for {
+			i, _, err := client.GetIssues(listOptions)
+			if err != nil {
+				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+			} else {
+				if len(i) > 0 {
+					for _, issue := range i {
+						onedevissue := Issue{Issue: issue}
+						comments, _, err := client.GetIssueComments(onedevissue.ID)
+						if err != nil {
+							sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+						} else {
+							onedevissue.Comments = comments
+						}
+
+						issues[strconv.Itoa(int(issue.Number))] = onedevissue
+					}
+				} else {
+					break
+				}
+				listOptions.Offset += listOptions.Count
+			}
+		}
+	}
+	return issues
+}
+
+type Issue struct {
+	onedev.Issue
+	Comments []onedev.Comment
 }

@@ -185,6 +185,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if len(repo.Issues) > 0 {
+			_, err := os.Stat(fmt.Sprintf("%s.issues", repo.Name))
 			if os.IsNotExist(err) && !dry {
 				if err := os.MkdirAll(fmt.Sprintf("%s.issues", repo.Name), 0o777); err != nil {
 					sub.Error().
