@@ -33,6 +33,7 @@ var (
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	sub = logger.CreateSubLogger("stage", "locally", "path", l.Path)
+	originPath, _ := os.Getwd()
 	if l.LFS {
 		g, err := gitcmd.New()
 		if err != nil {
@@ -241,6 +242,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		x = 5
+	}
+	if err := os.Chdir(originPath); err != nil {
+		sub.Error().
+			Msg(err.Error())
+		return false
 	}
 	return true
 }
