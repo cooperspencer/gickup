@@ -241,6 +241,7 @@ type GenRepo struct {
 	ExcludeOrgs    []string   `yaml:"excludeorgs"`
 	Include        []string   `yaml:"include"`
 	IncludeOrgs    []string   `yaml:"includeorgs"`
+	Issues         bool       `yaml:"issues"`
 	Wiki           bool       `yaml:"wiki"`
 	Starred        bool       `yaml:"starred"`
 	CreateOrg      bool       `yaml:"createorg"`
@@ -384,6 +385,7 @@ type Repo struct {
 	Owner         string
 	Hoster        string
 	Description   string
+	Issues        map[string]interface{}
 	Private       bool
 }
 

@@ -25,6 +25,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      issues: true # back up issues, works only locally
       starred: true # includes the user's starred repositories too
       filter:
         stars: 100 # only clone repos with 100 stars
@@ -60,6 +61,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      issues: true # back up issues, works only locally
       starred: true # includes the user's starred repositories too
       filter:
         stars: 100 # only clone repos with 100 stars
@@ -95,6 +97,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      issues: true # back up issues, works only locally
       filter:
         stars: 100 # only clone repos with 100 stars
         lastactivity: 1y # only clone repos which had activity during the last year
@@ -125,6 +128,7 @@ source:
         - foo1
         - bar1
       wiki: true # includes wiki too
+      issues: true # back up issues, works only locally
       starred: true # includes the user's starred repositories too
       filter:
         stars: 100 # only clone repos with 100 stars
@@ -163,6 +167,7 @@ source:
       filter:
         lastactivity: 1y # only clone repos which had activity during the last year
         excludeforks: true # exclude forked repositories
+      issues: true # back up issues, works only locally
   sourcehut:
     - token: some-token # as of now only the legacy api works, use the legacy token
       # token_file: token.txt # alternatively, specify token in a file

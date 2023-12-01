@@ -1,11 +1,13 @@
 package local
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -182,18 +184,51 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			}
 		}
 
+		if len(repo.Issues) > 0 {
+			_, err := os.Stat(fmt.Sprintf("%s.issues", repo.Name))
+			if os.IsNotExist(err) && !dry {
+				if err := os.MkdirAll(fmt.Sprintf("%s.issues", repo.Name), 0o777); err != nil {
+					sub.Error().
+						Msg(err.Error())
+				}
+			}
+			sub.Info().Str("repo", repo.Name).Msg("backing up issues")
+			if !dry {
+				for k, v := range repo.Issues {
+					jsonData, err := json.Marshal(v)
+					if err != nil {
+						sub.Error().
+							Msg(err.Error())
+					} else {
+						err = os.WriteFile(filepath.Join(l.Path, fmt.Sprintf("%s.issues", repo.Name), fmt.Sprintf("%s.json", k)), jsonData, 0644)
+						if err != nil {
+							sub.Error().
+								Msg(err.Error())
+						}
+					}
+				}
+			}
+		}
+
 		if l.Zip {
+			tozip := []string{repo.Name}
+
+			if len(repo.Issues) > 0 {
+				tozip = append(tozip, fmt.Sprintf("%s.issues", repo.Name))
+			}
 			sub.Info().
 				Msgf("zipping %s", types.Green(repo.Name))
-			err := archiver.Archive([]string{repo.Name}, fmt.Sprintf("%s.zip", repo.Name))
+			err := archiver.Archive(tozip, fmt.Sprintf("%s.zip", repo.Name))
 			if err != nil {
 				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
 			}
-			err = os.RemoveAll(repo.Name)
-			if err != nil {
-				sub.Warn().
-					Str("repo", repo.Name).Msg(err.Error())
+			for _, dir := range tozip {
+				err = os.RemoveAll(dir)
+				if err != nil {
+					sub.Warn().
+						Str("repo", repo.Name).Msg(err.Error())
+				}
 			}
 		}
 
