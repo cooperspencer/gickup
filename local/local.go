@@ -193,18 +193,24 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 						Msg(err.Error())
 				}
 			}
-			sub.Info().Str("repo", repo.Name).Msg("backing up issues")
-			if !dry {
-				for k, v := range repo.Issues {
-					jsonData, err := json.Marshal(v)
-					if err != nil {
-						sub.Error().
-							Msg(err.Error())
-					} else {
-						err = os.WriteFile(filepath.Join(l.Path, fmt.Sprintf("%s.issues", repo.Name), fmt.Sprintf("%s.json", k)), jsonData, 0644)
+			issuesDir, err := filepath.Abs(fmt.Sprintf("%s.issues", repo.Name))
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+			} else {
+				sub.Info().Str("repo", repo.Name).Msg("backing up issues")
+				if !dry {
+					for k, v := range repo.Issues {
+						jsonData, err := json.Marshal(v)
 						if err != nil {
 							sub.Error().
 								Msg(err.Error())
+						} else {
+							err = os.WriteFile(filepath.Join(issuesDir, fmt.Sprintf("%s.json", k)), jsonData, 0644)
+							if err != nil {
+								sub.Error().
+									Msg(err.Error())
+							}
 						}
 					}
 				}
