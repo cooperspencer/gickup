@@ -144,6 +144,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					break
 				}
 
+				if err == git.ErrRepositoryNotExists {
+					dir, _ := filepath.Abs(repo.Name)
+					sub.Warn().
+						Str("repo", repo.Name).
+						Msgf("removing %s", dir)
+					os.RemoveAll(repo.Name)
+				}
+
 				sub.Warn().
 					Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
