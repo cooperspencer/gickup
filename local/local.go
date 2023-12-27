@@ -162,13 +162,6 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 				err := updateRepository(repo.Name, auth, dry, l)
 				if err != nil {
-					if err == git.ErrRepositoryNotExists {
-						dir, _ := filepath.Abs(repo.Name)
-						sub.Warn().
-							Str("repo", repo.Name).
-							Msgf("removing %s", dir)
-						os.RemoveAll(repo.Name)
-					}
 					if err == git.NoErrAlreadyUpToDate {
 						sub.Info().
 							Msg(err.Error())
@@ -177,13 +170,26 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							sub.Warn().
 								Str("repo", repo.Name).
 								Msg(err.Error())
-							os.RemoveAll(repo.Name)
+							err = os.RemoveAll(repo.Name)
+							if err != nil {
+								dir, _ := filepath.Abs(repo.Name)
+								sub.Warn().
+									Str("repo", repo.Name).Err(err).
+									Msgf("couldn't remove %s", types.Red(dir))
+							}
 							break
 						} else {
-							os.RemoveAll(repo.Name)
 							sub.Warn().
 								Str("repo", repo.Name).Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+
+							err = os.RemoveAll(repo.Name)
+							if err != nil {
+								dir, _ := filepath.Abs(repo.Name)
+								sub.Warn().
+									Str("repo", repo.Name).Err(err).
+									Msgf("couldn't remove %s", types.Red(dir))
+							}
 
 							time.Sleep(5 * time.Second)
 
