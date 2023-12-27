@@ -167,9 +167,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							Msg(err.Error())
 					} else {
 						if x == tries {
-							sub.Fatal().
+							sub.Warn().
 								Str("repo", repo.Name).
 								Msg(err.Error())
+							os.RemoveAll(repo.Name)
+							break
 						} else {
 							os.RemoveAll(repo.Name)
 							sub.Warn().
