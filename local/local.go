@@ -144,6 +144,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					break
 				}
 
+				err = os.RemoveAll(repo.Name)
+				if err != nil {
+					dir, _ := filepath.Abs(repo.Name)
+					sub.Warn().
+						Str("repo", repo.Name).Err(err).
+						Msgf("couldn't remove %s", types.Red(dir))
+				}
+
 				sub.Warn().Err(err).
 					Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
