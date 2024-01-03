@@ -144,7 +144,15 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					break
 				}
 
-				sub.Warn().
+				err = os.RemoveAll(repo.Name)
+				if err != nil {
+					dir, _ := filepath.Abs(repo.Name)
+					sub.Warn().
+						Str("repo", repo.Name).Err(err).
+						Msgf("couldn't remove %s", types.Red(dir))
+				}
+
+				sub.Warn().Err(err).
 					Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
 				time.Sleep(5 * time.Second)
@@ -167,14 +175,29 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							Msg(err.Error())
 					} else {
 						if x == tries {
-							sub.Fatal().
-								Str("repo", repo.Name).
-								Msg(err.Error())
-						} else {
-							os.RemoveAll(repo.Name)
 							sub.Warn().
 								Str("repo", repo.Name).
+								Msg(err.Error())
+							err = os.RemoveAll(repo.Name)
+							if err != nil {
+								dir, _ := filepath.Abs(repo.Name)
+								sub.Warn().
+									Str("repo", repo.Name).Err(err).
+									Msgf("couldn't remove %s", types.Red(dir))
+							}
+							break
+						} else {
+							sub.Warn().
+								Str("repo", repo.Name).Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+
+							err = os.RemoveAll(repo.Name)
+							if err != nil {
+								dir, _ := filepath.Abs(repo.Name)
+								sub.Warn().
+									Str("repo", repo.Name).Err(err).
+									Msgf("couldn't remove %s", types.Red(dir))
+							}
 
 							time.Sleep(5 * time.Second)
 
