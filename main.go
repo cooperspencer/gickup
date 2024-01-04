@@ -15,6 +15,7 @@ import (
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/go-git/go-git/v5"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -80,6 +81,10 @@ func readConfigFile(configfile string) []*types.Conf {
 					Str("file", configfile).
 					Msg(err.Error())
 			}
+		}
+
+		for i, local := range c.Destination.Local {
+			c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
 		}
 
 		if !reflect.ValueOf(c).IsZero() {
@@ -151,8 +156,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
-				d.Path = substituteHomeForTildeInPath(d.Path)
-
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
 					log.Fatal().
@@ -552,11 +555,22 @@ func runBackup(conf *types.Conf, num int) {
 	}
 }
 
-func playsForever() {
-	wait := make(chan struct{})
-
+func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 	for {
-		<-wait
+		checkconfigs := []*types.Conf{}
+		for _, f := range conffiles {
+			checkconfigs = append(checkconfigs, readConfigFile(f)...)
+		}
+
+		if !cmp.Equal(confs, checkconfigs) {
+			log.Info().Msg("config changed")
+			for _, entry := range c.Entries() {
+				c.Remove(entry.ID)
+			}
+			return true
+		}
+
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -595,73 +609,83 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
-	confs := []*types.Conf{}
-	for _, f := range cli.Configfiles {
-		log.Info().Str("file", f).
-			Msgf("Reading %s", types.Green(f))
+	init := true
+	for {
+		reload := false
+		confs := []*types.Conf{}
+		for _, f := range cli.Configfiles {
+			log.Info().Str("file", f).
+				Msgf("Reading %s", types.Green(f))
 
-		confs = append(confs, readConfigFile(f)...)
-	}
-	if confs[0].Log.Timeformat == "" {
-		confs[0].Log.Timeformat = timeformat
-	}
-
-	log.Logger = logger.CreateLogger(confs[0].Log)
-
-	validcron := confs[0].HasValidCronSpec()
-
-	var c *cron.Cron
-
-	if validcron {
-		c = cron.New()
-		c.Start()
-	}
-
-	sourcecount := 0
-	destinationcount := 0
-	// one pair per source-destination
-	for num, conf := range confs {
-		pairs := conf.Source.Count() * conf.Destination.Count()
-		sourcecount += conf.Source.Count()
-		destinationcount += conf.Destination.Count()
-		log.Info().
-			Int("sources", conf.Source.Count()).
-			Int("destinations", conf.Destination.Count()).
-			Int("pairs", pairs).
-			Msg("Configuration loaded")
-
-		if !conf.HasValidCronSpec() {
-			conf.Cron = confs[0].Cron
+			confs = append(confs, readConfigFile(f)...)
+		}
+		if confs[0].Log.Timeformat == "" {
+			confs[0].Log.Timeformat = timeformat
 		}
 
-		if conf.HasValidCronSpec() && validcron {
-			conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
-			num := num
+		log.Logger = logger.CreateLogger(confs[0].Log)
 
-			logNextRun(conf)
+		validcron := confs[0].HasValidCronSpec()
 
-			_, err := c.AddFunc(conf.Cron, func() {
-				runBackup(conf, num)
-			})
-			if err != nil {
-				log.Fatal().
-					Int("sources", conf.Source.Count()).
-					Int("destinations", conf.Destination.Count()).
-					Int("pairs", pairs).
-					Msg(err.Error())
+		var c *cron.Cron
+
+		if validcron {
+			c = cron.New()
+			c.Start()
+		}
+
+		sourcecount := 0
+		destinationcount := 0
+		// one pair per source-destination
+		for num, conf := range confs {
+			pairs := conf.Source.Count() * conf.Destination.Count()
+			sourcecount += conf.Source.Count()
+			destinationcount += conf.Destination.Count()
+			log.Info().
+				Int("sources", conf.Source.Count()).
+				Int("destinations", conf.Destination.Count()).
+				Int("pairs", pairs).
+				Msg("Configuration loaded")
+
+			if !conf.HasValidCronSpec() {
+				conf.Cron = confs[0].Cron
 			}
-		} else {
-			runBackup(conf, num)
-		}
-	}
 
-	if validcron {
-		if confs[0].HasAllPrometheusConf() {
-			prometheus.CountSourcesConfigured.Add(float64(sourcecount))
-			prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
-			prometheus.Serve(confs[0].Metrics.Prometheus)
-		} else {
-			playsForever()
+			if conf.HasValidCronSpec() && validcron {
+				conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
+				num := num
+
+				logNextRun(conf)
+
+				_, err := c.AddFunc(conf.Cron, func() {
+					runBackup(conf, num)
+				})
+				if err != nil {
+					log.Fatal().
+						Int("sources", conf.Source.Count()).
+						Int("destinations", conf.Destination.Count()).
+						Int("pairs", pairs).
+						Msg(err.Error())
+				}
+			} else {
+				runBackup(conf, num)
+			}
+		}
+
+		if validcron {
+			if confs[0].HasAllPrometheusConf() {
+				prometheus.CountSourcesConfigured.Add(float64(sourcecount))
+				prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
+				if init {
+					go prometheus.Serve(confs[0].Metrics.Prometheus)
+					init = false
+				}
+			}
+			reload = playsForever(c, cli.Configfiles, confs)
+			log.Info().Msg("reloading config...")
+		}
+		if !reload {
+			break
 		}
 	}
 }
