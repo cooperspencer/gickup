@@ -14,6 +14,7 @@ import (
 
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/sourcehut"
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-git/go-git/v5"
 
 	"github.com/alecthomas/kong"
@@ -552,11 +553,34 @@ func runBackup(conf *types.Conf, num int) {
 	}
 }
 
-func playsForever() {
-	wait := make(chan struct{})
-
+func playsForever(c *cron.Cron, confs []string) bool {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal().Err(err).Msg("couldn't create watcher")
+	}
+	defer watcher.Close()
+	for _, conf := range confs {
+		watcher.Add(conf)
+	}
 	for {
-		<-wait
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return false
+			}
+			if event.Has(fsnotify.Write) {
+				log.Info().Msgf("modified file: %s", event.Name)
+				for _, job := range c.Entries() {
+					c.Remove(job.ID)
+					return true
+				}
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return false
+			}
+			log.Warn().Msg(err.Error())
+		}
 	}
 }
 
@@ -595,73 +619,80 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
-	confs := []*types.Conf{}
-	for _, f := range cli.Configfiles {
-		log.Info().Str("file", f).
-			Msgf("Reading %s", types.Green(f))
+	for {
+		reload := false
+		confs := []*types.Conf{}
+		for _, f := range cli.Configfiles {
+			log.Info().Str("file", f).
+				Msgf("Reading %s", types.Green(f))
 
-		confs = append(confs, readConfigFile(f)...)
-	}
-	if confs[0].Log.Timeformat == "" {
-		confs[0].Log.Timeformat = timeformat
-	}
-
-	log.Logger = logger.CreateLogger(confs[0].Log)
-
-	validcron := confs[0].HasValidCronSpec()
-
-	var c *cron.Cron
-
-	if validcron {
-		c = cron.New()
-		c.Start()
-	}
-
-	sourcecount := 0
-	destinationcount := 0
-	// one pair per source-destination
-	for num, conf := range confs {
-		pairs := conf.Source.Count() * conf.Destination.Count()
-		sourcecount += conf.Source.Count()
-		destinationcount += conf.Destination.Count()
-		log.Info().
-			Int("sources", conf.Source.Count()).
-			Int("destinations", conf.Destination.Count()).
-			Int("pairs", pairs).
-			Msg("Configuration loaded")
-
-		if !conf.HasValidCronSpec() {
-			conf.Cron = confs[0].Cron
+			confs = append(confs, readConfigFile(f)...)
+		}
+		if confs[0].Log.Timeformat == "" {
+			confs[0].Log.Timeformat = timeformat
 		}
 
-		if conf.HasValidCronSpec() && validcron {
-			conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
-			num := num
+		log.Logger = logger.CreateLogger(confs[0].Log)
 
-			logNextRun(conf)
+		validcron := confs[0].HasValidCronSpec()
 
-			_, err := c.AddFunc(conf.Cron, func() {
-				runBackup(conf, num)
-			})
-			if err != nil {
-				log.Fatal().
-					Int("sources", conf.Source.Count()).
-					Int("destinations", conf.Destination.Count()).
-					Int("pairs", pairs).
-					Msg(err.Error())
+		var c *cron.Cron
+
+		if validcron {
+			c = cron.New()
+			c.Start()
+		}
+
+		sourcecount := 0
+		destinationcount := 0
+		// one pair per source-destination
+		for num, conf := range confs {
+			pairs := conf.Source.Count() * conf.Destination.Count()
+			sourcecount += conf.Source.Count()
+			destinationcount += conf.Destination.Count()
+			log.Info().
+				Int("sources", conf.Source.Count()).
+				Int("destinations", conf.Destination.Count()).
+				Int("pairs", pairs).
+				Msg("Configuration loaded")
+
+			if !conf.HasValidCronSpec() {
+				conf.Cron = confs[0].Cron
 			}
-		} else {
-			runBackup(conf, num)
-		}
-	}
 
-	if validcron {
-		if confs[0].HasAllPrometheusConf() {
-			prometheus.CountSourcesConfigured.Add(float64(sourcecount))
-			prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
-			prometheus.Serve(confs[0].Metrics.Prometheus)
-		} else {
-			playsForever()
+			if conf.HasValidCronSpec() && validcron {
+				conf := conf // https://stackoverflow.com/questions/57095167/how-do-i-create-multiple-cron-function-by-looping-through-a-list
+				num := num
+
+				logNextRun(conf)
+
+				_, err := c.AddFunc(conf.Cron, func() {
+					runBackup(conf, num)
+				})
+				if err != nil {
+					log.Fatal().
+						Int("sources", conf.Source.Count()).
+						Int("destinations", conf.Destination.Count()).
+						Int("pairs", pairs).
+						Msg(err.Error())
+				}
+			} else {
+				runBackup(conf, num)
+			}
+		}
+
+		if validcron {
+			if confs[0].HasAllPrometheusConf() {
+				prometheus.CountSourcesConfigured.Add(float64(sourcecount))
+				prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
+				prometheus.Serve(confs[0].Metrics.Prometheus)
+			} else {
+				reload = playsForever(c, cli.Configfiles)
+				log.Info().Msg("reloading config...")
+			}
+		}
+		if !reload {
+			break
 		}
 	}
 }
