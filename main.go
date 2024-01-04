@@ -619,6 +619,7 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
+	init := true
 	for {
 		reload := false
 		confs := []*types.Conf{}
@@ -685,11 +686,13 @@ func main() {
 			if confs[0].HasAllPrometheusConf() {
 				prometheus.CountSourcesConfigured.Add(float64(sourcecount))
 				prometheus.CountDestinationsConfigured.Add(float64(destinationcount))
-				prometheus.Serve(confs[0].Metrics.Prometheus)
-			} else {
-				reload = playsForever(c, cli.Configfiles)
-				log.Info().Msg("reloading config...")
+				if init {
+					go prometheus.Serve(confs[0].Metrics.Prometheus)
+					init = false
+				}
 			}
+			reload = playsForever(c, cli.Configfiles)
+			log.Info().Msg("reloading config...")
 		}
 		if !reload {
 			break
