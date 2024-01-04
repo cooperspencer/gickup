@@ -14,8 +14,8 @@ import (
 
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/sourcehut"
-	"github.com/fsnotify/fsnotify"
 	"github.com/go-git/go-git/v5"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -81,6 +81,10 @@ func readConfigFile(configfile string) []*types.Conf {
 					Str("file", configfile).
 					Msg(err.Error())
 			}
+		}
+
+		for i, local := range c.Destination.Local {
+			c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
 		}
 
 		if !reflect.ValueOf(c).IsZero() {
@@ -152,8 +156,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 		for i, d := range conf.Destination.Local {
 			if !checkedpath {
-				d.Path = substituteHomeForTildeInPath(d.Path)
-
 				path, err := filepath.Abs(d.Path)
 				if err != nil {
 					log.Fatal().
@@ -553,34 +555,22 @@ func runBackup(conf *types.Conf, num int) {
 	}
 }
 
-func playsForever(c *cron.Cron, confs []string) bool {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal().Err(err).Msg("couldn't create watcher")
-	}
-	defer watcher.Close()
-	for _, conf := range confs {
-		watcher.Add(conf)
-	}
+func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 	for {
-		select {
-		case event, ok := <-watcher.Events:
-			if !ok {
-				return false
-			}
-			if event.Has(fsnotify.Write) {
-				log.Info().Msgf("modified file: %s", event.Name)
-				for _, job := range c.Entries() {
-					c.Remove(job.ID)
-					return true
-				}
-			}
-		case err, ok := <-watcher.Errors:
-			if !ok {
-				return false
-			}
-			log.Warn().Msg(err.Error())
+		checkconfigs := []*types.Conf{}
+		for _, f := range conffiles {
+			checkconfigs = append(checkconfigs, readConfigFile(f)...)
 		}
+
+		if !cmp.Equal(confs, checkconfigs) {
+			log.Info().Msg("config changed")
+			for _, entry := range c.Entries() {
+				c.Remove(entry.ID)
+			}
+			return true
+		}
+
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -691,7 +681,7 @@ func main() {
 					init = false
 				}
 			}
-			reload = playsForever(c, cli.Configfiles)
+			reload = playsForever(c, cli.Configfiles, confs)
 			log.Info().Msg("reloading config...")
 		}
 		if !reload {
