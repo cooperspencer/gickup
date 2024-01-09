@@ -619,11 +619,14 @@ func main() {
 
 			confs = append(confs, readConfigFile(f)...)
 		}
-		if confs[0].Log.Timeformat == "" {
-			confs[0].Log.Timeformat = timeformat
+
+		logConf := confs[0].Log
+
+		if logConf.Timeformat == "" {
+			logConf.Timeformat = timeformat
 		}
 
-		log.Logger = logger.CreateLogger(confs[0].Log)
+		log.Logger = logger.CreateLogger(logConf)
 
 		validcron := confs[0].HasValidCronSpec()
 
