@@ -469,6 +469,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 
 	err = r.Fetch(&git.FetchOptions{
 		RefSpecs: []config.RefSpec{"refs/*:refs/*"},
+		Auth:     auth,
 	})
 	if err == git.NoErrAlreadyUpToDate {
 		return r, nil
