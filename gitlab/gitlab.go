@@ -112,10 +112,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 		ran = true
 
-		sub.Info().
-			Msgf("grabbing repositories from %s", repo.User)
-		gitlabrepos := []*gitlab.Project{}
-		gitlabgrouprepos := map[string][]*gitlab.Project{}
 		token := repo.GetToken()
 		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URL))
 		if err != nil {
@@ -123,6 +119,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Msg(err.Error())
 			continue
 		}
+
+		if repo.User == "" {
+			user, _, err := client.Users.CurrentUser()
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+				continue
+			}
+			repo.User = user.Username
+		}
+
+		sub.Info().
+			Msgf("grabbing repositories from %s", repo.User)
+		gitlabrepos := []*gitlab.Project{}
+		gitlabgrouprepos := map[string][]*gitlab.Project{}
 
 		opt := &gitlab.ListProjectsOptions{}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
