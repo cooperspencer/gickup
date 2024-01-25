@@ -246,7 +246,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
-								Str("stage", "onedev").
+								Str("stage", "github").
 								Str("url", r.URL).
 								Msg(err.Error())
 						} else {
@@ -401,7 +401,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
-								Str("stage", "onedev").
+								Str("stage", "sourcehut").
 								Str("url", r.URL).
 								Msg(err.Error())
 						} else {
@@ -428,7 +428,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
-								Str("stage", "onedev").
+								Str("stage", "sourcehut").
 								Str("url", r.URL).
 								Msg(err.Error())
 						} else {
