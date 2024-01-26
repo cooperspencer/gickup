@@ -253,6 +253,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							log.Error().
 								Str("stage", "tempclone").
 								Str("url", r.URL).
+								Str("git", "clone").
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
 							continue
