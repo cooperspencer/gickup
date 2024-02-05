@@ -270,7 +270,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
@@ -293,7 +293,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("github").Inc()
-					os.RemoveAll(tempdir)
 				}
 			}
 		}
@@ -348,7 +347,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
@@ -426,7 +425,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
 							log.Info().
