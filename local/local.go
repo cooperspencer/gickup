@@ -18,6 +18,7 @@ import (
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -451,6 +452,13 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 }
 
 func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
+	var auth transport.AuthMethod
+	if repo.Token != "" {
+		auth = &http.BasicAuth{
+			Username: "xyz",
+			Password: repo.Token,
+		}
+	}
 	if repo.Origin.LFS {
 		g, err := gitcmd.New()
 		if err != nil {
@@ -470,7 +478,44 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = gitc.Fetch(tempdir)
+
+		r, err := git.PlainOpen(tempdir)
+		if err != nil {
+			return nil, err
+		}
+		err = r.Fetch(&git.FetchOptions{
+			RefSpecs: []config.RefSpec{"refs/*:refs/*"},
+			Auth:     auth,
+			Force:    true,
+		})
+		if err == git.NoErrAlreadyUpToDate {
+			return r, nil
+		}
+
+		// Get the symbolic reference for HEAD
+		headRef, err := r.Head()
+		if err != nil {
+			return nil, err
+		}
+
+		// Retrieve the list of branches
+		refs, err := r.Branches()
+		if err != nil {
+			return nil, err
+		}
+
+		// Print the names of branches
+		err = refs.ForEach(func(ref *plumbing.Reference) error {
+			if ref.Name().Short() != headRef.Name().Short() {
+				return gitc.Checkout(tempdir, ref.Name().Short())
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		err = gitc.Checkout(tempdir, headRef.Name().Short())
 		if err != nil {
 			return nil, err
 		}
@@ -480,15 +525,8 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 			return nil, err
 		}
 
-		return git.PlainOpen(tempdir)
+		return r, err
 	} else {
-		var auth transport.AuthMethod
-		if repo.Token != "" {
-			auth = &http.BasicAuth{
-				Username: "xyz",
-				Password: repo.Token,
-			}
-		}
 		r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
 			URL:          repo.URL,
 			Auth:         auth,

@@ -103,7 +103,33 @@ func (g GitCmd) Push(path, remote string) error {
 	output, _ := cmd.CombinedOutput()
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+		if _, ok := err.(*exec.ExitError); ok {
+			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+		}
+	}
+
+	return nil
+}
+
+func (g GitCmd) Checkout(path, branch string) error {
+	currentpath, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	defer os.Chdir(currentpath)
+	err = os.Chdir(path)
+	if err != nil {
+		return err
+	}
+	args := []string{"checkout", branch}
+	cmd := exec.Command(g.CMD, args...)
+
+	output, _ := cmd.CombinedOutput()
+
+	if err := cmd.Run(); err != nil {
+		if _, ok := err.(*exec.ExitError); ok {
+			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+		}
 	}
 
 	return nil
