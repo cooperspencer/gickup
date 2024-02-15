@@ -337,9 +337,8 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 				return err
 			}
 		} else {
-			if l.Bare {
-				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
-			} else {
+			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			if !l.Bare {
 				w, err := r.Worktree()
 				if err != nil {
 					return err
@@ -399,14 +398,63 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 	if l.LFS {
 		err = gitc.Clone(url, repo.Name, l.Bare)
 	} else {
-		_, err = git.PlainClone(repo.Name, l.Bare, &git.CloneOptions{
+		r := &git.Repository{}
+		r, err = git.PlainClone(repo.Name, l.Bare, &git.CloneOptions{
 			URL:          url,
 			Auth:         auth,
 			SingleBranch: false,
 		})
+		if err != nil {
+			return err
+		}
+		err = r.Fetch(&git.FetchOptions{
+			RefSpecs: []config.RefSpec{"refs/*:refs/*"},
+			Auth:     auth,
+			Force:    true,
+		})
 	}
 
 	return err
+}
+
+func CheckoutAllBranches(auth transport.AuthMethod, repo *git.Repository) error {
+	// Get the default branch
+	defaultBranch, err := repo.Head()
+	if err != nil {
+		return err
+	}
+
+	// List all branches
+	branches, err := repo.Branches()
+	if err != nil {
+		return err
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	// Iterate over branches
+	err = branches.ForEach(func(ref *plumbing.Reference) error {
+		fmt.Println(ref.Name())
+		// Checkout each branch
+		err := worktree.Checkout(&git.CheckoutOptions{
+			Branch: ref.Name(),
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Checkout the default branch
+	return worktree.Checkout(&git.CheckoutOptions{
+		Branch: defaultBranch.Name(),
+	})
 }
 
 func testSSHConnection(site types.Site, sshAuth goph.Auth) error {
