@@ -417,46 +417,6 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 	return err
 }
 
-func CheckoutAllBranches(auth transport.AuthMethod, repo *git.Repository) error {
-	// Get the default branch
-	defaultBranch, err := repo.Head()
-	if err != nil {
-		return err
-	}
-
-	// List all branches
-	branches, err := repo.Branches()
-	if err != nil {
-		return err
-	}
-
-	worktree, err := repo.Worktree()
-	if err != nil {
-		return err
-	}
-
-	// Iterate over branches
-	err = branches.ForEach(func(ref *plumbing.Reference) error {
-		fmt.Println(ref.Name())
-		// Checkout each branch
-		err := worktree.Checkout(&git.CheckoutOptions{
-			Branch: ref.Name(),
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Checkout the default branch
-	return worktree.Checkout(&git.CheckoutOptions{
-		Branch: defaultBranch.Name(),
-	})
-}
-
 func testSSHConnection(site types.Site, sshAuth goph.Auth) error {
 	_, err := goph.NewConn(&goph.Config{
 		User:     site.User,
