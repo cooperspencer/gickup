@@ -340,7 +340,9 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
 			if !l.Bare {
 				w, err := r.Worktree()
-				if err != nil {
+				if err == git.NoErrAlreadyUpToDate {
+					err = nil
+				} else {
 					return err
 				}
 
@@ -348,7 +350,9 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 					Msgf("pulling %s", types.Green(repoPath))
 
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
-				if err != nil {
+				if err == git.NoErrAlreadyUpToDate {
+					err = nil
+				} else {
 					return err
 				}
 			}
@@ -412,6 +416,9 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 			Auth:     auth,
 			Force:    true,
 		})
+		if err == git.NoErrAlreadyUpToDate {
+			err = nil
+		}
 	}
 
 	return err
