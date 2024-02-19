@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o gickup .
 # Use ubuntu as production environment
 FROM ubuntu as production
 WORKDIR /
-RUN apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y git git-lfs ssl-cert tzdata && rm -rf /var/lib/apt/lists/*
+RUN apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y git git-lfs ssl-cert tzdata openssh-client && rm -rf /var/lib/apt/lists/*
 RUN git lfs install
 # Copy the main executable from the builder
 COPY --from=builder /go/src/github.com/cooperspencer/gickup/gickup /gickup/gickup
