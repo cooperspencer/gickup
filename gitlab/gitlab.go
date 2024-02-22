@@ -1,7 +1,9 @@
 package gitlab
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"path"
 	"strconv"
 	"strings"
@@ -22,12 +24,25 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	var gitlabclient *gitlab.Client
 	token := d.GetToken()
 	var err error
-	if d.URL == "" {
-		d.URL = "https://gitlab.com"
-		gitlabclient, err = gitlab.NewClient(token)
+	clientOptions := []gitlab.ClientOptionFunc{}
+
+	if d.URL != "" {
+		clientOptions = append(clientOptions, gitlab.WithBaseURL(d.URL))
 	} else {
-		gitlabclient, err = gitlab.NewClient(token, gitlab.WithBaseURL(d.URL))
+		d.URL = "https://gitlab.com"
 	}
+
+	d.GetTLS()
+
+	if !*d.TLS {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		clientOptions = append(clientOptions, gitlab.WithHTTPClient(client))
+	}
+
+	gitlabclient, err = gitlab.NewClient(token, clientOptions...)
 	sub = logger.CreateSubLogger("stage", "gitlab", "url", d.URL)
 
 	if err != nil {
@@ -101,8 +116,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Gitlab {
+		clientOptions := []gitlab.ClientOptionFunc{}
 		if repo.URL == "" {
 			repo.URL = "https://gitlab.com"
+		} else {
+			clientOptions = append(clientOptions, gitlab.WithBaseURL(repo.URL))
 		}
 		err := repo.Filter.ParseDuration()
 		sub = logger.CreateSubLogger("stage", "gitlab", "url", repo.URL)
@@ -112,8 +130,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 		ran = true
 
+		repo.GetTLS()
+
+		if !*repo.TLS {
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{Transport: tr}
+			clientOptions = append(clientOptions, gitlab.WithHTTPClient(client))
+		}
+
 		token := repo.GetToken()
-		client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.URL))
+		client, err := gitlab.NewClient(token, clientOptions...)
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
