@@ -563,6 +563,14 @@ func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 			checkconfigs = append(checkconfigs, readConfigFile(f)...)
 		}
 
+		if checkconfigs[0].HasValidCronSpec() {
+			for num, config := range checkconfigs {
+				if !config.HasValidCronSpec() {
+					checkconfigs[num].Cron = checkconfigs[0].Cron
+				}
+			}
+		}
+
 		if !cmp.Equal(confs, checkconfigs) {
 			log.Info().Msg("config changed")
 			for _, entry := range c.Entries() {
