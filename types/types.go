@@ -251,6 +251,14 @@ type GenRepo struct {
 	Contributed    bool       `yaml:"contributed"`
 	MirrorInterval string     `yaml:"mirrorinterval"`
 	LFS            bool       `yaml:"lfs"`
+	TLS            *bool      `yaml:"tls,omitempty"`
+}
+
+func (g *GenRepo) GetTLS() {
+	if g.TLS == nil {
+		defaultTLS := true
+		g.TLS = &defaultTLS
+	}
 }
 
 // Visibility struct
