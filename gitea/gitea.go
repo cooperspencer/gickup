@@ -9,7 +9,6 @@ import (
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -151,7 +150,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 
 	_, err = time.ParseDuration(d.MirrorInterval)
 	if err != nil {
-		log.Warn().Msgf("%s is not a valid duration!", d.MirrorInterval)
+		sub.Warn().Msgf("%s is not a valid duration!", d.MirrorInterval)
 		d.MirrorInterval = repo.MirrorInterval
 	}
 
