@@ -32,6 +32,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			var auth transport.AuthMethod
 			hoster := "local"
+			if repo.User == "" {
+				if repo.Username != "" {
+					repo.User = repo.Username
+				} else {
+					repo.User = "git"
+				}
+			}
 			if _, err := os.Stat(repo.URL); os.IsNotExist(err) {
 				hoster = types.GetHost(repo.URL)
 				if strings.HasPrefix(repo.URL, "http://") || strings.HasPrefix(repo.URL, "https://") {
@@ -97,7 +104,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Token:         repo.GetToken(),
 				Defaultbranch: main,
 				Origin:        repo,
-				Owner:         "git",
+				Owner:         repo.User,
 				Hoster:        hoster,
 			})
 		}

@@ -192,6 +192,7 @@ source:
         lastactivity: 1y # only clone repos which had activity during the last year
   any:
     - url: url-to-any-repo # can be https, http or ssh
+      user: your-preferred-user # the user to want to associate with this repo, default: git
       username: your-user # user is used to clone the repo with
       password: your-password
       ssh: true # can be true or false
