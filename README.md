@@ -1,11 +1,38 @@
-[![Build and Publish](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg)](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml)
-# GICKUP
-![gickup](https://github.com/cooperspencer/gickup/blob/main/gickup.png)
+<h1 align="center">
+    <img src="https://github.com/cooperspencer/gickup/blob/main/gickup.png" style="width: 20%;" alt="logo">
+    <br/>
+    GICKUP
+</h1>
 
-Backup all the repositories.
+<h4 align="center">
+    Backup your Git repositories with ease.
+</h4>
 
-A lot of hosters are already supported, but if you see that there is one missing, feel free to create a MR or open an issue and I will take care of it.
 
+<p align="center">
+    <strong>
+        <a href="https://cooperspencer.github.io/gickup-documentation/" target="_blank">Website</a>
+        •
+        <a href="https://github.com/cooperspencer/gickup/">GitHub</a>
+        •
+        <a href="https://cooperspencer.github.io/gickup-documentation/docs/" target="_blank">Docs</a>
+    </strong>
+</p>
+
+<p align="center">
+    <a href="https://github.com/cooperspencer/gickup/actions/workflows/docker.yml">
+        <img alt="Build and Publish" src="https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg">
+    </a>
+</p>
+
+
+
+## What is GICKUP?
+Gickup is a tool that allows you to clone/mirror repositories from one hoster to another.
+This is useful if you want to have a backup of your repositories on another hoster or to a local server.
+
+
+### Supported Source and Destionations
 You can clone/mirror repositories from:
 - Github
 - Gitlab
@@ -16,7 +43,7 @@ You can clone/mirror repositories from:
 - Sourcehut
 - Any
 
-You can clone/mirror them to:
+You can clone/mirror repositories to:
 - Github
 - Gitlab
 - Gitea
@@ -25,7 +52,10 @@ You can clone/mirror them to:
 - Sourcehut
 - Local
 
-[Official Documentation](https://cooperspencer.github.io/gickup-documentation/)
+
+If your hoster is not listed, feel free to open an issue and I will add it.
+
+
 
 ## How to make a configuration file
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
