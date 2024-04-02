@@ -1,9 +1,35 @@
-[![Build and Publish](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg)](https://github.com/cooperspencer/gickup/actions/workflows/docker.yml)
-# GICKUP
-![gickup](https://github.com/cooperspencer/gickup/blob/main/gickup.png)
+<h1 align="center">
+    <img src="https://github.com/cooperspencer/gickup/blob/main/gickup.png" style="width: 20%;" alt="logo">
+    <br/>
+    Gickup
+</h1>
 
-Backup all the repositories.
+<h4 align="center">
+    Backup your Git repositories with ease.
+</h4>
 
+
+<p align="center">
+    <strong>
+        <a href="https://cooperspencer.github.io/gickup-documentation/" target="_blank">Website</a>
+        •
+        <a href="https://github.com/cooperspencer/gickup/">GitHub</a>
+        •
+        <a href="https://cooperspencer.github.io/gickup-documentation/docs/" target="_blank">Docs</a>
+    </strong>
+</p>
+
+<p align="center">
+    <a href="https://github.com/cooperspencer/gickup/actions/workflows/docker.yml">
+        <img alt="Build and Publish" src="https://github.com/cooperspencer/gickup/actions/workflows/docker.yml/badge.svg">
+    </a>
+</p>
+
+
+
+
+
+### Supported Source and Destionations
 A lot of hosters are already supported, but if you see that there is one missing, feel free to create a MR or open an issue and I will take care of it.
 
 You can clone/mirror repositories from:
