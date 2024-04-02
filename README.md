@@ -1,7 +1,7 @@
 <h1 align="center">
     <img src="https://github.com/cooperspencer/gickup/blob/main/gickup.png" style="width: 20%;" alt="logo">
     <br/>
-    Gickup
+    GICKUP
 </h1>
 
 <h4 align="center">
@@ -27,7 +27,7 @@
 
 
 
-## What is Gickup?
+## What is GICKUP?
 Gickup is a tool that allows you to clone/mirror repositories from one hoster to another.
 This is useful if you want to have a backup of your repositories on another hoster or to a local server.
 
