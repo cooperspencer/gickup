@@ -105,7 +105,7 @@ func getCommits(url, reponame, token string) (Commits, error) {
 
 // getRefs TODO
 func getRefs(url, name, token string) (Refs, error) {
-	body, err := doRequest(fmt.Sprintf("%s/%s/refs", url, name), token)
+	body, err := doRequest(fmt.Sprintf("%s%s/refs", url, name), token)
 	if err != nil {
 		return Refs{}, err
 	}
@@ -142,13 +142,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Sourcehut {
-		sub = logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
-		err := repo.Filter.ParseDuration()
-		if err != nil {
-			sub.Error().
-				Msg(err.Error())
-		}
-		ran = true
 		if repo.URL == "" {
 			repo.URL = "https://git.sr.ht"
 		}
@@ -156,6 +149,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if !strings.HasSuffix(repo.URL, "/") {
 			repo.URL += "/"
 		}
+
+		sub = logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
+		err := repo.Filter.ParseDuration()
+		if err != nil {
+			sub.Error().
+				Msg(err.Error())
+		}
+		ran = true
 
 		apiURL := fmt.Sprintf("%sapi/", repo.URL)
 
