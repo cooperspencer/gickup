@@ -22,82 +22,62 @@ func New() (GitCmd, error) {
 	return GitCmd{CMD: "git"}, nil
 }
 
-func (g GitCmd) Clone(url, path string, bare bool) error {
-	cmd := exec.Command(g.CMD, "clone", url, path)
+func (g GitCmd) Clone(url, reponame string, bare bool) error {
+	cmd := exec.Command(g.CMD, "clone", url, reponame)
 	if bare {
 		cmd.Args = append(cmd.Args, "--bare")
 	}
 	return cmd.Run()
 }
 
-func (g GitCmd) Pull(bare bool) error {
+func (g GitCmd) Pull(bare bool, repopath string) error {
 	var args = []string{}
 	if bare {
-		args = []string{"fetch", "--all"}
+		args = []string{"-C", repopath, "fetch", "--all"}
 	} else {
-		args = []string{"pull", "--all"}
+		args = []string{"-C", repopath, "pull", "--all"}
 	}
 	cmd := exec.Command(g.CMD, args...)
 	return cmd.Run()
 }
 
 func (g GitCmd) Fetch(path string) error {
-	currentpath, err := os.Getwd()
+	_, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
-	defer os.Chdir(currentpath)
-	err = os.Chdir(path)
-	if err != nil {
-		return err
-	}
-	args := []string{"fetch", "--all", "--tags"}
+	args := []string{"-C", path, "fetch", "--all", "--tags"}
 	cmd := exec.Command(g.CMD, args...)
 	return cmd.Run()
 }
 
 func (g GitCmd) MirrorPull(path string) error {
-	currentpath, err := os.Getwd()
+	_, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
-	defer os.Chdir(currentpath)
-	err = os.Chdir(path)
-	if err != nil {
-		return err
-	}
-	args := []string{"pull", "--all", "--tags"}
+	args := []string{"-C", path, "pull", "--all", "--tags"}
 	cmd := exec.Command(g.CMD, args...)
 	return cmd.Run()
 }
 
 func (g GitCmd) NewRemote(name, url, path string) error {
-	currentpath, err := os.Getwd()
+	_, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
-	defer os.Chdir(currentpath)
-	err = os.Chdir(path)
-	if err != nil {
-		return err
-	}
-	args := []string{"remote", "add", name, url}
+	args := []string{"-C", path, "remote", "add", name, url}
 	cmd := exec.Command(g.CMD, args...)
 
 	return cmd.Run()
 }
 
 func (g GitCmd) Push(path, remote string) error {
-	currentpath, err := os.Getwd()
+	_, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
-	defer os.Chdir(currentpath)
-	err = os.Chdir(path)
-	if err != nil {
-		return err
-	}
-	args := []string{"push", "--all", remote}
+	args := []string{"-C", path, "push", "--all", remote}
 	cmd := exec.Command(g.CMD, args...)
 
 	output, _ := cmd.CombinedOutput()
@@ -112,12 +92,7 @@ func (g GitCmd) Push(path, remote string) error {
 }
 
 func (g GitCmd) Checkout(path, branch string) error {
-	currentpath, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	defer os.Chdir(currentpath)
-	err = os.Chdir(path)
+	_, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
