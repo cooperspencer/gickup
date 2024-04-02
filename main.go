@@ -41,6 +41,7 @@ var cli struct {
 	Configfiles []string `arg name:"conf" help:"Path to the configfile." default:"conf.yml"`
 	Version     bool     `flag name:"version" help:"Show version."`
 	Dry         bool     `flag name:"dryrun" help:"Make a dry-run."`
+	Debug       bool     `flag name:"debug" help:"Output debug messages"`
 	Quiet       bool     `flag name:"quiet" help:"Output only warnings, errors, and fatal messages to stderr log output"`
 	Silent      bool     `flag name:"silent" help:"Suppress all stderr log output"`
 }
@@ -154,9 +155,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			log.Warn().Str("stage", "backup").Msg("No destinations configured!")
 		}
 
-		for i, d := range conf.Destination.Local {
+		for _, d := range conf.Destination.Local {
 			if !checkedpath {
-				path, err := filepath.Abs(d.Path)
+				_, err := filepath.Abs(d.Path)
 				if err != nil {
 					log.Fatal().
 						Str("stage", "locally").
@@ -164,7 +165,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						Msg(err.Error())
 				}
 
-				conf.Destination.Local[i].Path = path
 				checkedpath = true
 			}
 
@@ -573,6 +573,7 @@ func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 
 		if !cmp.Equal(confs, checkconfigs) {
 			log.Info().Msg("config changed")
+			log.Debug().Msg(cmp.Diff(confs, checkconfigs))
 			for _, entry := range c.Entries() {
 				c.Remove(entry.ID)
 			}
@@ -608,6 +609,10 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	}
 
+	if cli.Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
 	if cli.Silent {
 		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
@@ -622,11 +627,15 @@ func main() {
 	for {
 		reload := false
 		confs := []*types.Conf{}
-		for _, f := range cli.Configfiles {
+		for i, f := range cli.Configfiles {
 			log.Info().Str("file", f).
 				Msgf("Reading %s", types.Green(f))
-
-			confs = append(confs, readConfigFile(f)...)
+			absf, err := filepath.Abs(f)
+			if err != nil {
+				log.Panic().Err(err).Msgf("there is an issue with %s", f)
+			}
+			cli.Configfiles[i] = absf
+			confs = append(confs, readConfigFile(absf)...)
 		}
 
 		logConf := confs[0].Log
