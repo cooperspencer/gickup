@@ -27,11 +27,12 @@
 
 
 
+## What is Gickup?
+Gickup is a tool that allows you to clone/mirror repositories from one hoster to another.
+This is useful if you want to have a backup of your repositories on another hoster or to a local server.
 
 
 ### Supported Source and Destionations
-A lot of hosters are already supported, but if you see that there is one missing, feel free to create a MR or open an issue and I will take care of it.
-
 You can clone/mirror repositories from:
 - Github
 - Gitlab
@@ -42,7 +43,7 @@ You can clone/mirror repositories from:
 - Sourcehut
 - Any
 
-You can clone/mirror them to:
+You can clone/mirror repositories to:
 - Github
 - Gitlab
 - Gitea
@@ -51,7 +52,10 @@ You can clone/mirror them to:
 - Sourcehut
 - Local
 
-[Official Documentation](https://cooperspencer.github.io/gickup-documentation/)
+
+If your hoster is not listed, feel free to open an issue and I will add it.
+
+
 
 ## How to make a configuration file
 [Here is an example](https://github.com/cooperspencer/gickup/blob/main/conf.example.yml)
