@@ -83,6 +83,10 @@ func readConfigFile(configfile string) []*types.Conf {
 			}
 		}
 
+		if c == nil {
+			continue
+		}
+
 		for i, local := range c.Destination.Local {
 			c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
 		}
