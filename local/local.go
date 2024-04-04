@@ -36,7 +36,6 @@ var (
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	sub = logger.CreateSubLogger("stage", "locally", "path", l.Path)
-	originPath, _ := os.Getwd()
 	if l.LFS {
 		g, err := gitcmd.New()
 		if err != nil {
@@ -59,23 +58,21 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		repo.Name = path.Join(repo.Name, fmt.Sprint(date.Unix()))
 	}
 
-	stat, err := os.Stat(l.Path)
+	_, err := os.Stat(l.Path)
 	if os.IsNotExist(err) && !dry {
-		if err := os.MkdirAll(l.Path, 0o777); err != nil {
+		if err = os.MkdirAll(l.Path, 0o777); err != nil {
 			sub.Error().
 				Msg(err.Error())
 			return false
 		}
 
-		stat, _ = os.Stat(l.Path)
+		_, err = os.Stat(l.Path)
 	}
 
-	if stat != nil && stat.IsDir() {
-		if err := os.Chdir(l.Path); err != nil {
-			sub.Error().
-				Msg(err.Error())
-			return false
-		}
+	if err != nil {
+		sub.Error().
+			Msg(err.Error())
+		return false
 	}
 
 	tries := 5
@@ -108,7 +105,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	}
 
 	for x := 1; x <= tries; x++ {
-		stat, err := os.Stat(repo.Name)
+		stat, err := os.Stat(filepath.Join(l.Path, repo.Name))
 		if os.IsNotExist(err) {
 			sub.Info().
 				Msgf("cloning %s", types.Green(repo.Name))
@@ -145,9 +142,9 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					break
 				}
 
-				err = os.RemoveAll(repo.Name)
+				err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
 				if err != nil {
-					dir, _ := filepath.Abs(repo.Name)
+					dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
 					sub.Warn().
 						Str("repo", repo.Name).Err(err).
 						Msgf("couldn't remove %s", types.Red(dir))
@@ -179,9 +176,9 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							sub.Warn().
 								Str("repo", repo.Name).
 								Msg(err.Error())
-							err = os.RemoveAll(repo.Name)
+							err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
 							if err != nil {
-								dir, _ := filepath.Abs(repo.Name)
+								dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
 								sub.Warn().
 									Str("repo", repo.Name).Err(err).
 									Msgf("couldn't remove %s", types.Red(dir))
@@ -192,9 +189,9 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 								Str("repo", repo.Name).Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
-							err = os.RemoveAll(repo.Name)
+							err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
 							if err != nil {
-								dir, _ := filepath.Abs(repo.Name)
+								dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
 								sub.Warn().
 									Str("repo", repo.Name).Err(err).
 									Msgf("couldn't remove %s", types.Red(dir))
@@ -210,14 +207,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if len(repo.Issues) > 0 {
-			_, err := os.Stat(fmt.Sprintf("%s.issues", repo.Name))
+			_, err := os.Stat(filepath.Join(l.Path, fmt.Sprintf("%s.issues", repo.Name)))
 			if os.IsNotExist(err) && !dry {
 				if err := os.MkdirAll(fmt.Sprintf("%s.issues", repo.Name), 0o777); err != nil {
 					sub.Error().
 						Msg(err.Error())
 				}
 			}
-			issuesDir, err := filepath.Abs(fmt.Sprintf("%s.issues", repo.Name))
+			issuesDir, err := filepath.Abs(filepath.Join(l.Path, fmt.Sprintf("%s.issues", repo.Name)))
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
@@ -242,14 +239,14 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if l.Zip {
-			tozip := []string{repo.Name}
+			tozip := []string{filepath.Join(l.Path, repo.Name)}
 
 			if len(repo.Issues) > 0 {
 				tozip = append(tozip, fmt.Sprintf("%s.issues", repo.Name))
 			}
 			sub.Info().
 				Msgf("zipping %s", types.Green(repo.Name))
-			err := archiver.Archive(tozip, fmt.Sprintf("%s.zip", repo.Name))
+			err := archiver.Archive(tozip, filepath.Join(l.Path, fmt.Sprintf("%s.zip", repo.Name)))
 			if err != nil {
 				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
@@ -264,7 +261,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if l.Keep > 0 {
-			parentdir := path.Dir(repo.Name)
+			parentdir := path.Dir(filepath.Join(l.Path, repo.Name))
 			files, err := os.ReadDir(parentdir)
 			if err != nil {
 				sub.Warn().
@@ -308,31 +305,27 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 		x = 5
 	}
-	if err := os.Chdir(originPath); err != nil {
-		sub.Error().
-			Msg(err.Error())
-		return false
-	}
+
 	return true
 }
 
-func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l types.Local) error {
-	r, err := git.PlainOpen(repoPath)
+func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l types.Local) error {
+	r, err := git.PlainOpen(filepath.Join(l.Path, reponame))
 	if err != nil {
 		return err
 	}
 
 	if !dry {
 		if l.LFS {
-			err = os.Chdir(repoPath)
+			_, err = os.Stat(filepath.Join(l.Path, reponame))
 			if err != nil {
 				return err
 			}
 
 			sub.Info().
-				Msgf("pulling %s", types.Green(repoPath))
+				Msgf("pulling %s", types.Green(reponame))
 
-			err = gitc.Pull(l.Bare)
+			err = gitc.Pull(l.Bare, filepath.Join(l.Path, reponame))
 			if err != nil {
 				return err
 			}
@@ -347,7 +340,7 @@ func updateRepository(repoPath string, auth transport.AuthMethod, dry bool, l ty
 				}
 
 				sub.Info().
-					Msgf("pulling %s", types.Green(repoPath))
+					Msgf("pulling %s", types.Green(reponame))
 
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
 				if err == git.NoErrAlreadyUpToDate {
@@ -400,10 +393,30 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 	}
 
 	if l.LFS {
-		err = gitc.Clone(url, repo.Name, l.Bare)
+		if repo.Token != "" {
+			if strings.HasPrefix(url, "http://") {
+				url = strings.Replace(url, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token), -1)
+			}
+
+			if strings.HasPrefix(url, "https://") {
+				url = strings.Replace(url, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token), -1)
+			}
+		} else {
+			if repo.Origin.Username != "" && repo.Origin.Password != "" {
+				if strings.HasPrefix(url, "http://") {
+					url = strings.Replace(url, "http://", fmt.Sprintf("http://%s:%s@", repo.Origin.Username, repo.Origin.Password), -1)
+				}
+
+				if strings.HasPrefix(url, "https://") {
+					url = strings.Replace(url, "https://", fmt.Sprintf("https://%s:%s@", repo.Origin.Username, repo.Origin.Password), -1)
+				}
+			}
+		}
+
+		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare)
 	} else {
 		r := &git.Repository{}
-		r, err = git.PlainClone(repo.Name, l.Bare, &git.CloneOptions{
+		r, err = git.PlainClone(filepath.Join(l.Path, repo.Name), l.Bare, &git.CloneOptions{
 			URL:          url,
 			Auth:         auth,
 			SingleBranch: false,
