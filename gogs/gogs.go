@@ -405,3 +405,63 @@ func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) m
 	}
 	return issues
 }
+
+// GetOrCreate Get or create a repository
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	repovisibility := getRepoVisibility(destination.Visibility.Repositories, repo.Private)
+	sub = logger.CreateSubLogger("stage", "gogs", "url", destination.URL)
+
+	gogsclient := gogs.NewClient(destination.URL, destination.GetToken())
+
+	user, err := gogsclient.GetSelfInfo()
+	if err != nil {
+		return "", err
+	}
+	me := user
+
+	if destination.User == "" && destination.CreateOrg {
+		destination.User = repo.Owner
+	}
+
+	if destination.User != "" {
+		user, err = gogsclient.GetUserInfo(destination.User)
+		if err != nil {
+			if destination.CreateOrg {
+				org, err := gogsclient.CreateOrg(gogs.CreateOrgOption{
+					FullName: destination.User,
+				})
+				if err != nil {
+					return "", err
+				}
+				user.ID = org.ID
+				user.UserName = org.UserName
+			} else {
+				return "", err
+			}
+		}
+
+	}
+
+	r, err := gogsclient.GetRepo(user.UserName, repo.Name)
+	if err != nil {
+		opts := gogs.CreateRepoOption{
+			Name:        repo.Name,
+			Private:     repovisibility,
+			Description: repo.Description,
+		}
+
+		if me.UserName == user.UserName {
+			r, err = gogsclient.CreateRepo(opts)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			r, err = gogsclient.CreateOrgRepo(user.UserName, opts)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	return r.CloneURL, nil
+}
