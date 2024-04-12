@@ -251,6 +251,7 @@ type GenRepo struct {
 	Contributed    bool       `yaml:"contributed"`
 	MirrorInterval string     `yaml:"mirrorinterval"`
 	LFS            bool       `yaml:"lfs"`
+	SelfMirror     bool       `yaml:"selfmirror"`
 }
 
 // Visibility struct
