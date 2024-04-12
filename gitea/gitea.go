@@ -53,10 +53,6 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	mirrorInterval := "8h0m0s"
 
 	if d.MirrorInterval != "" {
-		sub.Warn().Msg("mirrorinterval is deprecated and will be removed in one of the next releases. please move it under the mirror parameter.")
-	}
-
-	if d.MirrorInterval != "" {
 		mirrorInterval = d.MirrorInterval
 	}
 

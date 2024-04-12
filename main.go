@@ -184,6 +184,12 @@ func backup(repos []types.Repo, conf *types.Conf) {
 		}
 
 		for _, d := range conf.Destination.Gitea {
+			if d.MirrorInterval != "" {
+				log.Warn().
+					Str("stage", "gitea").
+					Str("url", d.URL).
+					Msg("mirrorinterval is deprecated and will be removed in one of the next releases. please move it under the mirror parameter.")
+			}
 			if !strings.HasSuffix(r.Name, ".wiki") {
 				repotime := time.Now()
 				status := 0
