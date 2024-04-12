@@ -428,7 +428,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		if err != nil {
 			if destination.CreateOrg {
 				org, err := gogsclient.CreateOrg(gogs.CreateOrgOption{
-					FullName: destination.User,
+					UserName: destination.User,
 				})
 				if err != nil {
 					return "", err

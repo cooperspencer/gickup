@@ -188,78 +188,73 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				repotime := time.Now()
 				status := 0
 				if d.SelfMirror {
-					if !strings.HasSuffix(r.Name, ".wiki") {
-						repotime := time.Now()
-						status := 0
+					log.Info().
+						Str("stage", "gitea").
+						Str("url", d.URL).
+						Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
-						log.Info().
-							Str("stage", "gitea").
-							Str("url", d.URL).
-							Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+					if !cli.Dry {
+						tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("gitea-%x", repotime))
+						if err != nil {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							continue
+						}
 
-						if !cli.Dry {
-							tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("gitea-%x", repotime))
-							if err != nil {
+						defer os.RemoveAll(tempdir)
+						temprepo, err := local.TempClone(r, tempdir)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gitea").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
 								log.Error().
 									Str("stage", "tempclone").
 									Str("url", r.URL).
-									Msg(err.Error())
-								continue
-							}
-
-							defer os.RemoveAll(tempdir)
-							temprepo, err := local.TempClone(r, tempdir)
-							if err != nil {
-								if err == git.NoErrAlreadyUpToDate {
-									log.Info().
-										Str("stage", "gitea").
-										Str("url", r.URL).
-										Msg(err.Error())
-								} else {
-									log.Error().
-										Str("stage", "tempclone").
-										Str("url", r.URL).
-										Str("git", "clone").
-										Msg(err.Error())
-									os.RemoveAll(tempdir)
-									continue
-								}
-							}
-
-							cloneurl, err := gitea.GetOrCreate(d, r)
-							if err != nil {
-								log.Error().
-									Str("stage", "gitea").
-									Str("url", r.URL).
+									Str("git", "clone").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
 								continue
 							}
-
-							err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
-							if err != nil {
-								if err == git.NoErrAlreadyUpToDate {
-									log.Info().
-										Str("stage", "gitea").
-										Str("url", r.URL).
-										Msg(err.Error())
-								} else {
-									log.Error().
-										Str("stage", "gitea").
-										Str("url", r.URL).
-										Str("git", "push").
-										Msg(err.Error())
-									os.RemoveAll(tempdir)
-									continue
-								}
-							}
-
-							prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Since(repotime).Seconds())
-							status = 1
-
-							prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
-							prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 						}
+
+						cloneurl, err := gitea.GetOrCreate(d, r)
+						if err != nil {
+							log.Error().
+								Str("stage", "gitea").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
+
+						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gitea").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
+								log.Error().
+									Str("stage", "gitea").
+									Str("url", r.URL).
+									Str("git", "push").
+									Msg(err.Error())
+								os.RemoveAll(tempdir)
+								continue
+							}
+						}
+
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+
+						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
+						prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 					}
 				} else {
 					if gitea.Backup(r, d, cli.Dry) {
@@ -277,9 +272,80 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			if !strings.HasSuffix(r.Name, ".wiki") {
 				repotime := time.Now()
 				status := 0
-				if gogs.Backup(r, d, cli.Dry) {
-					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
-					status = 1
+				if d.SelfMirror {
+					log.Info().
+						Str("stage", "gogs").
+						Str("url", d.URL).
+						Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+					if !cli.Dry {
+						tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("gogs-%x", repotime))
+						if err != nil {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							continue
+						}
+
+						defer os.RemoveAll(tempdir)
+						temprepo, err := local.TempClone(r, tempdir)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gogs").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
+								log.Error().
+									Str("stage", "tempclone").
+									Str("url", r.URL).
+									Str("git", "clone").
+									Msg(err.Error())
+								os.RemoveAll(tempdir)
+								continue
+							}
+						}
+
+						cloneurl, err := gogs.GetOrCreate(d, r)
+						if err != nil {
+							log.Error().
+								Str("stage", "gogs").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
+
+						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gogs").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
+								log.Error().
+									Str("stage", "gogs").
+									Str("url", r.URL).
+									Str("git", "push").
+									Msg(err.Error())
+								os.RemoveAll(tempdir)
+								continue
+							}
+						}
+
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+
+						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
+						prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
+					}
+				} else {
+					if gogs.Backup(r, d, cli.Dry) {
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+					}
 				}
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
