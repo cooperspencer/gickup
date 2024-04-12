@@ -187,7 +187,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			if !strings.HasSuffix(r.Name, ".wiki") {
 				repotime := time.Now()
 				status := 0
-				if d.SelfMirror {
+				if d.Mirror.Enabled {
 					log.Info().
 						Str("stage", "gitea").
 						Str("url", d.URL).
@@ -272,7 +272,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			if !strings.HasSuffix(r.Name, ".wiki") {
 				repotime := time.Now()
 				status := 0
-				if d.SelfMirror {
+				if d.Mirror.Enabled {
 					log.Info().
 						Str("stage", "gogs").
 						Str("url", d.URL).

@@ -205,8 +205,11 @@ destination:
       user: some-name # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gitea
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
-      mirrorinterval: 2h0m0s # interval to pull changes from source repo
+      mirrorinterval: 2h0m0s # interval to pull changes from source repo, will be removed in one of the next releases
       lfs: false # trigger to enable lfs on gitea
+      mirror:
+        enabled: true # if set to true, gickup will clone the repository and push it to gitea itself
+        mirrorinterval: 2h0m0s # interval to pull changes from source repo
       visibility:
         repositories: private # private, public, default: private
         organizations: private # private, limited, public, default: private
@@ -216,6 +219,8 @@ destination:
       user: some-name # can be a user or an organization, it must exist on the system
       url: http(s)://url-to-gogs
       createorg: true # creates an organization if it doesn't exist already, if no user is set it creates an organization with the name of the original author
+      mirror:
+        enabled: true # if set to true, gickup will clone the repository and push it to gogs itself
       visibility:
         repositories: private # private, public, default: private
   gitlab:

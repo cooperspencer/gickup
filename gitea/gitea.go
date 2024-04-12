@@ -41,9 +41,6 @@ func getRepoVisibility(visibility string, private bool) bool {
 
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
-	if d.MirrorInterval == "" {
-		d.MirrorInterval = "8h0m0s"
-	}
 	orgvisibilty := getOrgVisibility(d.Visibility.Organizations)
 	repovisibility := getRepoVisibility(d.Visibility.Repositories, r.Private)
 	if d.URL == "" {
@@ -52,6 +49,20 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	sub = logger.CreateSubLogger("stage", "gitea", "url", d.URL)
 	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+	mirrorInterval := "8h0m0s"
+
+	if d.MirrorInterval != "" {
+		sub.Warn().Msg("mirrorinterval is deprecated and will be removed in one of the next releases. please move it under the mirror parameter.")
+	}
+
+	if d.MirrorInterval != "" {
+		mirrorInterval = d.MirrorInterval
+	}
+
+	if d.Mirror.MirrorInterval != "" {
+		mirrorInterval = d.Mirror.MirrorInterval
+	}
 
 	giteaclient, err := gitea.NewClient(d.URL, gitea.SetToken(d.GetToken()))
 	if err != nil {
@@ -109,7 +120,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			Wiki:           r.Origin.Wiki,
 			Private:        repovisibility,
 			Description:    r.Description,
-			MirrorInterval: d.MirrorInterval,
+			MirrorInterval: mirrorInterval,
 			LFS:            d.LFS,
 		}
 
@@ -124,7 +135,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				Wiki:           r.Origin.Wiki,
 				Private:        repovisibility,
 				Description:    r.Description,
-				MirrorInterval: d.MirrorInterval,
+				MirrorInterval: mirrorInterval,
 				LFS:            d.LFS,
 			}
 		}
@@ -151,16 +162,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 		return true
 	}
 
-	if d.MirrorInterval != "" {
-		_, err = time.ParseDuration(d.MirrorInterval)
+	if mirrorInterval != "" {
+		_, err = time.ParseDuration(mirrorInterval)
 		if err != nil {
-			sub.Warn().Msgf("%s is not a valid duration!", d.MirrorInterval)
-			d.MirrorInterval = repo.MirrorInterval
+			sub.Warn().Msgf("%s is not a valid duration!", mirrorInterval)
+			mirrorInterval = repo.MirrorInterval
 		}
 	}
 
-	if d.MirrorInterval != repo.MirrorInterval {
-		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &d.MirrorInterval})
+	if mirrorInterval != repo.MirrorInterval {
+		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &mirrorInterval})
 		if err != nil {
 			sub.Error().
 				Err(err).
