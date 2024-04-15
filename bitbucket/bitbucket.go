@@ -59,6 +59,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		exclude := types.GetMap(repo.Exclude)
 
 		for _, r := range repositories.Items {
+			sub.Debug().Msg(r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string))
 			user := repo.User
 			if r.Owner != nil {
 				if _, ok := r.Owner["nickname"]; ok {

@@ -295,6 +295,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			if len(repo.Filter.Languages) > 0 {
+				sub.Debug().Msg(r.HTMLURL)
 				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
 				if err != nil {
 					sub.Error().

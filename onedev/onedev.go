@@ -84,6 +84,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		for _, r := range userrepos {
+			urls, _, err := client.GetCloneUrl(r.ID)
+			if err != nil {
+				sub.Error().
+					Msg("couldn't get clone urls")
+				continue
+			}
+			sub.Debug().Msg(urls.HTTP)
 			if repo.Filter.ExcludeForks {
 				if r.ForkedFromID != 0 {
 					continue
@@ -96,13 +103,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if exclude[r.Name] {
 					continue
 				}
-			}
-
-			urls, _, err := client.GetCloneUrl(r.ID)
-			if err != nil {
-				sub.Error().
-					Msg("couldn't get clone urls")
-				continue
 			}
 
 			defaultbranch, _, err := client.GetDefaultBranch(r.ID)

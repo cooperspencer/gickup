@@ -219,6 +219,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range githubrepos {
+			sub.Debug().Msg(*r.CloneURL)
 			if repo.Filter.ExcludeForks {
 				if *r.Fork {
 					continue
@@ -239,6 +240,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				}
 			}
 			if *r.StargazersCount < repo.Filter.Stars {
+				continue
+			}
+			if r.PushedAt == nil {
 				continue
 			}
 			if time.Since(r.PushedAt.Time) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
