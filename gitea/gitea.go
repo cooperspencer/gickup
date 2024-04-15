@@ -50,6 +50,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	sub.Info().
 		Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
 
+	mirrorInterval := "8h0m0s"
+
+	if d.MirrorInterval != "" {
+		mirrorInterval = d.MirrorInterval
+	}
+
+	if d.Mirror.MirrorInterval != "" {
+		mirrorInterval = d.Mirror.MirrorInterval
+	}
+
 	giteaclient, err := gitea.NewClient(d.URL, gitea.SetToken(d.GetToken()))
 	if err != nil {
 		sub.Error().Msg(err.Error())
@@ -106,7 +116,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			Wiki:           r.Origin.Wiki,
 			Private:        repovisibility,
 			Description:    r.Description,
-			MirrorInterval: d.MirrorInterval,
+			MirrorInterval: mirrorInterval,
 			LFS:            d.LFS,
 		}
 
@@ -121,7 +131,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				Wiki:           r.Origin.Wiki,
 				Private:        repovisibility,
 				Description:    r.Description,
-				MirrorInterval: d.MirrorInterval,
+				MirrorInterval: mirrorInterval,
 				LFS:            d.LFS,
 			}
 		}
@@ -148,14 +158,16 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 		return true
 	}
 
-	_, err = time.ParseDuration(d.MirrorInterval)
-	if err != nil {
-		sub.Warn().Msgf("%s is not a valid duration!", d.MirrorInterval)
-		d.MirrorInterval = repo.MirrorInterval
+	if mirrorInterval != "" {
+		_, err = time.ParseDuration(mirrorInterval)
+		if err != nil {
+			sub.Warn().Msgf("%s is not a valid duration!", mirrorInterval)
+			mirrorInterval = repo.MirrorInterval
+		}
 	}
 
-	if d.MirrorInterval != repo.MirrorInterval {
-		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &d.MirrorInterval})
+	if mirrorInterval != repo.MirrorInterval {
+		_, _, err := giteaclient.EditRepo(user.UserName, r.Name, gitea.EditRepoOption{MirrorInterval: &mirrorInterval})
 		if err != nil {
 			sub.Error().
 				Err(err).
@@ -558,4 +570,72 @@ func GetIssues(repo *gitea.Repository, client *gitea.Client, conf types.GenRepo)
 		}
 	}
 	return issues
+}
+
+// GetOrCreate Get or create a repository
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	orgvisibilty := getOrgVisibility(destination.Visibility.Organizations)
+	repovisibility := getRepoVisibility(destination.Visibility.Repositories, repo.Private)
+	if destination.URL == "" {
+		destination.URL = "https://gitea.com/"
+	}
+	sub = logger.CreateSubLogger("stage", "gitea", "url", destination.URL)
+
+	giteaclient, err := gitea.NewClient(destination.URL, gitea.SetToken(destination.GetToken()))
+	if err != nil {
+		return "", err
+	}
+
+	user, _, err := giteaclient.GetMyUserInfo()
+	if err != nil {
+		return "", err
+	}
+	me := user
+
+	if destination.User == "" && destination.CreateOrg {
+		destination.User = repo.Owner
+	}
+
+	if destination.User != "" {
+		user, _, err = giteaclient.GetUserInfo(destination.User)
+		if err != nil {
+			if destination.CreateOrg {
+				org, _, err := giteaclient.CreateOrg(gitea.CreateOrgOption{
+					Name:       destination.User,
+					Visibility: orgvisibilty,
+				})
+				if err != nil {
+					return "", err
+				}
+				user.ID = org.ID
+				user.UserName = org.UserName
+			} else {
+				return "", err
+			}
+		}
+
+	}
+
+	r, _, err := giteaclient.GetRepo(user.UserName, repo.Name)
+	if err != nil {
+		opts := gitea.CreateRepoOption{
+			Name:        repo.Name,
+			Private:     repovisibility,
+			Description: repo.Description,
+		}
+
+		if me.UserName == user.UserName {
+			r, _, err = giteaclient.CreateRepo(opts)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			r, _, err = giteaclient.CreateOrgRepo(user.UserName, opts)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	return r.CloneURL, nil
 }
