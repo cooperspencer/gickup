@@ -172,6 +172,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
 		for _, r := range gogsrepos {
+			sub.Debug().Msg(r.HTMLURL)
 			if repo.Filter.ExcludeForks {
 				if r.Fork {
 					continue

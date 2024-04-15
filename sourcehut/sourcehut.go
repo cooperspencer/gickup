@@ -203,6 +203,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		for _, r := range repositories.Results {
 			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, repo.User, r.Name)
 			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
+			sub.Debug().Msg(repoURL)
 
 			refs, err := getRefs(apiURL, r.Name, token)
 			if err != nil {

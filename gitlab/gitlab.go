@@ -203,6 +203,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			if len(repo.Filter.Languages) > 0 {
+				sub.Debug().Msg(r.WebURL)
 				langs, _, err := client.Projects.GetProjectLanguages(r.ID)
 				if err != nil {
 					sub.Error().
