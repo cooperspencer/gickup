@@ -67,7 +67,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 		splittedurl := strings.Split(r.URL, "//")
 
 		r.URL = fmt.Sprintf("%s//%s:%s@%s",
-			splittedurl[0], r.Origin.User, r.Origin.Password, splittedurl[1])
+			splittedurl[0], r.Owner, r.Token, splittedurl[1])
 	}
 
 	var visibility gitlab.VisibilityValue
@@ -83,7 +83,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 		ImportURL:   &r.URL,
 		Name:        &r.Name,
 		Description: &r.Description,
-		Visibility:  gitlab.Visibility(visibility),
+		Visibility:  gitlab.Ptr(visibility),
 	}
 
 	_, _, err = gitlabclient.Projects.CreateProject(opts)
@@ -489,7 +489,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bool {
 	wikilistoptions := &gitlab.ListWikisOptions{
-		WithContent: gitlab.Bool(true),
+		WithContent: gitlab.Ptr(true),
 	}
 
 	wikis, _, err := client.Wikis.ListWikis(r.ID, wikilistoptions)
