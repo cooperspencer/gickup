@@ -227,6 +227,8 @@ destination:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-gitlab
+      mirror:
+        enabled: true # if set to true, gickup will clone the repository and push it to gitlab itself
   github:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file

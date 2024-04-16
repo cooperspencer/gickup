@@ -260,7 +260,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						status = 1
 
 						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
-						prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
 					}
 				} else {
 					if gitea.Backup(r, d, cli.Dry) {
@@ -345,7 +344,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						status = 1
 
 						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
-						prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
 					}
 				} else {
 					if gogs.Backup(r, d, cli.Dry) {
@@ -361,11 +359,85 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 		for _, d := range conf.Destination.Gitlab {
 			if !strings.HasSuffix(r.Name, ".wiki") {
+				if d.URL == "" {
+					d.URL = "https://gitlab.com"
+				}
+
 				repotime := time.Now()
 				status := 0
-				if gitlab.Backup(r, d, cli.Dry) {
-					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
-					status = 1
+				if d.Mirror.Enabled {
+					log.Info().
+						Str("stage", "gitlab").
+						Str("url", d.URL).
+						Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+					if !cli.Dry {
+						tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("gitlab-%x", repotime))
+						if err != nil {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							continue
+						}
+
+						defer os.RemoveAll(tempdir)
+						temprepo, err := local.TempClone(r, tempdir)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gitlab").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
+								log.Error().
+									Str("stage", "tempclone").
+									Str("url", r.URL).
+									Str("git", "clone").
+									Msg(err.Error())
+								os.RemoveAll(tempdir)
+								continue
+							}
+						}
+
+						cloneurl, err := gitlab.GetOrCreate(d, r)
+						if err != nil {
+							log.Error().
+								Str("stage", "gitlab").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
+
+						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						if err != nil {
+							if err == git.NoErrAlreadyUpToDate {
+								log.Info().
+									Str("stage", "gitlab").
+									Str("url", r.URL).
+									Msg(err.Error())
+							} else {
+								log.Error().
+									Str("stage", "gitlab").
+									Str("url", r.URL).
+									Str("git", "push").
+									Msg(err.Error())
+								os.RemoveAll(tempdir)
+								continue
+							}
+						}
+
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+
+						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
+					}
+				} else {
+					if gitlab.Backup(r, d, cli.Dry) {
+						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
+						status = 1
+					}
 				}
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
@@ -472,6 +544,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
+					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
@@ -550,6 +623,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
+					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
 						if err == git.NoErrAlreadyUpToDate {
