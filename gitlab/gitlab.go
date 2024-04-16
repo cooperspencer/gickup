@@ -524,3 +524,62 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 	}
 	return issues
 }
+
+// GetOrCreate Get or create a repository
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	visibility := gitlab.PublicVisibility
+
+	if repo.Private {
+		visibility = gitlab.PrivateVisibility
+	}
+
+	sub = logger.CreateSubLogger("stage", "gitlab", "url", destination.URL)
+
+	token := destination.GetToken()
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(destination.URL))
+	if err != nil {
+		fmt.Println(0)
+		return "", err
+	}
+
+	user, _, err := client.Users.CurrentUser()
+	if err != nil {
+		fmt.Println(1)
+		return "", err
+	}
+	me := user
+
+	if destination.User == "" {
+		destination.User = me.Username
+	}
+
+	repos, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{Search: &repo.Name})
+
+	if err != nil {
+		fmt.Println(2)
+		return "", err
+	}
+
+	for _, repository := range repos {
+		if repository.Owner == nil {
+			continue
+		}
+		if repository.Name == repo.Name && repository.Owner.Username == me.Username {
+			return repository.HTTPURLToRepo, nil
+		}
+	}
+
+	opts := gitlab.CreateProjectOptions{
+		Name:        gitlab.Ptr(repo.Name),
+		Visibility:  gitlab.Ptr(visibility),
+		Description: gitlab.Ptr(repo.Description),
+	}
+
+	r, _, err := client.Projects.CreateProject(&opts)
+	if err != nil {
+		fmt.Println(3)
+		return "", err
+	}
+
+	return r.HTTPURLToRepo, nil
+}
