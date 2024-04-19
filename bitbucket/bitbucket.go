@@ -74,7 +74,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
-					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					URL:           r.Links["html"].(map[string]interface{})["href"].(string),
 					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:         "",
 					Defaultbranch: r.Mainbranch.Name,
@@ -95,7 +95,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if len(include) == 0 {
 				repos = append(repos, types.Repo{
 					Name:          r.Name,
-					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					URL:           r.Links["html"].(map[string]interface{})["href"].(string),
 					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:         "",
 					Defaultbranch: r.Mainbranch.Name,
@@ -110,4 +110,37 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	}
 
 	return repos, ran
+}
+
+// GetOrCreate Get or create a repository
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+	client := bitbucket.NewBasicAuth(destination.Username, destination.Password)
+
+	if destination.User == "" {
+		destination.User = destination.Username
+	}
+
+	if destination.URL == "" {
+		destination.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
+	} else {
+		if destination.URL != "https://bitbucket.org/" {
+			bitbucketURL, err := url.Parse(destination.URL)
+			if err != nil {
+				return "", err
+			}
+			client.SetApiBaseURL(*bitbucketURL)
+		}
+	}
+
+	sub = logger.CreateSubLogger("stage", "bitbucket", "url", destination.URL)
+
+	r, err := client.Repositories.Repository.Get(&bitbucket.RepositoryOptions{Owner: destination.User, RepoSlug: repo.Name})
+	if err != nil {
+		r, err = client.Repositories.Repository.Create(&bitbucket.RepositoryOptions{Owner: destination.User, RepoSlug: repo.Name, Description: repo.Description, Scm: "git"})
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return r.Links["html"].(map[string]interface{})["href"].(string), nil
 }

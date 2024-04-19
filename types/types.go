@@ -29,6 +29,7 @@ type Destination struct {
 	Gogs      []GenRepo `yaml:"gogs"`
 	OneDev    []GenRepo `yaml:"onedev"`
 	Sourcehut []GenRepo `yaml:"sourcehut"`
+	BitBucket []GenRepo `yaml:"bitbucket"`
 }
 
 // Count TODO.
@@ -39,7 +40,8 @@ func (dest Destination) Count() int {
 		len(dest.Github) +
 		len(dest.Gitlab) +
 		len(dest.OneDev) +
-		len(dest.Sourcehut)
+		len(dest.Sourcehut) +
+		len(dest.BitBucket)
 }
 
 // Local TODO.

@@ -678,6 +678,84 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			}
 		}
 
+		for _, d := range conf.Destination.BitBucket {
+			if !strings.HasSuffix(r.Name, ".wiki") {
+				repotime := time.Now()
+				status := 0
+				if d.URL == "" {
+					d.URL = "https://bitbucket.org/"
+				}
+
+				log.Info().
+					Str("stage", "bitbucket").
+					Str("url", d.URL).
+					Msgf("mirroring %s to %s", types.Blue(r.Name), d.URL)
+
+				if !cli.Dry {
+					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("bitbucket-%x", repotime))
+					if err != nil {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Msg(err.Error())
+						continue
+					}
+
+					defer os.RemoveAll(tempdir)
+					temprepo, err := local.TempClone(r, tempdir)
+					if err != nil {
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "bitbucket").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
+					}
+
+					cloneurl, err := bitbucket.GetOrCreate(d, r)
+					if err != nil {
+						log.Error().
+							Str("stage", "bitbucket").
+							Str("url", r.URL).
+							Msg(err.Error())
+						os.RemoveAll(tempdir)
+						continue
+					}
+
+					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+					if err != nil {
+						if err == git.NoErrAlreadyUpToDate {
+							log.Info().
+								Str("stage", "bitbucket").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "bitbucket").
+								Str("url", r.URL).
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							continue
+						}
+					}
+
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "bitbucket", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
+
+					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "bitbucket", d.URL).Set(float64(status))
+					prometheus.DestinationBackupsComplete.WithLabelValues("bitbucket").Inc()
+					os.RemoveAll(tempdir)
+				}
+			}
+		}
+
 		prometheus.SourceBackupsComplete.WithLabelValues(r.Name).Inc()
 	}
 }

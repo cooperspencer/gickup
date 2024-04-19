@@ -486,6 +486,13 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 			Username: "xyz",
 			Password: repo.Token,
 		}
+	} else {
+		if repo.Origin.Username != "" && repo.Origin.Password != "" {
+			auth = &http.BasicAuth{
+				Username: repo.Origin.Username,
+				Password: repo.Origin.Password,
+			}
+		}
 	}
 	if repo.Origin.LFS {
 		g, err := gitcmd.New()
@@ -612,9 +619,18 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 			return err
 		}
 	} else {
-		auth = &http.BasicAuth{
-			Username: "xyz",
-			Password: token,
+		if token != "" {
+			auth = &http.BasicAuth{
+				Username: "xyz",
+				Password: token,
+			}
+		} else {
+			if destination.Username != "" && destination.Password != "" {
+				auth = &http.BasicAuth{
+					Username: destination.Username,
+					Password: destination.Password,
+				}
+			}
 		}
 	}
 	if lfs {
