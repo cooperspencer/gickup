@@ -142,13 +142,15 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					break
 				}
 
-				err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
-				if err != nil {
-					dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
-					sub.Warn().
-						Str("repo", repo.Name).Err(err).
-						Msgf("couldn't remove %s", types.Red(dir))
-				}
+				/*
+					err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
+					if err != nil {
+						dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
+						sub.Warn().
+							Str("repo", repo.Name).Err(err).
+							Msgf("couldn't remove %s", types.Red(dir))
+					}
+				*/
 
 				sub.Warn().Err(err).
 					Msgf("retry %s from %s", types.Red(x), types.Red(tries))
@@ -176,26 +178,30 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							sub.Warn().
 								Str("repo", repo.Name).
 								Msg(err.Error())
-							err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
-							if err != nil {
-								dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
-								sub.Warn().
-									Str("repo", repo.Name).Err(err).
-									Msgf("couldn't remove %s", types.Red(dir))
-							}
+							/*
+								err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
+								if err != nil {
+									dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
+									sub.Warn().
+										Str("repo", repo.Name).Err(err).
+										Msgf("couldn't remove %s", types.Red(dir))
+								}
+							*/
 							break
 						} else {
 							sub.Warn().
 								Str("repo", repo.Name).Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
-							err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
-							if err != nil {
-								dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
-								sub.Warn().
-									Str("repo", repo.Name).Err(err).
-									Msgf("couldn't remove %s", types.Red(dir))
-							}
+							/*
+								err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
+								if err != nil {
+									dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
+									sub.Warn().
+										Str("repo", repo.Name).Err(err).
+										Msgf("couldn't remove %s", types.Red(dir))
+								}
+							*/
 
 							time.Sleep(5 * time.Second)
 
@@ -330,15 +336,24 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 				return err
 			}
 		} else {
-			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
-			if !l.Bare {
-				w, err := r.Worktree()
+			// fetch to see if there are any unpullable commits, for example a force push
+			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin"})
+			if err != nil {
 				if err == git.NoErrAlreadyUpToDate {
 					err = nil
 				} else {
 					return err
 				}
-
+			}
+			if !l.Bare {
+				w, err := r.Worktree()
+				if err != nil {
+					if err == git.NoErrAlreadyUpToDate {
+						err = nil
+					} else {
+						return err
+					}
+				}
 				sub.Info().
 					Msgf("pulling %s", types.Green(reponame))
 
@@ -346,6 +361,11 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 				if err == git.NoErrAlreadyUpToDate {
 					err = nil
 				} else {
+					return err
+				}
+				// if everything was ok, fetch everything
+				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+				if err != nil {
 					return err
 				}
 			}
