@@ -248,7 +248,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			tozip := []string{filepath.Join(l.Path, repo.Name)}
 
 			if len(repo.Issues) > 0 {
-				tozip = append(tozip, fmt.Sprintf("%s.issues", repo.Name))
+				tozip = append(tozip, filepath.Join(l.Path, fmt.Sprintf("%s.issues", repo.Name)))
 			}
 			sub.Info().
 				Msgf("zipping %s", types.Green(repo.Name))
@@ -281,6 +281,9 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				if l.Zip {
 					fname = strings.TrimSuffix(file.Name(), ".zip")
 				}
+
+				fname = strings.TrimSuffix(fname, ".issues")
+
 				_, err := strconv.ParseInt(fname, 10, 64)
 				if err != nil {
 					sub.Warn().
