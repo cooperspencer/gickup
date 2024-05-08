@@ -16,6 +16,7 @@ import (
 	"github.com/cooperspencer/gickup/gitcmd"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
+	"github.com/cooperspencer/gickup/zip"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -23,7 +24,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
-	"github.com/mholt/archiver/v3"
 	"github.com/rs/zerolog"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -252,18 +252,19 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			}
 			sub.Info().
 				Msgf("zipping %s", types.Green(repo.Name))
-			err := archiver.Archive(tozip, filepath.Join(l.Path, fmt.Sprintf("%s.zip", repo.Name)))
+
+			if _, err := os.Stat(fmt.Sprintf("%s.zip", filepath.Join(l.Path, repo.Name))); !os.IsNotExist(err) {
+				sub.Warn().Str("repo", repo.Name).Msgf("will overwrite %s.zip", filepath.Join(l.Path, repo.Name))
+			}
+
+			err := zip.Zip(filepath.Join(l.Path, repo.Name), tozip)
 			if err != nil {
-				sub.Warn().
-					Str("repo", repo.Name).Msg(err.Error())
+				sub.Error().
+					Str("repo", repo.Name).
+					Msg(err.Error())
+				return false
 			}
-			for _, dir := range tozip {
-				err = os.RemoveAll(dir)
-				if err != nil {
-					sub.Warn().
-						Str("repo", repo.Name).Msg(err.Error())
-				}
-			}
+
 		}
 
 		if l.Keep > 0 {
