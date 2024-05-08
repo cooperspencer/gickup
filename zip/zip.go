@@ -33,11 +33,6 @@ func Zip(repository string, tozip []string) error {
 		}
 		defer file.Close()
 
-		// Ensure that `path` is not absolute; it should not start with "/".
-		// This snippet happens to work because I don't use
-		// absolute paths, but ensure your real-world code
-		// transforms path into a zip-root relative path.
-
 		abspath, err := filepath.Rel(parentDir, path)
 		if err != nil {
 			return err
