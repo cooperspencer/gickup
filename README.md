@@ -92,6 +92,7 @@ https://github.com/cooperspencer/gickup/discussions
 |---|---|---|
 |Arch|[gickup](https://aur.archlinux.org/packages/gickup/)|[me](https://github.com/cooperspencer)|
 |Homebrew|[gickup](https://formulae.brew.sh/formula/gickup#default)||
+|Fedora|[gickup](https://copr.fedorainfracloud.org/coprs/frostyx/gickup/)|[FrostyX](https://github.com/FrostyX)|
 
 ## Issues
 The mirroring to Gitlab doesn't work, or at least I can't test it properly because I have no access to a Gitlab EE instance.
