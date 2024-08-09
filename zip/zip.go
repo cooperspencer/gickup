@@ -2,6 +2,7 @@ package zip
 
 import (
 	"archive/zip"
+	"compress/flate"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,9 @@ func Zip(repository string, tozip []string) error {
 	defer file.Close()
 
 	w := zip.NewWriter(file)
+	w.RegisterCompressor(zip.Deflate, func(out io.Writer) (io.WriteCloser, error) {
+		return flate.NewWriter(out, flate.BestCompression)
+	})
 	defer w.Close()
 
 	parentDir := filepath.Dir(repository)
