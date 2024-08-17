@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -385,10 +386,21 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 	issues := map[string]interface{}{}
 	if conf.Issues {
 		listOptions := &github.IssueListByRepoOptions{State: "all", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
+		errorcount := 0
 		for {
-			i, _, err := client.Issues.ListByRepo(context.Background(), *repo.Owner.Login, *repo.Name, listOptions)
+			i, response, err := client.Issues.ListByRepo(context.Background(), *repo.Owner.Login, *repo.Name, listOptions)
 			if err != nil {
-				sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
+				if response.StatusCode == http.StatusForbidden {
+					sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
+					return issues
+				}
+				if errorcount < 5 {
+					sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
+					time.Sleep(5 * time.Second)
+					errorcount++
+				} else {
+					return issues
+				}
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
