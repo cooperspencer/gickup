@@ -68,31 +68,33 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			continue
 		}
 
-		workspaces, err := client.Workspaces.List()
-		if err != nil {
-			sub.Error().
-				Msg(err.Error())
-		} else {
-			for _, workspace := range workspaces.Workspaces {
-				if workspace.Slug != repo.User {
-					if len(includeorgs) > 0 {
-						if !includeorgs[workspace.Slug] {
-							continue
+		if repo.Token != "" {
+			workspaces, err := client.Workspaces.List()
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+			} else {
+				for _, workspace := range workspaces.Workspaces {
+					if workspace.Slug != repo.User {
+						if len(includeorgs) > 0 {
+							if !includeorgs[workspace.Slug] {
+								continue
+							}
 						}
-					}
-					if len(excludeorgs) > 0 {
-						if excludeorgs[workspace.Slug] {
-							continue
+						if len(excludeorgs) > 0 {
+							if excludeorgs[workspace.Slug] {
+								continue
+							}
 						}
-					}
-					workspacerepos, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: workspace.Slug})
-					if err != nil {
-						sub.Error().
-							Msg(err.Error())
-					} else {
-						repositories.Items = append(repositories.Items, workspacerepos.Items...)
-					}
+						workspacerepos, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: workspace.Slug})
+						if err != nil {
+							sub.Error().
+								Msg(err.Error())
+						} else {
+							repositories.Items = append(repositories.Items, workspacerepos.Items...)
+						}
 
+					}
 				}
 			}
 		}
