@@ -20,6 +20,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.BitBucket {
 		ran = true
+		repo.Token = repo.GetToken()
 		if repo.Token != "" && repo.Password == "" {
 			repo.Password = repo.Token
 		}
