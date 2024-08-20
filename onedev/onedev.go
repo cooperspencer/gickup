@@ -2,6 +2,7 @@ package onedev
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -296,10 +297,21 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 	if conf.Issues {
 		name := strings.TrimPrefix(repourl, conf.URL)
 		listOptions := &onedev.IssueQueryOptions{Count: 100, Offset: 0, Query: fmt.Sprintf("\"Project\" is \"%s\"", name)}
+		errorcount := 0
 		for {
-			i, _, err := client.GetIssues(listOptions)
+			i, returncode, err := client.GetIssues(listOptions)
 			if err != nil {
-				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+				if returncode == http.StatusForbidden {
+					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					return issues
+				}
+				if errorcount < 5 {
+					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					time.Sleep(5 * time.Second)
+					errorcount++
+				} else {
+					return issues
+				}
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
