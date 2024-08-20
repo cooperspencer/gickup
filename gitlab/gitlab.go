@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+	"net/http"
 	"path"
 	"strconv"
 	"strings"
@@ -506,10 +507,21 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 	issues := map[string]interface{}{}
 	if conf.Issues {
 		listOptions := &gitlab.ListProjectIssuesOptions{ListOptions: gitlab.ListOptions{PerPage: 100}}
+		errorcount := 0
 		for {
-			i, _, err := client.Issues.ListProjectIssues(repo.ID, listOptions)
+			i, response, err := client.Issues.ListProjectIssues(repo.ID, listOptions)
 			if err != nil {
-				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+				if response.StatusCode == http.StatusForbidden {
+					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					return issues
+				}
+				if errorcount < 5 {
+					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					time.Sleep(5 * time.Second)
+					errorcount++
+				} else {
+					return issues
+				}
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {

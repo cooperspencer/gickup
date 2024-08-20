@@ -388,10 +388,17 @@ func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) m
 	issues := map[string]interface{}{}
 	if conf.Issues {
 		listOptions := gogs.ListIssueOption{State: "all"}
+		errorcount := 0
 		for {
 			i, err := client.ListRepoIssues(repo.Owner.UserName, repo.Name, listOptions)
 			if err != nil {
-				sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+				if errorcount < 5 {
+					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					time.Sleep(5 * time.Second)
+					errorcount++
+				} else {
+					return issues
+				}
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
