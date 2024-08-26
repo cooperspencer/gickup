@@ -259,7 +259,13 @@ destination:
       keep: 5 # only keeps x backups
       bare: true # clone the repositories as bare
       lfs: true # clone lfs repos, !! ATTENTION !! git and git-lfs must be installed on the system!
-
+  s3:
+   - endpoint: somewhere:9000 # whatever your s3 endpoint is
+     structured: true # checks repos out like hostersite/user|organization/repo
+     bucket: your-bucket-name
+     accesskey: your-access-key # can be an environment variable, just don't add a $ in front of it
+     secretkey: your-secret-key # can be an environment variable, just don't add a $ in front of it
+     usessl: true # wheter to use ssl or not
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
 # See timezone commentary in docker-compose.yml for making sure this container runs
