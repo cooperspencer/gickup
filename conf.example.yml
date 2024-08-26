@@ -140,6 +140,8 @@ source:
         excludeforks: true # exclude forked repositories
   bitbucket:
     - user: some-user # the user you want to clone the repositories from.
+    - token: some-token
+      # token_file: token.txt # alternatively, specify token in a file
       url: http(s)://url-to-bitbucket # if empty, it uses https://bitbucket.org
       username: your-user # user is used to clone the repo with
       password: your-password
@@ -148,8 +150,14 @@ source:
       exclude: # this excludes the repos foo and bar
         - foo
         - bar
-      include:
+      include: # this includes the repo "foobar"
         - foobar
+      excludeorgs: # this excludes repos from the workpaces "foo" and "bar"
+        - foo
+        - bar
+      includeorgs: # this includes repos from the workspaces "foo1" and "bar1"
+        - foo1
+        - bar1
       filter:
         lastactivity: 1y # only clone repos which had activity during the last year
   onedev:
