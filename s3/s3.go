@@ -2,13 +2,18 @@ package s3
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 // UploadDirToS3 uploads the contents of a directory to S3-compatible storage
@@ -61,6 +66,7 @@ func UploadDirToS3(directory string, s3repo types.S3Repo) error {
 
 // DeleteObjectsNotInRepo deletes objects from the bucket that are not present in the repository
 func DeleteObjectsNotInRepo(directory, bucketdir string, s3repo types.S3Repo) error {
+	sub = logger.CreateSubLogger("stage", "s3", "endpoint", s3repo.Endpoint, "bucket", s3repo.Bucket)
 	// Initialize minio client object.
 	client, err := minio.New(s3repo.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, ""),
@@ -82,7 +88,7 @@ func DeleteObjectsNotInRepo(directory, bucketdir string, s3repo types.S3Repo) er
 		objectPath := filepath.Join(directory, object.Key)
 		if _, err := os.Stat(objectPath); err != nil {
 			if os.IsNotExist(err) {
-				fmt.Printf("Removing %s from bucket %s\n", object.Key, s3repo.Bucket)
+				sub.Debug().Msgf("Removing %s from bucket %s", object.Key, s3repo.Bucket)
 				// File does not exist in the repository, delete it from the bucket
 				err := client.RemoveObject(context.Background(), s3repo.Bucket, object.Key, minio.RemoveObjectOptions{})
 				if err != nil {
