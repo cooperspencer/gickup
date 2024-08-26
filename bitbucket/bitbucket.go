@@ -20,10 +20,24 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.BitBucket {
 		ran = true
-		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
+		repo.Token = repo.GetToken()
+		if repo.Token != "" && repo.Password == "" {
+			repo.Password = repo.Token
+		}
 		if repo.User == "" {
 			repo.User = repo.Username
 		}
+
+		if repo.Username == "" && repo.User != "" {
+			repo.Username = repo.User
+		}
+
+		include := types.GetMap(repo.Include)
+		exclude := types.GetMap(repo.Exclude)
+		includeorgs := types.GetMap(repo.IncludeOrgs)
+		excludeorgs := types.GetMap(repo.ExcludeOrgs)
+
+		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
 
 		if repo.URL == "" {
 			repo.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
@@ -55,15 +69,47 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			continue
 		}
 
-		include := types.GetMap(repo.Include)
-		exclude := types.GetMap(repo.Exclude)
+		if repo.Token != "" {
+			workspaces, err := client.Workspaces.List()
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+			} else {
+				for _, workspace := range workspaces.Workspaces {
+					if workspace.Slug != repo.User {
+						if len(includeorgs) > 0 {
+							if !includeorgs[workspace.Slug] {
+								continue
+							}
+						}
+						if len(excludeorgs) > 0 {
+							if excludeorgs[workspace.Slug] {
+								continue
+							}
+						}
+						workspacerepos, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: workspace.Slug})
+						if err != nil {
+							sub.Error().
+								Msg(err.Error())
+						} else {
+							repositories.Items = append(repositories.Items, workspacerepos.Items...)
+						}
+
+					}
+				}
+			}
+		}
 
 		for _, r := range repositories.Items {
 			sub.Debug().Msg(r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string))
 			user := repo.User
 			if r.Owner != nil {
-				if _, ok := r.Owner["nickname"]; ok {
-					user = r.Owner["nickname"].(string)
+				if _, ok := r.Owner["username"]; ok {
+					user = r.Owner["username"].(string)
+				} else {
+					if _, ok := r.Owner["nickname"]; ok {
+						user = r.Owner["nickname"].(string)
+					}
 				}
 			}
 
