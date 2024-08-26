@@ -541,3 +541,18 @@ type S3Repo struct {
 	UseSSL     bool   `yaml:"usessl"`
 	Structured bool   `yaml:"structured"`
 }
+
+func (s3 S3Repo) GetKey(accessString string) (string, error) {
+	if accessString == "" {
+		return "", fmt.Errorf("accesskey or secretkey are empty")
+	}
+	if accessString != "" {
+		envstring := os.Getenv(accessString)
+		if envstring != "" {
+			return envstring, nil
+		}
+		return accessString, nil
+	}
+
+	return "", fmt.Errorf("accesskey or secretkey are empty")
+}

@@ -228,6 +228,16 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					}
 				}
 
+				// Check if environment variables are used for accesskey and secretkey
+				d.AccessKey, err = d.GetKey(d.AccessKey)
+				if err != nil {
+					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
+				d.SecretKey, err = d.GetKey(d.SecretKey)
+				if err != nil {
+					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
+
 				err = s3.UploadDirToS3(tempdir, d)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
