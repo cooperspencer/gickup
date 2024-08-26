@@ -29,6 +29,7 @@ type Destination struct {
 	Gogs      []GenRepo `yaml:"gogs"`
 	OneDev    []GenRepo `yaml:"onedev"`
 	Sourcehut []GenRepo `yaml:"sourcehut"`
+	S3        []S3Repo  `yaml:"s3"`
 }
 
 // Count TODO.
@@ -39,7 +40,8 @@ func (dest Destination) Count() int {
 		len(dest.Github) +
 		len(dest.Gitlab) +
 		len(dest.OneDev) +
-		len(dest.Sourcehut)
+		len(dest.Sourcehut) +
+		len(dest.S3)
 }
 
 // Local TODO.
@@ -528,4 +530,14 @@ func StatRemote(remoteURL, sshURL string, repo GenRepo) bool {
 	_, err = git.NewRemote(nil, &remoteConfig).List(&git.ListOptions{Auth: auth})
 
 	return err == nil
+}
+
+type S3Repo struct {
+	Bucket     string `yaml:"bucket"`
+	Endpoint   string `yaml:"endpoint"`
+	AccessKey  string `yaml:"accesskey"`
+	SecretKey  string `yaml:"secretkey"`
+	Region     string `yaml:"region"`
+	UseSSL     bool   `yaml:"usessl"`
+	Structured bool   `yaml:"structured"`
 }

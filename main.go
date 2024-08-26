@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/cooperspencer/gickup/onedev"
+	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/go-git/go-git/v5"
 	"github.com/google/go-cmp/cmp"
@@ -181,6 +183,65 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 			prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Set(float64(status))
 			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
+		}
+
+		for _, d := range conf.Destination.S3 {
+			repotime := time.Now()
+			status := 0
+
+			log.Info().
+				Str("stage", "s3").
+				Str("url", d.Endpoint).
+				Msgf("pushing %s to %s", types.Blue(r.Name), d.Bucket)
+
+			if !cli.Dry {
+				tempname := fmt.Sprintf("s3-%x", repotime)
+				tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
+				if err != nil {
+					log.Error().
+						Str("stage", "tempclone").
+						Str("url", r.URL).
+						Msg(err.Error())
+					continue
+				}
+
+				if d.Structured {
+					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
+				}
+
+				defer os.RemoveAll(tempdir)
+				_, err = local.TempClone(r, path.Join(tempdir, r.Name))
+				if err != nil {
+					if err == git.NoErrAlreadyUpToDate {
+						log.Info().
+							Str("stage", "s3").
+							Str("url", r.URL).
+							Msg(err.Error())
+					} else {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Str("git", "clone").
+							Msg(err.Error())
+						os.RemoveAll(tempdir)
+						continue
+					}
+				}
+
+				err = s3.UploadDirToS3(tempdir, d)
+				if err != nil {
+					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
+				err = s3.DeleteObjectsNotInRepo(tempdir, r.Name, d)
+				if err != nil {
+					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
+				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(time.Since(repotime).Seconds())
+				status = 1
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(float64(status))
+				prometheus.DestinationBackupsComplete.WithLabelValues("s3").Inc()
+			}
 		}
 
 		for _, d := range conf.Destination.Gitea {
