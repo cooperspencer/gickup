@@ -191,6 +191,34 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 		languages := types.GetMap(repo.Filter.Languages)
 
+		for _, org := range repo.IncludeOrgs {
+			group, _, err := client.Groups.GetGroup(org, &gitlab.GetGroupOptions{})
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+				continue
+			}
+			subgroups, _, err := client.Groups.ListSubGroups(group.ID, &gitlab.ListSubGroupsOptions{})
+			for _, sub := range subgroups {
+				includeorgs[sub.FullPath] = true
+			}
+		}
+
+		fmt.Println(includeorgs)
+
+		for _, org := range repo.ExcludeOrgs {
+			group, _, err := client.Groups.GetGroup(org, &gitlab.GetGroupOptions{})
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+				continue
+			}
+			subgroups, _, err := client.Groups.ListSubGroups(group.ID, &gitlab.ListSubGroupsOptions{})
+			for _, sub := range subgroups {
+				excludeorgs[sub.FullPath] = true
+			}
+		}
+
 		for _, r := range gitlabrepos {
 			if repo.Filter.ExcludeForks {
 				if r.ForkedFromProject != nil {
@@ -442,6 +470,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if excludeorgs[r.Namespace.FullPath] {
 						continue
 					}
+
 					if len(include) == 0 {
 						if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
 							if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
