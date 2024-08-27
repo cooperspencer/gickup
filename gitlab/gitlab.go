@@ -204,8 +204,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 
-		fmt.Println(includeorgs)
-
 		for _, org := range repo.ExcludeOrgs {
 			group, _, err := client.Groups.GetGroup(org, &gitlab.GetGroupOptions{})
 			if err != nil {
@@ -579,13 +577,11 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	token := destination.GetToken()
 	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(destination.URL))
 	if err != nil {
-		fmt.Println(0)
 		return "", err
 	}
 
 	user, _, err := client.Users.CurrentUser()
 	if err != nil {
-		fmt.Println(1)
 		return "", err
 	}
 	me := user
@@ -597,7 +593,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	repos, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{Search: &repo.Name})
 
 	if err != nil {
-		fmt.Println(2)
 		return "", err
 	}
 
@@ -618,7 +613,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 
 	r, _, err := client.Projects.CreateProject(&opts)
 	if err != nil {
-		fmt.Println(3)
 		return "", err
 	}
 
