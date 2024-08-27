@@ -51,6 +51,7 @@ You can clone/mirror repositories to:
 - OneDev
 - Sourcehut
 - Local
+- S3
 
 
 If your hoster is not listed, feel free to open an issue and I will add it.
