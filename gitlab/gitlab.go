@@ -122,6 +122,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			continue
 		}
 
+		userNotInConfig := false
+
 		if repo.User == "" {
 			user, _, err := client.Users.CurrentUser()
 			if err != nil {
@@ -130,6 +132,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 			repo.User = user.Username
+			userNotInConfig = true
 		}
 
 		sub.Info().
@@ -151,7 +154,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				i := 1
 				for {
 					opt.Page = i
-					projects, _, err := client.Projects.ListProjects(opt)
+					projects := []*gitlab.Project{}
+					if userNotInConfig {
+						projects, _, err = client.Projects.ListProjects(opt)
+					} else {
+						projects, _, err = client.Projects.ListUserProjects(user.ID, opt)
+					}
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
