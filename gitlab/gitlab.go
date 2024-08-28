@@ -218,6 +218,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		for _, r := range gitlabrepos {
+			sub.Debug().Str("repo-type", "user").Msg(r.WebURL)
 			if repo.Filter.ExcludeForks {
 				if r.ForkedFromProject != nil {
 					continue
@@ -230,7 +231,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			if len(repo.Filter.Languages) > 0 {
-				sub.Debug().Msg(r.WebURL)
 				langs, _, err := client.Projects.GetProjectLanguages(r.ID)
 				if err != nil {
 					sub.Error().
@@ -385,6 +385,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 			for k, gr := range gitlabgrouprepos {
 				for _, r := range gr {
+					sub.Debug().Str("repo-type", "group").Msg(r.WebURL)
 					if repo.Filter.ExcludeForks {
 						if r.ForkedFromProject != nil {
 							continue
