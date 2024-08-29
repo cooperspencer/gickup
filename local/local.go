@@ -372,6 +372,10 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 				if err != nil {
 					return err
 				}
+			} else {
+				sub.Info().
+					Msgf("pulling %s", types.Green(reponame))
+				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
 			}
 		}
 	}
