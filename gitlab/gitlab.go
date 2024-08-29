@@ -101,6 +101,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
+	inSlice := map[string]bool{}
 	for _, repo := range conf.Source.Gitlab {
 		if repo.URL == "" {
 			repo.URL = "https://gitlab.com"
@@ -121,6 +122,8 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			continue
 		}
 
+		userNotInConfig := false
+
 		if repo.User == "" {
 			user, _, err := client.Users.CurrentUser()
 			if err != nil {
@@ -129,6 +132,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 			repo.User = user.Username
+			userNotInConfig = true
 		}
 
 		sub.Info().
@@ -136,7 +140,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		gitlabrepos := []*gitlab.Project{}
 		gitlabgrouprepos := map[string][]*gitlab.Project{}
 
-		opt := &gitlab.ListProjectsOptions{}
+		opt := &gitlab.ListProjectsOptions{Membership: gitlab.Ptr(true)}
 		users, _, err := client.Users.ListUsers(&gitlab.ListUsersOptions{Username: &repo.User})
 		if err != nil {
 			sub.Error().
@@ -150,7 +154,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				i := 1
 				for {
 					opt.Page = i
-					projects, _, err := client.Projects.ListUserProjects(user.ID, opt)
+					projects := []*gitlab.Project{}
+					if userNotInConfig {
+						projects, _, err = client.Projects.ListProjects(opt)
+					} else {
+						projects, _, err = client.Projects.ListUserProjects(user.ID, opt)
+					}
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
@@ -218,70 +227,52 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		for _, r := range gitlabrepos {
-			if repo.Filter.ExcludeForks {
-				if r.ForkedFromProject != nil {
-					continue
-				}
-			}
-			if repo.Filter.ExcludeArchived {
-				if r.Archived {
-					continue
-				}
-			}
-
-			if len(repo.Filter.Languages) > 0 {
-				sub.Debug().Msg(r.WebURL)
-				langs, _, err := client.Projects.GetProjectLanguages(r.ID)
-				if err != nil {
-					sub.Error().
-						Msg(err.Error())
-					continue
-				} else {
-					language := ""
-					percentage := float32(0)
-
-					for lang, percent := range *langs {
-						if percent > percentage {
-							language = lang
-						}
-					}
-					if !languages[strings.ToLower(language)] {
+			if !inSlice[r.PathWithNamespace] {
+				sub.Debug().Str("repo-type", "user").Msg(r.WebURL)
+				if repo.Filter.ExcludeForks {
+					if r.ForkedFromProject != nil {
 						continue
 					}
 				}
-			}
-
-			if r.StarCount < repo.Filter.Stars {
-				continue
-			}
-			if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-				continue
-			}
-			if include[r.Name] {
-				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-					repos = append(repos, types.Repo{
-						Name:          r.Path,
-						URL:           r.HTTPURLToRepo,
-						SSHURL:        r.SSHURLToRepo,
-						Token:         token,
-						Defaultbranch: r.DefaultBranch,
-						Origin:        repo,
-						Owner:         r.Namespace.FullPath,
-						Hoster:        types.GetHost(repo.URL),
-						Description:   r.Description,
-						Private:       r.Visibility == gitlab.PrivateVisibility,
-						Issues:        GetIssues(r, client, repo),
-					})
+				if repo.Filter.ExcludeArchived {
+					if r.Archived {
+						continue
+					}
 				}
 
-				if r.WikiEnabled && repo.Wiki {
-					if activeWiki(r, client, repo) {
-						httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-						sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+				if len(repo.Filter.Languages) > 0 {
+					langs, _, err := client.Projects.GetProjectLanguages(r.ID)
+					if err != nil {
+						sub.Error().
+							Msg(err.Error())
+						continue
+					} else {
+						language := ""
+						percentage := float32(0)
+
+						for lang, percent := range *langs {
+							if percent > percentage {
+								language = lang
+							}
+						}
+						if !languages[strings.ToLower(language)] {
+							continue
+						}
+					}
+				}
+
+				if r.StarCount < repo.Filter.Stars {
+					continue
+				}
+				if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+					continue
+				}
+				if include[r.Name] {
+					if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 						repos = append(repos, types.Repo{
-							Name:          r.Path + ".wiki",
-							URL:           httpURLToRepo,
-							SSHURL:        sshURLToRepo,
+							Name:          r.Path,
+							URL:           r.HTTPURLToRepo,
+							SSHURL:        r.SSHURLToRepo,
 							Token:         token,
 							Defaultbranch: r.DefaultBranch,
 							Origin:        repo,
@@ -289,40 +280,40 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Hoster:        types.GetHost(repo.URL),
 							Description:   r.Description,
 							Private:       r.Visibility == gitlab.PrivateVisibility,
+							Issues:        GetIssues(r, client, repo),
 						})
 					}
-				}
 
-				continue
-			}
-			if exclude[r.Name] {
-				continue
-			}
-			if len(include) == 0 {
-				if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-					repos = append(repos, types.Repo{
-						Name:          r.Path,
-						URL:           r.HTTPURLToRepo,
-						SSHURL:        r.SSHURLToRepo,
-						Token:         token,
-						Defaultbranch: r.DefaultBranch,
-						Origin:        repo,
-						Owner:         r.Namespace.FullPath,
-						Hoster:        types.GetHost(repo.URL),
-						Description:   r.Description,
-						Private:       r.Visibility == gitlab.PrivateVisibility,
-						Issues:        GetIssues(r, client, repo),
-					})
-				}
+					if r.WikiEnabled && repo.Wiki {
+						if activeWiki(r, client, repo) {
+							httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+							repos = append(repos, types.Repo{
+								Name:          r.Path + ".wiki",
+								URL:           httpURLToRepo,
+								SSHURL:        sshURLToRepo,
+								Token:         token,
+								Defaultbranch: r.DefaultBranch,
+								Origin:        repo,
+								Owner:         r.Namespace.FullPath,
+								Hoster:        types.GetHost(repo.URL),
+								Description:   r.Description,
+								Private:       r.Visibility == gitlab.PrivateVisibility,
+							})
+						}
+					}
 
-				if r.WikiEnabled && repo.Wiki {
-					if activeWiki(r, client, repo) {
-						httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-						sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+					continue
+				}
+				if exclude[r.Name] {
+					continue
+				}
+				if len(include) == 0 {
+					if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 						repos = append(repos, types.Repo{
-							Name:          r.Path + ".wiki",
-							URL:           httpURLToRepo,
-							SSHURL:        sshURLToRepo,
+							Name:          r.Path,
+							URL:           r.HTTPURLToRepo,
+							SSHURL:        r.SSHURLToRepo,
 							Token:         token,
 							Defaultbranch: r.DefaultBranch,
 							Origin:        repo,
@@ -330,9 +321,30 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Hoster:        types.GetHost(repo.URL),
 							Description:   r.Description,
 							Private:       r.Visibility == gitlab.PrivateVisibility,
+							Issues:        GetIssues(r, client, repo),
 						})
 					}
+
+					if r.WikiEnabled && repo.Wiki {
+						if activeWiki(r, client, repo) {
+							httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+							sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+							repos = append(repos, types.Repo{
+								Name:          r.Path + ".wiki",
+								URL:           httpURLToRepo,
+								SSHURL:        sshURLToRepo,
+								Token:         token,
+								Defaultbranch: r.DefaultBranch,
+								Origin:        repo,
+								Owner:         r.Namespace.FullPath,
+								Hoster:        types.GetHost(repo.URL),
+								Description:   r.Description,
+								Private:       r.Visibility == gitlab.PrivateVisibility,
+							})
+						}
+					}
 				}
+				inSlice[r.PathWithNamespace] = true
 			}
 		}
 
@@ -385,92 +397,48 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 			for k, gr := range gitlabgrouprepos {
 				for _, r := range gr {
-					if repo.Filter.ExcludeForks {
-						if r.ForkedFromProject != nil {
-							continue
-						}
-					}
-					if repo.Filter.ExcludeArchived {
-						if r.Archived {
-							continue
-						}
-					}
-
-					if len(repo.Filter.Languages) > 0 {
-						langs, _, err := client.Projects.GetProjectLanguages(r.ID)
-						if err != nil {
-							sub.Error().
-								Msg(err.Error())
-							continue
-						} else {
-							language := ""
-							percentage := float32(0)
-
-							for lang, percent := range *langs {
-								if percent > percentage {
-									language = lang
-								}
-							}
-							if !languages[strings.ToLower(language)] {
+					if !inSlice[r.PathWithNamespace] {
+						sub.Debug().Str("repo-type", "group").Msg(r.WebURL)
+						if repo.Filter.ExcludeForks {
+							if r.ForkedFromProject != nil {
 								continue
 							}
 						}
-					}
-
-					if r.StarCount < repo.Filter.Stars {
-						continue
-					}
-					if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-						continue
-					}
-
-					if include[r.Name] {
-						if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
-							repos = append(repos, types.Repo{
-								Name:          r.Path,
-								URL:           r.HTTPURLToRepo,
-								SSHURL:        r.SSHURLToRepo,
-								Token:         token,
-								Defaultbranch: r.DefaultBranch,
-								Origin:        repo,
-								Owner:         k,
-								Hoster:        types.GetHost(repo.URL),
-								Description:   r.Description,
-								Private:       r.Visibility == gitlab.PrivateVisibility,
-								Issues:        GetIssues(r, client, repo),
-							})
-						}
-
-						if r.WikiEnabled && repo.Wiki {
-							if activeWiki(r, client, repo) {
-								httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
-								sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
-								repos = append(repos, types.Repo{
-									Name:          r.Path + ".wiki",
-									URL:           httpURLToRepo,
-									SSHURL:        sshURLToRepo,
-									Token:         token,
-									Defaultbranch: r.DefaultBranch,
-									Origin:        repo,
-									Owner:         k,
-									Hoster:        types.GetHost(repo.URL),
-									Description:   r.Description,
-									Private:       r.Visibility == gitlab.PrivateVisibility,
-								})
+						if repo.Filter.ExcludeArchived {
+							if r.Archived {
+								continue
 							}
 						}
 
-						continue
-					}
-					if exclude[r.Name] {
-						continue
-					}
-					if excludeorgs[r.Namespace.FullPath] {
-						continue
-					}
+						if len(repo.Filter.Languages) > 0 {
+							langs, _, err := client.Projects.GetProjectLanguages(r.ID)
+							if err != nil {
+								sub.Error().
+									Msg(err.Error())
+								continue
+							} else {
+								language := ""
+								percentage := float32(0)
 
-					if len(include) == 0 {
-						if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
+								for lang, percent := range *langs {
+									if percent > percentage {
+										language = lang
+									}
+								}
+								if !languages[strings.ToLower(language)] {
+									continue
+								}
+							}
+						}
+
+						if r.StarCount < repo.Filter.Stars {
+							continue
+						}
+						if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+							continue
+						}
+
+						if include[r.Name] {
 							if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 								repos = append(repos, types.Repo{
 									Name:          r.Path,
@@ -505,7 +473,55 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									})
 								}
 							}
+
+							continue
 						}
+						if exclude[r.Name] {
+							continue
+						}
+						if excludeorgs[r.Namespace.FullPath] {
+							continue
+						}
+
+						if len(include) == 0 {
+							if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
+								if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
+									repos = append(repos, types.Repo{
+										Name:          r.Path,
+										URL:           r.HTTPURLToRepo,
+										SSHURL:        r.SSHURLToRepo,
+										Token:         token,
+										Defaultbranch: r.DefaultBranch,
+										Origin:        repo,
+										Owner:         k,
+										Hoster:        types.GetHost(repo.URL),
+										Description:   r.Description,
+										Private:       r.Visibility == gitlab.PrivateVisibility,
+										Issues:        GetIssues(r, client, repo),
+									})
+								}
+
+								if r.WikiEnabled && repo.Wiki {
+									if activeWiki(r, client, repo) {
+										httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
+										sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
+										repos = append(repos, types.Repo{
+											Name:          r.Path + ".wiki",
+											URL:           httpURLToRepo,
+											SSHURL:        sshURLToRepo,
+											Token:         token,
+											Defaultbranch: r.DefaultBranch,
+											Origin:        repo,
+											Owner:         k,
+											Hoster:        types.GetHost(repo.URL),
+											Description:   r.Description,
+											Private:       r.Visibility == gitlab.PrivateVisibility,
+										})
+									}
+								}
+							}
+						}
+						inSlice[r.PathWithNamespace] = true
 					}
 				}
 			}

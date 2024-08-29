@@ -284,6 +284,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		languages := types.GetMap(repo.Filter.Languages)
 
 		for _, r := range gitearepos {
+			sub.Debug().Str("repo-type", "user").Msg(r.HTMLURL)
 			if repo.Filter.ExcludeForks {
 				if r.Fork {
 					continue
@@ -296,7 +297,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			if len(repo.Filter.Languages) > 0 {
-				sub.Debug().Msg(r.HTMLURL)
 				langs, _, err := client.GetRepoLanguages(r.Owner.UserName, r.Name)
 				if err != nil {
 					sub.Error().
@@ -430,6 +430,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 		for _, r := range orgrepos {
+			sub.Debug().Str("repo-type", "org").Msg(r.HTMLURL)
 			if repo.Filter.ExcludeForks {
 				if r.Fork {
 					continue
