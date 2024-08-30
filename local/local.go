@@ -349,6 +349,8 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 					return err
 				}
 			}
+			sub.Info().
+				Msgf("pulling %s", types.Green(reponame))
 			if !l.Bare {
 				w, err := r.Worktree()
 				if err != nil {
@@ -358,20 +360,17 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 						return err
 					}
 				}
-				sub.Info().
-					Msgf("pulling %s", types.Green(reponame))
-
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
 				if err == git.NoErrAlreadyUpToDate {
 					err = nil
 				} else {
 					return err
 				}
-				// if everything was ok, fetch everything
-				err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
-				if err != nil {
-					return err
-				}
+			}
+			// if everything was ok, fetch everything
+			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin", RefSpecs: []config.RefSpec{"+refs/*:refs/*"}})
+			if err != nil {
+				return err
 			}
 		}
 	}
