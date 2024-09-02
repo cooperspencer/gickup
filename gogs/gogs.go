@@ -197,6 +197,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Description:   r.Description,
 					Private:       r.Private,
 					Issues:        GetIssues(r, client, repo),
+					NoTokenUser:   true,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -210,6 +211,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Private,
+						NoTokenUser:   true,
 					})
 				}
 
@@ -233,6 +235,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Description:   r.Description,
 					Private:       r.Private,
 					Issues:        GetIssues(r, client, repo),
+					NoTokenUser:   true,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -246,6 +249,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Private,
+						NoTokenUser:   true,
 					})
 				}
 			}
@@ -324,6 +328,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Description:   r.Description,
 					Private:       r.Private,
 					Issues:        GetIssues(r, client, repo),
+					NoTokenUser:   true,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -337,6 +342,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Private,
+						NoTokenUser:   true,
 					})
 				}
 
@@ -360,6 +366,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Description:   r.Description,
 					Private:       r.Private,
 					Issues:        GetIssues(r, client, repo),
+					NoTokenUser:   true,
 				})
 
 				if repo.Wiki {
@@ -374,6 +381,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Private:       r.Private,
+						NoTokenUser:   true,
 					})
 				}
 			}

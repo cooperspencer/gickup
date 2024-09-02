@@ -396,6 +396,7 @@ type Repo struct {
 	Description   string
 	Issues        map[string]interface{}
 	Private       bool
+	NoTokenUser   bool
 }
 
 // Site TODO.
