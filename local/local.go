@@ -93,9 +93,15 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			return false
 		}
 	case repo.Token != "":
-		auth = &http.BasicAuth{
-			Username: "xyz",
-			Password: repo.Token,
+		if repo.NoTokenUser {
+			auth = &http.BasicAuth{
+				Username: repo.Token,
+			}
+		} else {
+			auth = &http.BasicAuth{
+				Username: "xyz",
+				Password: repo.Token,
+			}
 		}
 	case repo.Origin.Username != "" && repo.Origin.Password != "":
 		auth = &http.BasicAuth{
