@@ -511,9 +511,15 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 	var auth transport.AuthMethod
 	if repo.Token != "" {
-		auth = &http.BasicAuth{
-			Username: "xyz",
-			Password: repo.Token,
+		if repo.NoTokenUser {
+			auth = &http.BasicAuth{
+				Username: repo.Token,
+			}
+		} else {
+			auth = &http.BasicAuth{
+				Username: "xyz",
+				Password: repo.Token,
+			}
 		}
 	}
 	if repo.Origin.LFS {
