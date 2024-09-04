@@ -63,6 +63,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		if err = os.MkdirAll(l.Path, 0o777); err != nil {
 			sub.Error().
 				Msg(err.Error())
+
 			return false
 		}
 
@@ -72,6 +73,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	if err != nil {
 		sub.Error().
 			Msg(err.Error())
+
 		return false
 	}
 
@@ -90,6 +92,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+
 			return false
 		}
 	case repo.Token != "":
@@ -122,14 +125,15 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					sub.Warn().
 						Str("repo", repo.Name).
 						Msg(err.Error())
-					break
+
+					return false
 				}
 				if x == tries {
 					sub.Warn().
 						Str("repo", repo.Name).
 						Msg(err.Error())
 
-					break
+					return false
 				}
 
 				if strings.Contains(err.Error(), "ERR access denied or repository not exported") {
@@ -137,7 +141,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 						Str("repo", repo.Name).
 						Msgf("%s doesn't exist.", repo.Name)
 
-					break
+					return false
 				}
 
 				if strings.Contains(err.Error(), "remote repository is empty") {
@@ -184,30 +188,12 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							sub.Warn().
 								Str("repo", repo.Name).
 								Msg(err.Error())
-							/*
-								err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
-								if err != nil {
-									dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
-									sub.Warn().
-										Str("repo", repo.Name).Err(err).
-										Msgf("couldn't remove %s", types.Red(dir))
-								}
-							*/
-							break
+
+							return false
 						} else {
 							sub.Warn().
 								Str("repo", repo.Name).Err(err).
 								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
-
-							/*
-								err = os.RemoveAll(filepath.Join(l.Path, repo.Name))
-								if err != nil {
-									dir, _ := filepath.Abs(filepath.Join(l.Path, repo.Name))
-									sub.Warn().
-										Str("repo", repo.Name).Err(err).
-										Msgf("couldn't remove %s", types.Red(dir))
-								}
-							*/
 
 							time.Sleep(5 * time.Second)
 
@@ -268,6 +254,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				sub.Error().
 					Str("repo", repo.Name).
 					Msg(err.Error())
+
 				return false
 			}
 
@@ -279,7 +266,8 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			if err != nil {
 				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
-				break
+
+				return false
 			}
 
 			keep := []string{}
