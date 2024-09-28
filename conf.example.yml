@@ -35,6 +35,7 @@ source:
           - go
           - java
         excludeforks: true # exclude forked repositories
+      gists: true # clone gists too
   gitea:
     - token: some-token
       # token_file: token.txt # alternatively, specify token in a file

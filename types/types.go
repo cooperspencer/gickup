@@ -254,6 +254,7 @@ type GenRepo struct {
 	MirrorInterval string     `yaml:"mirrorinterval"`
 	LFS            bool       `yaml:"lfs"`
 	Mirror         Mirror     `yaml:"mirror"`
+	Gists          bool       `yaml:"gists"`
 }
 
 // Mirror struct
