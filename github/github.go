@@ -2,7 +2,9 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -321,6 +323,41 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						repos = append(repos, wiki)
 					}
 				}
+			}
+
+		}
+		if repo.Gists {
+			gistlistoptions := &github.GistListOptions{ListOptions: github.ListOptions{PerPage: 50}}
+			i := 1
+			for {
+				gistlistoptions.Page = i
+				gists, _, err := client.Gists.List(context.Background(), repo.User, gistlistoptions)
+				if err != nil {
+					sub.Error().
+						Msg(err.Error())
+					continue
+				}
+				if len(gists) == 0 {
+					break
+				}
+
+				for _, gist := range gists {
+					sub.Debug().Msg(gist.GetHTMLURL())
+					repos = append(repos, types.Repo{
+						Name:          fmt.Sprintf("gists%c%s", os.PathSeparator, gist.GetID()),
+						URL:           gist.GetHTMLURL(),
+						SSHURL:        fmt.Sprintf("git@gist.github.com:%s.git", gist.GetID()),
+						Token:         token,
+						Defaultbranch: "",
+						Origin:        repo,
+						Owner:         gist.GetOwner().GetLogin(),
+						Hoster:        "github.com",
+						Description:   gist.GetDescription(),
+						Private:       !gist.GetPublic(),
+					})
+				}
+
+				i++
 			}
 		}
 	}
