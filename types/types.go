@@ -558,3 +558,10 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 
 	return "", fmt.Errorf("accesskey or secretkey are empty")
 }
+
+// Issues
+// GithubIssue
+type GithubIssue struct {
+	github.Issue
+	CommentList []*github.IssueComment
+}

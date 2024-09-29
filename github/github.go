@@ -422,7 +422,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRepo) map[string]interface{} {
 	issues := map[string]interface{}{}
 	if conf.Issues {
-		listOptions := &github.IssueListByRepoOptions{State: "all", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
+		listOptions := &github.IssueListByRepoOptions{State: "all", ListOptions: github.ListOptions{Page: 1, PerPage: 100}}
 		errorcount := 0
 		for {
 			i, response, err := client.Issues.ListByRepo(context.Background(), *repo.Owner.Login, *repo.Name, listOptions)
@@ -441,7 +441,36 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
-						issues[strconv.Itoa(*issue.Number)] = issue
+						comments := []*github.IssueComment{}
+						errorcount := 0
+						if issue.GetComments() > 0 {
+							listComments := &github.IssueListCommentsOptions{ListOptions: github.ListOptions{Page: 1, PerPage: 100}}
+							for {
+								issue_comments, response, err := client.Issues.ListComments(context.Background(), *repo.Owner.Login, *repo.Name, issue.GetNumber(), listComments)
+								if err != nil {
+									if response.StatusCode == http.StatusForbidden {
+										sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch comments")
+										break
+									}
+									if errorcount < 5 {
+										sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch comments")
+										time.Sleep(5 * time.Second)
+										errorcount++
+										continue
+									} else {
+										break
+									}
+								}
+								if len(issue_comments) > 0 {
+									comments = append(comments, issue_comments...)
+									errorcount = 0
+									listComments.Page++
+								} else {
+									break
+								}
+							}
+						}
+						issues[strconv.Itoa(*issue.Number)] = types.GithubIssue{Issue: *issue, CommentList: comments}
 					}
 				} else {
 					break
