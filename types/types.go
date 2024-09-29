@@ -563,5 +563,5 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 // GithubIssue
 type GithubIssue struct {
 	github.Issue
-	CommentList []*github.IssueComment
+	CommentList []*github.IssueComment `json:"comments_list"`
 }
