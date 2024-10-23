@@ -1,7 +1,7 @@
 FROM golang:1.21-alpine as builder
 
 # Install dependencies for copy
-RUN apk add -U --no-cache ca-certificates tzdata git
+RUN apk add -U --no-cache ca-certificates tzdata git git-lfs
 
 # Use an valid GOPATH and copy the files
 WORKDIR /go/src/github.com/cooperspencer/gickup
