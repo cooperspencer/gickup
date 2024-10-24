@@ -14,13 +14,12 @@ COPY . .
 RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o gickup .
 
-# Use scratch as production environment -> Small builds
-FROM scratch as production
+# Use alpine as production environment -> Small builds
+FROM alpine:3.20 as production
+RUN apk add -U --no-cache ca-certificates tzdata git git-lfs
+RUN git lfs install
+
 WORKDIR /
-# Copy valid SSL certs from the builder for fetching github/gitlab/...
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-# Copy zoneinfo for getting the right cron timezone
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 # Copy the main executable from the builder
 COPY --from=builder /go/src/github.com/cooperspencer/gickup/gickup /gickup/gickup
 
