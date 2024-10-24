@@ -15,7 +15,7 @@
         •
         <a href="https://github.com/cooperspencer/gickup/">GitHub</a>
         •
-        <a href="https://cooperspencer.github.io/gickup-documentation/docs/" target="_blank">Docs</a>
+        <a href="https://cooperspencer.github.io/gickup-documentation/" target="_blank">Docs</a>
     </strong>
 </p>
 
