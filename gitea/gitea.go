@@ -574,7 +574,38 @@ func GetIssues(repo *gitea.Repository, client *gitea.Client, conf types.GenRepo)
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
-						issues[strconv.Itoa(int(issue.Index))] = issue
+						comments := []*gitea.Comment{}
+						errorcount := 0
+						if issue.Comments > 0 {
+							listComments := gitea.ListIssueCommentOptions{ListOptions: gitea.ListOptions{Page: 1, PageSize: 100}}
+							for {
+								issue_comments, response, err := client.ListRepoIssueComments(repo.Owner.UserName, repo.Name, listComments)
+								if err != nil {
+									if response != nil {
+										if response.StatusCode == http.StatusForbidden {
+											sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch comments")
+											break
+										}
+									}
+									if errorcount < 5 {
+										sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch comments")
+										time.Sleep(5 * time.Second)
+										errorcount++
+										continue
+									} else {
+										break
+									}
+								}
+								if len(issue_comments) > 0 {
+									comments = append(comments, issue_comments...)
+									errorcount = 0
+									listComments.Page++
+								} else {
+									break
+								}
+							}
+						}
+						issues[strconv.FormatInt(issue.ID, 10)] = types.GiteaIssue{Issue: *issue, CommentList: comments}
 					}
 				} else {
 					break
