@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"code.gitea.io/sdk/gitea"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -564,4 +565,10 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 type GithubIssue struct {
 	github.Issue
 	CommentList []*github.IssueComment `json:"comments_list"`
+}
+
+// GiteaIssue
+type GiteaIssue struct {
+	gitea.Issue
+	CommentList []*gitea.Comment `json:"comments_list"`
 }
