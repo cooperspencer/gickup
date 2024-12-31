@@ -200,6 +200,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Msg(err.Error())
 		}
 
+		if len(repositories.Results) == 0 {
+			sub.Error().Msgf("couldn't find any repositories for user %s", repo.User)
+			break
+		}
+
 		for _, r := range repositories.Results {
 			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, repo.User, r.Name)
 			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)

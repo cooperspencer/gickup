@@ -173,13 +173,25 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		for {
 			opt.Page = i
-			repos, _, err := client.Repositories.List(context.TODO(), repo.User, opt)
+			repos, status, err := client.Repositories.List(context.TODO(), repo.User, opt)
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				continue
-			}
+				if _, ok := err.(*github.RateLimitError); ok {
+					sub.Warn().Msg("wait for one hour.")
+					time.Sleep(1 * time.Hour)
+					continue
+				}
+				if _, ok := err.(*github.AbuseRateLimitError); ok {
+					sub.Warn().Msg("wait for one hour.")
+					time.Sleep(1 * time.Hour)
+					continue
+				}
 
+				if status.StatusCode == http.StatusNotFound {
+					break
+				}
+			}
 			if len(repos) == 0 {
 				break
 			}
