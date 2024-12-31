@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/v41/github"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
@@ -571,4 +572,10 @@ type GithubIssue struct {
 type GiteaIssue struct {
 	gitea.Issue
 	CommentList []*gitea.Comment `json:"comments_list"`
+}
+
+// GogsIssue
+type GogsIssue struct {
+	gogs.Issue
+	CommentList []*gogs.Comment `json:"comments_list"`
 }
