@@ -251,10 +251,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		for {
-			repos, _, err := client.ListUserRepos(repo.User, opt)
+			repos, status, err := client.ListUserRepos(repo.User, opt)
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				if status.StatusCode == http.StatusNotFound {
+					break
+				}
 				continue
 			}
 			if len(repos) == 0 {

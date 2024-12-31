@@ -147,6 +147,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Msg(err.Error())
 			continue
 		}
+		if len(users) == 0 {
+			sub.Error().Msgf("couldn't find user %s", repo.User)
+			break
+		}
 
 		opt.PerPage = 50
 		for _, user := range users {
