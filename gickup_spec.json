@@ -67,6 +67,9 @@
                             "issues": {
                                 "$ref": "#/definitions/source/properties/issues"
                             },
+                            "gists": {
+                                "$ref": "#/definitions/source/properties/gists"
+                            },
                             "filter": {
                                 "$ref": "#/definitions/filter"
                             }
@@ -442,6 +445,9 @@
                             "url": {
                                 "$ref": "#/definitions/source/properties/url"
                             },
+                            "user": {
+                                "$ref": "#/definitions/source/properties/user"
+                            },
                             "username": {
                                 "$ref": "#/definitions/source/properties/username"
                             },
@@ -613,6 +619,9 @@
                             "url": {
                                 "$ref": "#/definitions/destination/properties/url"
                             },
+                            "user": {
+                                "$ref": "#/definitions/destination/properties/user"
+                            },
                             "createorg": {
                                 "$ref": "#/definitions/destination/properties/createorg"
                             },
@@ -714,6 +723,9 @@
                             },
                             "url": {
                                 "$ref": "#/definitions/destination/properties/url"
+                            },
+                            "user": {
+                                "$ref": "#/definitions/destination/properties/user"
                             },
                             "sshkey": {
                                 "$ref": "#/definitions/destination/properties/sshkey"
@@ -837,6 +849,11 @@
                     "$id": "#/definitions/source/properties/issues",
                     "type": "boolean",
                     "description": "Include the issues in the backup, only available for `local` destination"
+                },
+                "gists": {
+                    "$id": "#/definitions/source/properties/gists",
+                    "type": "boolean",
+                    "description": "Include the gists in the backup"
                 }
             },
             "additionalProperties": false
