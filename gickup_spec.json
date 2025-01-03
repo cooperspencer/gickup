@@ -5,6 +5,16 @@
     "title": "Gickup configuration spec",
     "description": "The Gickup configuration spec",
     "properties": {
+        "cron": {
+            "type": "string",
+            "description": "The cron expression to run the backup, You can create and test the expression on https://crontab.guru/"
+        },
+        "log": {
+            "$ref": "#/definitions/log"
+        },
+        "metrics": {
+            "$ref": "#/definitions/metrics"
+        },
         "source": {
             "type": "object",
             "description": "Configuration for all git hoster source endpoints",
@@ -725,16 +735,6 @@
                     }
                 }
             }
-        },
-        "cron": {
-            "type": "string",
-            "description": "The cron expression to run the backup, You can create and test the expression on https://crontab.guru/"
-        },
-        "log": {
-            "$ref": "#/definitions/log"
-        },
-        "metrics": {
-            "$ref": "#/definitions/metrics"
         }
     },
     "definitions": {
@@ -972,7 +972,9 @@
             "additionalProperties": false
         },
         "log": {
+            "$id": "#/definitions/log",
             "type": "object",
+            "description": "Configure logging related settings (optional)",
             "properties": {
                 "timeformat": {
                     "type": "string",
@@ -980,6 +982,7 @@
                 },
                 "file-logging": {
                     "type": "object",
+                    "description": "Configure file logging (optional)",
                     "properties": {
                         "dir": {
                             "type": "string",
@@ -1000,10 +1003,13 @@
             "additionalProperties": false
         },
         "metrics": {
+            "$id": "#/definitions/metrics",
             "type": "object",
+            "description": "Configure metrics related settings (optional)",
             "properties": {
                 "prometheus": {
                     "type": "object",
+                    "description": "Configure prometheus metrics (optional)",
                     "properties": {
                         "endpoint": {
                             "type": "string",
@@ -1018,6 +1024,7 @@
                 },
                 "heartbeat": {
                     "type": "object",
+                    "description": "Configure heartbeat for services like https://healthchecks.io/ or https://deadmanssnitch.com/ (optional)",
                     "properties": {
                         "urls": {
                             "type": "array",
@@ -1030,15 +1037,17 @@
                 },
                 "push": {
                     "type": "object",
+                    "description": "Configure pushgateways to get notifications on your phone or browser (optional)",
                     "properties": {
                         "ntfy": {
                             "type": "array",
+                            "description": "Send notifications to ntfy.sh (optional)",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "url": {
                                         "type": "string",
-                                        "description": "The url to push the metrics to"
+                                        "description": "The url to your nty server"
                                     },
                                     "token": {
                                         "type": "string",
@@ -1057,12 +1066,13 @@
                         },
                         "gotify": {
                             "type": "array",
+                            "description": "Send notifications to gotify.net (optional)",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "url": {
                                         "type": "string",
-                                        "description": "The url to push the metrics to"
+                                        "description": "The url to your gotify server"
                                     },
                                     "token": {
                                         "type": "string",
