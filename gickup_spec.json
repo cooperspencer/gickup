@@ -4,9 +4,7 @@
     "type": "object",
     "title": "Gickup configuration spec",
     "description": "The Gickup configuration spec",
-
     "properties": {
-
         "source": {
             "type": "object",
             "description": "Configuration for all git hoster source endpoints",
@@ -18,46 +16,46 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "wiki": {
-                                "$ref": "#/definitions/wiki"
+                                "$ref": "#/definitions/source/properties/wiki"
                             },
                             "starred": {
-                                "$ref": "#/definitions/starred"
+                                "$ref": "#/definitions/source/properties/starred"
                             },
                             "issues": {
-                                "$ref": "#/definitions/issues"
+                                "$ref": "#/definitions/source/properties/issues"
                             },
                             "filter": {
                                 "$ref": "#/definitions/filter"
@@ -71,49 +69,49 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "wiki": {
-                                "$ref": "#/definitions/wiki"
+                                "$ref": "#/definitions/source/properties/wiki"
                             },
                             "starred": {
-                                "$ref": "#/definitions/starred"
+                                "$ref": "#/definitions/source/properties/starred"
                             },
                             "issues": {
-                                "$ref": "#/definitions/issues"
+                                "$ref": "#/definitions/source/properties/issues"
                             },
                             "filter": {
                                 "$ref": "#/definitions/filter"
@@ -127,49 +125,49 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "wiki": {
-                                "$ref": "#/definitions/wiki"
+                                "$ref": "#/definitions/source/properties/wiki"
                             },
                             "starred": {
-                                "$ref": "#/definitions/starred"
+                                "$ref": "#/definitions/source/properties/starred"
                             },
                             "issues": {
-                                "$ref": "#/definitions/issues"
+                                "$ref": "#/definitions/source/properties/issues"
                             },
                             "filter": {
                                 "$ref": "#/definitions/filter"
@@ -183,49 +181,49 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "wiki": {
-                                "$ref": "#/definitions/wiki"
+                                "$ref": "#/definitions/source/properties/wiki"
                             },
                             "starred": {
-                                "$ref": "#/definitions/starred"
+                                "$ref": "#/definitions/source/properties/starred"
                             },
                             "issues": {
-                                "$ref": "#/definitions/issues"
+                                "$ref": "#/definitions/source/properties/issues"
                             },
                             "filter": {
                                 "type": "object",
@@ -250,43 +248,43 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "issues": {
-                                "$ref": "#/definitions/issues"
+                                "$ref": "#/definitions/source/properties/issues"
                             },
                             "filter": {
                                 "type": "object",
@@ -308,43 +306,43 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "wiki": {
-                                "$ref": "#/definitions/wiki"
+                                "$ref": "#/definitions/source/properties/wiki"
                             },
                             "filter": {
                                 "type": "object",
@@ -363,40 +361,40 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/source/properties/user"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             },
                             "exclude": {
-                                "$ref": "#/definitions/exclude"
+                                "$ref": "#/definitions/source/properties/exclude"
                             },
                             "include": {
-                                "$ref": "#/definitions/include"
+                                "$ref": "#/definitions/source/properties/include"
                             },
                             "excludeorgs": {
-                                "$ref": "#/definitions/excludeorgs"
+                                "$ref": "#/definitions/source/properties/excludeorgs"
                             },
                             "includeorgs": {
-                                "$ref": "#/definitions/includeorgs"
+                                "$ref": "#/definitions/source/properties/includeorgs"
                             },
                             "filter": {
                                 "type": "object",
@@ -415,33 +413,34 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/source/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/source/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/source/properties/url"
                             },
                             "username": {
-                                "$ref": "#/definitions/username"
+                                "$ref": "#/definitions/source/properties/username"
                             },
                             "password": {
-                                "$ref": "#/definitions/password"
+                                "$ref": "#/definitions/source/properties/password"
                             },
                             "ssh": {
-                                "$ref": "#/definitions/ssh"
+                                "$ref": "#/definitions/source/properties/ssh"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/source/properties/sshkey"
                             }
                         }
                     },
-                    "required": ["url"]
+                    "required": [
+                        "url"
+                    ]
                 }
             }
         },
-
         "destination": {
             "type": "object",
             "description": "Configuration for all git hoster destination endpoints",
@@ -477,7 +476,9 @@
                                 "description": "uses lfs to clone repositories"
                             }
                         },
-                        "required": ["path"],
+                        "required": [
+                            "path"
+                        ],
                         "additionalProperties": false
                     }
                 },
@@ -522,16 +523,16 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "organization": {
-                                "$ref": "#/definitions/organization"
+                                "$ref": "#/definitions/destination/properties/organization"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             },
                             "visibility": {
                                 "type": "object",
@@ -551,16 +552,16 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/destination/properties/url"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             },
                             "mirror": {
                                 "type": "object",
@@ -580,24 +581,22 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/destination/properties/url"
                             },
                             "createorg": {
-                                "type": "boolean",
-                                "description": "if activated, it will create the value in user as organization if it doesn't exist on the system"
+                                "$ref": "#/definitions/destination/properties/createorg"
                             },
                             "lfs": {
-                                "type": "boolean",
-                                "description": "uses lfs to clone repositories"
+                                "$ref": "#/definitions/destination/properties/lfs"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             },
                             "mirror": {
                                 "$ref": "#/definitions/mirror"
@@ -615,19 +614,22 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/destination/properties/url"
                             },
                             "user": {
-                                "$ref": "#/definitions/user"
+                                "$ref": "#/definitions/destination/properties/user"
+                            },
+                            "createorg": {
+                                "$ref": "#/definitions/destination/properties/createorg"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             },
                             "mirror": {
                                 "type": "object",
@@ -655,19 +657,19 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/destination/properties/url"
                             },
                             "organization": {
-                                "$ref": "#/definitions/organization"
+                                "$ref": "#/definitions/destination/properties/organization"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             }
                         },
                         "additionalProperties": false
@@ -679,19 +681,19 @@
                         "type": "object",
                         "properties": {
                             "token": {
-                                "$ref": "#/definitions/token"
+                                "$ref": "#/definitions/destination/properties/token"
                             },
                             "token_file": {
-                                "$ref": "#/definitions/token_file"
+                                "$ref": "#/definitions/destination/properties/token_file"
                             },
                             "url": {
-                                "$ref": "#/definitions/url"
+                                "$ref": "#/definitions/destination/properties/url"
                             },
                             "sshkey": {
-                                "$ref": "#/definitions/sshkey"
+                                "$ref": "#/definitions/destination/properties/sshkey"
                             },
                             "force": {
-                                "$ref": "#/definitions/force"
+                                "$ref": "#/definitions/destination/properties/force"
                             },
                             "visibility": {
                                 "type": "object",
@@ -708,91 +710,132 @@
             }
         }
     },
-
     "definitions": {
-        "token": {
-            "type": "string",
-            "description": "The token to authenticate against the destination"
+        "source": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "The token to authenticate against the source"
+                },
+                "token_file": {
+                    "type": "string",
+                    "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
+                },
+                "url": {
+                    "type": "string",
+                    "description": "The url to the source repository"
+                },
+                "user": {
+                    "type": "string",
+                    "description": "The user you want to clone the repositories from. If you want to get everything from your user, leave out the user parameter and just use the token."
+                },
+                "organization": {
+                    "type": "string",
+                    "description": "The organization to clone the repositories from"
+                },
+                "username": {
+                    "type": "string",
+                    "description": "The username to authenticate against the source"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "The password to authenticate against the source"
+                },
+                "ssh": {
+                    "type": "boolean",
+                    "description": "Use ssh instead of https to clone the repositories"
+                },
+                "sshkey": {
+                    "type": "string",
+                    "description": "The path to the ssh key to use for cloning the repositories"
+                },
+                "exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "description": "A list of repositories to exclude from the backup"
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "description": "A list of repositories to include in the backup"
+                },
+                "excludeorgs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "description": "A list of organizations to exclude from the backup"
+                },
+                "includeorgs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "description": "A list of organizations to include in the backup"
+                },
+                "wiki": {
+                    "type": "boolean",
+                    "description": "Include the wiki in the backup"
+                },
+                "starred": {
+                    "type": "boolean",
+                    "description": "Include the starred repositories in the backup"
+                },
+                "issues": {
+                    "type": "boolean",
+                    "description": "Include the issues in the backup, only available for `local` destination"
+                }
+            }
         },
-        "token_file": {
-            "type": "string",
-            "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
-        },
-        "url": {
-            "type": "string",
-            "description": "The url to the source repository"
-        },
-        "user": {
-            "type": "string",
-            "description": "The user you want to clone the repositories from. If you want to get everything from your user, leave out the user parameter and just use the token."
-        },
-        "organization": {
-            "type": "string",
-            "description": "The organization to clone the repositories to"
-        },
-        "username": {
-            "type": "string",
-            "description": "The username to authenticate against the destination"
-        },
-        "password": {
-            "type": "string",
-            "description": "The password to authenticate against the destination"
-        },
-        "ssh": {
-            "type": "boolean",
-            "description": "Use ssh instead of https to clone the repositories"
-        },
-        "sshkey": {
-            "type": "string",
-            "description": "The path to the ssh key to use for cloning the repositories"
-        },
-        "force": {
-            "type": "boolean",
-            "description": "Force push to the destination"
-        },
-        "exclude": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "A list of repositories to exclude from the backup"
-        },
-        "include": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "A list of repositories to include in the backup"
-        },
-        "excludeorgs": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "A list of organizations to exclude from the backup"
-        },
-        "includeorgs": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true,
-            "description": "A list of organizations to include in the backup"
-        },
-        "wiki": {
-            "type": "boolean",
-            "description": "Clone the wiki repositories as well"
-        },
-        "starred": {
-            "type": "boolean",
-            "description": "Clone the starred repositories as well"
-        },
-        "issues": {
-            "type": "boolean",
-            "description": "Clone the issues as well"
+        "destination": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "The token to authenticate against the destination"
+                },
+                "token_file": {
+                    "type": "string",
+                    "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
+                },
+                "url": {
+                    "type": "string",
+                    "description": "The url to the destination repository"
+                },
+                "user": {
+                    "type": "string",
+                    "description": "The user/org you want to backup the repositories to"
+                },
+                "organization": {
+                    "type": "string",
+                    "description": "The organization to backup the repositories to"
+                },
+                "sshkey": {
+                    "type": "string",
+                    "description": "The path to the ssh key to use for pushing the repositories"
+                },
+                "createorg": {
+                    "type": "boolean",
+                    "description": "Create the organization if it does not exist"
+                },
+                "lfs": {
+                    "type": "boolean",
+                    "description": "Use lfs to push the repositories"
+                },
+                "force": {
+                    "type": "boolean",
+                    "description": "Force push the repositories"
+                }
+            }
         },
         "filter": {
             "$id": "#/definitions/filter",
@@ -835,13 +878,20 @@
                 "repositories": {
                     "$id": "#/definitions/visibility/properties/repositories",
                     "type": "string",
-                    "enum": ["public", "private"],
+                    "enum": [
+                        "public",
+                        "private"
+                    ],
                     "description": "The visibility of the repositories to clone"
                 },
                 "organizations": {
                     "$id": "#/definitions/visibility/properties/organizations",
                     "type": "string",
-                    "enum": ["public", "private", "limited"],
+                    "enum": [
+                        "public",
+                        "private",
+                        "limited"
+                    ],
                     "description": "The visibility of the organizations to clone"
                 }
             }
