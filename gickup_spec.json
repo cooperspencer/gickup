@@ -515,34 +515,32 @@
                     "items": {
                         "type": "object",
                         "properties": {
-                            "properties": {
-                                "endpoint": {
-                                    "type": "string",
-                                    "description": "The endpoint of the S3 server"
-                                },
-                                "structured": {
-                                    "type": "boolean",
-                                    "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
-                                },
-                                "bucket": {
-                                    "type": "string",
-                                    "description": "The bucket to store the backups in"
-                                },
-                                "accesskey": {
-                                    "type": "string",
-                                    "description": "The access key to authenticate against the S3 server"
-                                },
-                                "secretkey": {
-                                    "type": "string",
-                                    "description": "The secret key to authenticate against the S3 server"
-                                },
-                                "usessl": {
-                                    "type": "boolean",
-                                    "description": "Use SSL to connect to the S3 server"
-                                }
+                            "endpoint": {
+                                "type": "string",
+                                "description": "The endpoint of the S3 server"
                             },
-                            "additionalProperties": false
-                        }
+                            "structured": {
+                                "type": "boolean",
+                                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
+                            },
+                            "bucket": {
+                                "type": "string",
+                                "description": "The bucket to store the backups in"
+                            },
+                            "accesskey": {
+                                "type": "string",
+                                "description": "The access key to authenticate against the S3 server"
+                            },
+                            "secretkey": {
+                                "type": "string",
+                                "description": "The secret key to authenticate against the S3 server"
+                            },
+                            "usessl": {
+                                "type": "boolean",
+                                "description": "Use SSL to connect to the S3 server"
+                            }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "github": {
