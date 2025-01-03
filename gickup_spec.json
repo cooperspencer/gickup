@@ -712,45 +712,56 @@
     },
     "definitions": {
         "source": {
+            "$id": "#/definitions/source",
             "type": "object",
             "properties": {
                 "token": {
+                    "$id": "#/definitions/source/properties/token",
                     "type": "string",
                     "description": "The token to authenticate against the source"
                 },
                 "token_file": {
+                    "$id": "#/definitions/source/properties/token_file",
                     "type": "string",
                     "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
                 },
                 "url": {
+                    "$id": "#/definitions/source/properties/url",
                     "type": "string",
                     "description": "The url to the source repository"
                 },
                 "user": {
+                    "$id": "#/definitions/source/properties/user",
                     "type": "string",
                     "description": "The user you want to clone the repositories from. If you want to get everything from your user, leave out the user parameter and just use the token."
                 },
                 "organization": {
+                    "$id": "#/definitions/source/properties/organization",
                     "type": "string",
                     "description": "The organization to clone the repositories from"
                 },
                 "username": {
+                    "$id": "#/definitions/source/properties/username",
                     "type": "string",
                     "description": "The username to authenticate against the source"
                 },
                 "password": {
+                    "$id": "#/definitions/source/properties/password",
                     "type": "string",
                     "description": "The password to authenticate against the source"
                 },
                 "ssh": {
+                    "$id": "#/definitions/source/properties/ssh",
                     "type": "boolean",
                     "description": "Use ssh instead of https to clone the repositories"
                 },
                 "sshkey": {
+                    "$id": "#/definitions/source/properties/sshkey",
                     "type": "string",
                     "description": "The path to the ssh key to use for cloning the repositories"
                 },
                 "exclude": {
+                    "$id": "#/definitions/source/properties/exclude",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -759,6 +770,7 @@
                     "description": "A list of repositories to exclude from the backup"
                 },
                 "include": {
+                    "$id": "#/definitions/source/properties/include",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -767,6 +779,7 @@
                     "description": "A list of repositories to include in the backup"
                 },
                 "excludeorgs": {
+                    "$id": "#/definitions/source/properties/excludeorgs",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -775,6 +788,7 @@
                     "description": "A list of organizations to exclude from the backup"
                 },
                 "includeorgs": {
+                    "$id": "#/definitions/source/properties/includeorgs",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -783,55 +797,68 @@
                     "description": "A list of organizations to include in the backup"
                 },
                 "wiki": {
+                    "$id": "#/definitions/source/properties/wiki",
                     "type": "boolean",
                     "description": "Include the wiki in the backup"
                 },
                 "starred": {
+                    "$id": "#/definitions/source/properties/starred",
                     "type": "boolean",
                     "description": "Include the starred repositories in the backup"
                 },
                 "issues": {
+                    "$id": "#/definitions/source/properties/issues",
                     "type": "boolean",
                     "description": "Include the issues in the backup, only available for `local` destination"
                 }
             }
         },
         "destination": {
+            "$id": "#/definitions/destination",
             "type": "object",
             "properties": {
                 "token": {
+                    "$id": "#/definitions/destination/properties/token",
                     "type": "string",
                     "description": "The token to authenticate against the destination"
                 },
                 "token_file": {
+                    "$id": "#/definitions/destination/properties/token_file",
                     "type": "string",
                     "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
                 },
                 "url": {
+                    "$id": "#/definitions/destination/properties/url",
                     "type": "string",
                     "description": "The url to the destination repository"
                 },
                 "user": {
+                    "$id": "#/definitions/destination/properties/user",
                     "type": "string",
                     "description": "The user/org you want to backup the repositories to"
                 },
                 "organization": {
+                    "$id": "#/definitions/destination/properties/organization",
                     "type": "string",
                     "description": "The organization to backup the repositories to"
                 },
                 "sshkey": {
+                    "$id": "#/definitions/destination/properties/sshkey",
                     "type": "string",
                     "description": "The path to the ssh key to use for pushing the repositories"
                 },
                 "createorg": {
+                    "$id": "#/definitions/destination/properties/createorg",
                     "type": "boolean",
                     "description": "Create the organization if it does not exist"
                 },
                 "lfs": {
+                    "$id": "#/definitions/destination/properties/lfs",
                     "type": "boolean",
                     "description": "Use lfs to push the repositories"
                 },
                 "force": {
+                    "$id": "#/definitions/destination/properties/force",
                     "type": "boolean",
                     "description": "Force push the repositories"
                 }
