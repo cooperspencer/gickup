@@ -60,7 +60,8 @@
                             "filter": {
                                 "$ref": "#/definitions/filter"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "gitlab": {
@@ -116,7 +117,8 @@
                             "filter": {
                                 "$ref": "#/definitions/filter"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "gitea": {
@@ -172,7 +174,8 @@
                             "filter": {
                                 "$ref": "#/definitions/filter"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "gogs": {
@@ -237,9 +240,11 @@
                                     "excludeforks": {
                                         "$ref": "#/definitions/filter/properties/excludeforks"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "onedev": {
@@ -295,9 +300,11 @@
                                     "excludeforks": {
                                         "$ref": "#/definitions/filter/properties/excludeforks"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "sourcehut": {
@@ -350,9 +357,11 @@
                                     "lastactivity": {
                                         "$ref": "#/definitions/filter/properties/lastactivity"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "bitbucket": {
@@ -402,9 +411,11 @@
                                     "lastactivity": {
                                         "$ref": "#/definitions/filter/properties/lastactivity"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 },
                 "any": {
@@ -433,7 +444,8 @@
                             "sshkey": {
                                 "$ref": "#/definitions/source/properties/sshkey"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     },
                     "required": [
                         "url"
@@ -540,7 +552,8 @@
                                     "repositories": {
                                         "$ref": "#/definitions/visibility/properties/repositories"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         },
                         "additionalProperties": false
@@ -569,7 +582,8 @@
                                     "enabled": {
                                         "$ref": "#/definitions/mirror/properties/enabled"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         },
                         "additionalProperties": false
@@ -637,7 +651,8 @@
                                     "enabled": {
                                         "$ref": "#/definitions/mirror/properties/enabled"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             },
                             "visibility": {
                                 "type": "object",
@@ -645,7 +660,8 @@
                                     "repositories": {
                                         "$ref": "#/definitions/visibility/properties/repositories"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         },
                         "additionalProperties": false
@@ -701,13 +717,24 @@
                                     "repositories": {
                                         "$ref": "#/definitions/visibility/properties/repositories"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         },
                         "additionalProperties": false
                     }
                 }
             }
+        },
+        "cron": {
+            "type": "string",
+            "description": "The cron expression to run the backup, You can create and test the expression on https://crontab.guru/"
+        },
+        "log": {
+            "$ref": "#/definitions/log"
+        },
+        "metrics": {
+            "$ref": "#/definitions/metrics"
         }
     },
     "definitions": {
@@ -811,7 +838,8 @@
                     "type": "boolean",
                     "description": "Include the issues in the backup, only available for `local` destination"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "destination": {
             "$id": "#/definitions/destination",
@@ -862,7 +890,8 @@
                     "type": "boolean",
                     "description": "Force push the repositories"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "filter": {
             "$id": "#/definitions/filter",
@@ -896,7 +925,8 @@
                     },
                     "description": "Only clone repositories that are written in one of the specified languages"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "visibility": {
             "$id": "#/definitions/visibility",
@@ -921,7 +951,8 @@
                     ],
                     "description": "The visibility of the organizations to clone"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "mirror": {
             "$id": "#/definitions/mirror",
@@ -937,7 +968,114 @@
                     "type": "string",
                     "description": "The interval to mirror the repositories. The value is a string that can be parsed by the time.ParseDuration function from the go standard library."
                 }
-            }
+            },
+            "additionalProperties": false
+        },
+        "log": {
+            "type": "object",
+            "properties": {
+                "timeformat": {
+                    "type": "string",
+                    "description": "The time format to use in the logs, The basics for time formats can be found at https://yourbasic.org/golang/format-parse-string-time-date-example."
+                },
+                "file-logging": {
+                    "type": "object",
+                    "properties": {
+                        "dir": {
+                            "type": "string",
+                            "description": "The directory to store the logs in"
+                        },
+                        "file": {
+                            "type": "string",
+                            "description": "The file to store the logs in"
+                        },
+                        "maxage": {
+                            "type": "integer",
+                            "description": "The maximum age of the log file in days"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "prometheus": {
+                    "type": "object",
+                    "properties": {
+                        "endpoint": {
+                            "type": "string",
+                            "description": "The endpoint to expose the metrics on"
+                        },
+                        "listen_addr": {
+                            "type": "string",
+                            "description": "The address to listen on"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "heartbeat": {
+                    "type": "object",
+                    "properties": {
+                        "urls": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "A list of urls to check for heartbeat"
+                        }
+                    }
+                },
+                "push": {
+                    "type": "object",
+                    "properties": {
+                        "ntfy": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "The url to push the metrics to"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "description": "The token to authenticate against the nty server"
+                                    },
+                                    "user": {
+                                        "type": "string",
+                                        "description": "The user to authenticate against the nty server"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "description": "The password to authenticate against the nty server"
+                                    }
+                                }
+                            }
+                        },
+                        "gotify": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "The url to push the metrics to"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "description": "The token to authenticate against the gotify server"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
         }
     }
 }
