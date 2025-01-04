@@ -141,6 +141,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 		ran = true
 		if repo.User == "" {
@@ -163,6 +164,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 			continue
 		}
 
@@ -265,6 +267,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 
 		orgrepos := []*gogs.Repository{}
@@ -279,6 +282,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						if err != nil {
 							sub.Error().
 								Msg(err.Error())
+							logger.SetExitCode(1)
 						}
 
 						if len(o) == 0 {
@@ -292,6 +296,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
+						logger.SetExitCode(1)
 					}
 
 					if len(o) == 0 {
@@ -405,6 +410,7 @@ func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) m
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
+					logger.SetExitCode(1)
 					return issues
 				}
 			} else {

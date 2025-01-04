@@ -212,6 +212,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 		ran = true
 		if repo.User == "" {
@@ -239,6 +240,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 				continue
 			}
 			repo.User = user.UserName
@@ -247,6 +249,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 			continue
 		}
 
@@ -255,6 +258,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 				if status.StatusCode == http.StatusNotFound {
 					break
 				}
@@ -272,6 +276,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 			} else {
 				gitearepos = append(gitearepos, starredrepos...)
 			}
@@ -304,6 +309,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
+					logger.SetExitCode(1)
 					continue
 				} else {
 					language := ""
@@ -399,6 +405,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
+					logger.SetExitCode(1)
 				}
 				if len(o) == 0 {
 					break
@@ -450,6 +457,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
+					logger.SetExitCode(1)
 					continue
 				} else {
 					language := ""
@@ -565,6 +573,7 @@ func GetIssues(repo *gitea.Repository, client *gitea.Client, conf types.GenRepo)
 			if err != nil {
 				if response.StatusCode == http.StatusForbidden {
 					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					logger.SetExitCode(1)
 					return issues
 				}
 				if errorcount < 5 {
@@ -572,6 +581,7 @@ func GetIssues(repo *gitea.Repository, client *gitea.Client, conf types.GenRepo)
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
+					logger.SetExitCode(1)
 					return issues
 				}
 			} else {

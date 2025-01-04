@@ -5,6 +5,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -28,6 +29,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				log.Error().
 					Str("stage", "whatever").
 					Msg("no url configured")
+				logger.SetExitCode(1)
 			}
 
 			var auth transport.AuthMethod
@@ -64,6 +66,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						log.Error().
 							Str("stage", "whatever").
 							Msg(err.Error())
+						logger.SetExitCode(1)
 						continue
 					}
 				}
@@ -75,6 +78,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				log.Error().
 					Str("stage", "whatever").
 					Msg(err.Error())
+				logger.SetExitCode(1)
 
 				continue
 			}

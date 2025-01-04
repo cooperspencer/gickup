@@ -11,6 +11,10 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+var (
+	exitcode = 0
+)
+
 // NewRollingFile TODO.
 func NewRollingFile(config types.FileLogging) io.Writer {
 	if config.Dir != "" {
@@ -60,4 +64,14 @@ func CreateSubLogger(args ...string) zerolog.Logger {
 		}
 	}
 	return sub.Logger()
+}
+
+// SetExitCode set exit code
+func SetExitCode(code int) {
+	exitcode = code
+}
+
+// GetExitCode return exit code
+func GetExitCode() int {
+	return exitcode
 }
