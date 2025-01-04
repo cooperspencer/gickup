@@ -48,7 +48,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 				continue
 			}
 			client.SetApiBaseURL(*bitbucketURL)
@@ -58,7 +57,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 		}
 
 		sub.Info().
@@ -68,7 +66,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 			continue
 		}
 
@@ -77,7 +74,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 			} else {
 				for _, workspace := range workspaces.Workspaces {
 					if workspace.Slug != repo.User {
@@ -95,7 +91,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						if err != nil {
 							sub.Error().
 								Msg(err.Error())
-							logger.SetExitCode(1)
 						} else {
 							repositories.Items = append(repositories.Items, workspacerepos.Items...)
 						}

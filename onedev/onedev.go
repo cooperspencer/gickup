@@ -31,7 +31,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 		}
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
@@ -66,7 +65,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg("can't find user")
-				logger.SetExitCode(1)
 				break
 			}
 			user = u
@@ -91,7 +89,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg("couldn't get clone urls")
-				logger.SetExitCode(1)
 				continue
 			}
 			sub.Debug().Msg(urls.HTTP)
@@ -124,7 +121,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msgf("can't get latest commit for %s", defaultbranch)
-					logger.SetExitCode(1)
 				} else {
 					if len(commits) > 0 {
 						lastactive := time.UnixMicro(commits[0].Author.When)
@@ -154,7 +150,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msgf("couldn't get memberships for %s", user.Name)
-				logger.SetExitCode(1)
 			}
 
 			for _, membership := range memberships {
@@ -162,7 +157,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msgf("couldn't get group with id %d", membership.GroupID)
-					logger.SetExitCode(1)
 				}
 				if !excludeorgs[group.Name] {
 					repo.IncludeOrgs = append(repo.IncludeOrgs, group.Name)
@@ -190,7 +184,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg("couldn't get clone urls")
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -310,7 +303,6 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 			if err != nil {
 				if returncode == http.StatusForbidden {
 					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
-					logger.SetExitCode(1)
 					return issues
 				}
 				if errorcount < 5 {
@@ -318,7 +310,6 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
-					logger.SetExitCode(1)
 					return issues
 				}
 			} else {
@@ -328,7 +319,6 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 						comments, _, err := client.GetIssueComments(onedevissue.ID)
 						if err != nil {
 							sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
-							logger.SetExitCode(1)
 						} else {
 							onedevissue.Comments = comments
 						}

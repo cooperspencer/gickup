@@ -66,7 +66,6 @@ func getv4(token, user string) []V4Repo {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 			return []V4Repo{}
 		}
 
@@ -113,7 +112,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 		}
 		ran = true
 		if repo.User == "" {
@@ -152,7 +150,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 				continue
 			}
 
@@ -168,7 +165,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
-					logger.SetExitCode(1)
 					continue
 				}
 				githubrepos = append(githubrepos, github_repo)
@@ -181,7 +177,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 				if _, ok := err.(*github.RateLimitError); ok {
 					sub.Warn().Msg("wait for one hour.")
 					time.Sleep(1 * time.Hour)
@@ -218,7 +213,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
-					logger.SetExitCode(1)
 				}
 				if len(repos) == 0 {
 					break
@@ -353,7 +347,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
-					logger.SetExitCode(1)
 					continue
 				}
 				if len(gists) == 0 {
@@ -448,7 +441,6 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 			if err != nil {
 				if response.StatusCode == http.StatusForbidden {
 					sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
-					logger.SetExitCode(1)
 					return issues
 				}
 				if errorcount < 5 {
@@ -456,7 +448,6 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
-					logger.SetExitCode(1)
 					return issues
 				}
 			} else {

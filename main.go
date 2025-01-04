@@ -202,7 +202,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						Str("stage", "tempclone").
 						Str("url", r.URL).
 						Msg(err.Error())
-					logger.SetExitCode(1)
 					continue
 				}
 
@@ -225,7 +224,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("git", "clone").
 							Msg(err.Error())
 						os.RemoveAll(tempdir)
-						logger.SetExitCode(1)
 						continue
 					}
 				}
@@ -234,23 +232,19 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				d.AccessKey, err = d.GetKey(d.AccessKey)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
-					logger.SetExitCode(1)
 				}
 				d.SecretKey, err = d.GetKey(d.SecretKey)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
-					logger.SetExitCode(1)
 				}
 
 				err = s3.UploadDirToS3(tempdir, d)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
-					logger.SetExitCode(1)
 				}
 				err = s3.DeleteObjectsNotInRepo(tempdir, r.Name, d)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
-					logger.SetExitCode(1)
 				}
 				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(time.Since(repotime).Seconds())
 				status = 1
@@ -283,7 +277,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("stage", "tempclone").
 								Str("url", r.URL).
 								Msg(err.Error())
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -302,7 +295,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "clone").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -314,7 +306,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -332,7 +323,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "push").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -346,8 +336,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if gitea.Backup(r, d, cli.Dry) {
 						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Since(repotime).Seconds())
 						status = 1
-					} else {
-						logger.SetExitCode(1)
 					}
 				}
 
@@ -373,7 +361,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("stage", "tempclone").
 								Str("url", r.URL).
 								Msg(err.Error())
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -392,7 +379,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "clone").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -404,7 +390,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -422,7 +407,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "push").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -436,8 +420,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if gogs.Backup(r, d, cli.Dry) {
 						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
 						status = 1
-					} else {
-						logger.SetExitCode(1)
 					}
 				}
 
@@ -467,7 +449,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("stage", "tempclone").
 								Str("url", r.URL).
 								Msg(err.Error())
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -486,7 +467,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "clone").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -498,7 +478,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 
@@ -516,7 +495,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 									Str("git", "push").
 									Msg(err.Error())
 								os.RemoveAll(tempdir)
-								logger.SetExitCode(1)
 								continue
 							}
 						}
@@ -530,8 +508,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					if gitlab.Backup(r, d, cli.Dry) {
 						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
 						status = 1
-					} else {
-						logger.SetExitCode(1)
 					}
 				}
 
@@ -557,7 +533,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "tempclone").
 							Str("url", r.URL).
 							Msg(err.Error())
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -576,7 +551,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("git", "clone").
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -588,7 +562,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("url", r.URL).
 							Msg(err.Error())
 						os.RemoveAll(tempdir)
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -606,7 +579,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("git", "push").
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -640,7 +612,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "tempclone").
 							Str("url", r.URL).
 							Msg(err.Error())
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -658,7 +629,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -670,7 +640,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("url", r.URL).
 							Msg(err.Error())
 						os.RemoveAll(tempdir)
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -687,7 +656,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -723,7 +691,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "tempclone").
 							Str("url", r.URL).
 							Msg(err.Error())
-						logger.SetExitCode(1)
 						continue
 					}
 
@@ -741,7 +708,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -769,7 +735,6 @@ func backup(repos []types.Repo, conf *types.Conf) {
 								Str("url", r.URL).
 								Msg(err.Error())
 							os.RemoveAll(tempdir)
-							logger.SetExitCode(1)
 							continue
 						}
 					}
@@ -1042,7 +1007,7 @@ func main() {
 			break
 		}
 	}
-	os.Exit(logger.GetExitCode())
+	os.Exit(int(logger.GetExitCode()))
 }
 
 func logNextRun(conf *types.Conf) {

@@ -155,7 +155,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 		}
 		ran = true
 
@@ -169,7 +168,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg("no user associated with this token")
-				logger.SetExitCode(1)
 				continue
 			}
 
@@ -177,7 +175,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg("cannot unmarshal user")
-				logger.SetExitCode(1)
 				continue
 			}
 			repo.User = user.Name
@@ -201,12 +198,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
-			logger.SetExitCode(1)
 		}
 
 		if len(repositories.Results) == 0 {
 			sub.Error().Msgf("couldn't find any repositories for user %s", repo.User)
-			logger.SetExitCode(1)
 			break
 		}
 
@@ -219,7 +214,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 			}
 
 			head := ""
@@ -234,7 +228,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				logger.SetExitCode(1)
 			} else {
 				if len(commits.Results) > 0 {
 					if time.Since(commits.Results[0].Timestamp) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
