@@ -31,6 +31,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
@@ -82,6 +83,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 
 		for _, r := range userrepos {
@@ -89,6 +91,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg("couldn't get clone urls")
+				logger.SetExitCode(1)
 				continue
 			}
 			sub.Debug().Msg(urls.HTTP)
@@ -121,6 +124,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msgf("can't get latest commit for %s", defaultbranch)
+					logger.SetExitCode(1)
 				} else {
 					if len(commits) > 0 {
 						lastactive := time.UnixMicro(commits[0].Author.When)
@@ -150,6 +154,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msgf("couldn't get memberships for %s", user.Name)
+				logger.SetExitCode(1)
 			}
 
 			for _, membership := range memberships {
@@ -157,6 +162,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msgf("couldn't get group with id %d", membership.GroupID)
+					logger.SetExitCode(1)
 				}
 				if !excludeorgs[group.Name] {
 					repo.IncludeOrgs = append(repo.IncludeOrgs, group.Name)
@@ -172,6 +178,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
+					logger.SetExitCode(1)
 				}
 
 				for _, r := range orgrepos {
@@ -184,6 +191,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg("couldn't get clone urls")
+						logger.SetExitCode(1)
 						continue
 					}
 

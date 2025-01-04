@@ -163,6 +163,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 			continue
 		}
 
@@ -265,6 +266,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 
 		orgrepos := []*gogs.Repository{}
@@ -292,6 +294,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
+						logger.SetExitCode(1)
 					}
 
 					if len(o) == 0 {

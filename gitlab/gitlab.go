@@ -111,6 +111,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 		}
 		ran = true
 
@@ -119,6 +120,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 			continue
 		}
 
@@ -129,6 +131,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 				continue
 			}
 			repo.User = user.Username
@@ -145,6 +148,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			logger.SetExitCode(1)
 			continue
 		}
 
@@ -163,6 +167,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
+						logger.SetExitCode(1)
 					}
 					if len(projects) == 0 {
 						break
@@ -183,6 +188,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						if err != nil {
 							sub.Error().
 								Msg(err.Error())
+							logger.SetExitCode(1)
 						}
 						if len(projects) == 0 {
 							break
@@ -205,6 +211,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 				continue
 			}
 			subgroups, _, err := client.Groups.ListSubGroups(group.ID, &gitlab.ListSubGroupsOptions{})
@@ -218,6 +225,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
+				logger.SetExitCode(1)
 				continue
 			}
 			subgroups, _, err := client.Groups.ListSubGroups(group.ID, &gitlab.ListSubGroupsOptions{})
@@ -360,6 +368,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				})
 				if err != nil {
 					sub.Error().Msg(err.Error())
+					logger.SetExitCode(1)
 				}
 
 				if len(g) == 0 {
@@ -380,6 +389,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					if err != nil {
 						sub.Error().
 							Msg(err.Error())
+						logger.SetExitCode(1)
 					}
 					if len(projects) == 0 {
 						break
@@ -415,6 +425,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							if err != nil {
 								sub.Error().
 									Msg(err.Error())
+								logger.SetExitCode(1)
 								continue
 							} else {
 								language := ""
