@@ -210,7 +210,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub = logger.CreateSubLogger("stage", "gitea", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 		ran = true

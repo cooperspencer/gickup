@@ -139,7 +139,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub = logger.CreateSubLogger("stage", "gogs", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 		ran = true
@@ -401,7 +401,7 @@ func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) m
 			i, err := client.ListRepoIssues(repo.Owner.UserName, repo.Name, listOptions)
 			if err != nil {
 				if errorcount < 5 {
-					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					sub.Warn().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {

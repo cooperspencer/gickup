@@ -110,7 +110,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 		ran = true
@@ -444,7 +444,7 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 					return issues
 				}
 				if errorcount < 5 {
-					sub.Error().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
+					sub.Warn().Err(err).Str("repo", *repo.Name).Msg("can't fetch issues")
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
