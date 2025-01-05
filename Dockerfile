@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine as builder
+FROM golang:1.23-alpine AS builder
 
 # Install dependencies for copy
 RUN apk add -U --no-cache ca-certificates tzdata git
@@ -15,7 +15,7 @@ RUN go get -d -v ./...
 RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o gickup .
 
 # Use alpine as production environment -> Small builds
-FROM alpine:3.20 as production
+FROM alpine:3.20 AS production
 RUN apk add -U --no-cache ca-certificates tzdata git git-lfs
 RUN git lfs install
 
