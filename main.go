@@ -1007,6 +1007,7 @@ func main() {
 			break
 		}
 	}
+	os.Exit(int(logger.GetExitCode()))
 }
 
 func logNextRun(conf *types.Conf) {

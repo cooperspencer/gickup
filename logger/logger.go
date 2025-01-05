@@ -4,11 +4,16 @@ import (
 	"io"
 	"os"
 	"path"
+	"sync/atomic"
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/natefinch/lumberjack.v2"
+)
+
+var (
+	exitcode int32
 )
 
 // NewRollingFile TODO.
@@ -44,7 +49,10 @@ func CreateLogger(conf types.Logging) zerolog.Logger {
 
 	mw := io.MultiWriter(writers...)
 
-	return zerolog.New(mw).With().Timestamp().Logger()
+	logger := zerolog.New(mw).With().Timestamp().Logger()
+
+	// Attach the error hook to the main logger
+	return logger.Hook(&ErrorHook{})
 }
 
 // CreateSubLogger create a sublogger for modules
@@ -59,5 +67,18 @@ func CreateSubLogger(args ...string) zerolog.Logger {
 			sub = sub.Str(key, value)
 		}
 	}
+
 	return sub.Logger()
+}
+
+type ErrorHook struct{}
+
+func GetExitCode() int32 {
+	return exitcode
+}
+
+func (h *ErrorHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
+	if level == zerolog.ErrorLevel {
+		atomic.StoreInt32(&exitcode, 1)
+	}
 }

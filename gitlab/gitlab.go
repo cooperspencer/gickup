@@ -109,7 +109,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		err := repo.Filter.ParseDuration()
 		sub = logger.CreateSubLogger("stage", "gitlab", "url", repo.URL)
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 		ran = true
@@ -563,7 +563,7 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 					return issues
 				}
 				if errorcount < 5 {
-					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					sub.Warn().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {

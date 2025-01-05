@@ -55,7 +55,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 

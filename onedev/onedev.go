@@ -29,7 +29,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub = logger.CreateSubLogger("stage", "onedev", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
-			sub.Error().
+			sub.Warn().
 				Msg(err.Error())
 		}
 		include := types.GetMap(repo.Include)
@@ -108,7 +108,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 			if err != nil {
-				sub.Error().
+				sub.Warn().
 					Msgf("couldn't get default branch for %s", r.Name)
 				defaultbranch = "main"
 			}
@@ -118,16 +118,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			options := onedev.CommitQueryOptions{Query: fmt.Sprintf("branch(%s)", defaultbranch), Fields: []string{onedev.Committer, onedev.Parents, onedev.Author, onedev.CommitDate, onedev.Body, onedev.FileChanges, onedev.LineChanges, onedev.Subject}}
 			commits, _, err := client.GetCommits(r.ID, &options)
 			if err != nil {
-				if err != nil {
-					sub.Error().
-						Msgf("can't get latest commit for %s", defaultbranch)
-				} else {
-					if len(commits) > 0 {
-						lastactive := time.UnixMicro(commits[0].Author.When)
-						if time.Since(lastactive) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-							continue
-						}
-					}
+				sub.Error().
+					Msgf("can't get latest commit for %s", defaultbranch)
+				continue
+			}
+
+			if len(commits) > 0 {
+				lastactive := time.UnixMicro(commits[0].Author.When)
+				if time.Since(lastactive) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+					continue
 				}
 			}
 
@@ -189,7 +188,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 					defaultbranch, _, err := client.GetDefaultBranch(r.ID)
 					if err != nil {
-						sub.Error().
+						sub.Warn().
 							Msgf("couldn't get default branch for %s", r.Name)
 						defaultbranch = "main"
 					}
@@ -306,7 +305,7 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 					return issues
 				}
 				if errorcount < 5 {
-					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
+					sub.Warn().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
 					time.Sleep(5 * time.Second)
 					errorcount++
 				} else {
