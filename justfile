@@ -15,6 +15,7 @@ cleanup:
 	
 update:
 	go get -u
+	go mod tidy
 
 pull:
 	git pull
