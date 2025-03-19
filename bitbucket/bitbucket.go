@@ -64,10 +64,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		repo_res, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
 		var repositories []bitbucket.Repository
-		if err != nil {
-			sub.Error().
-				Msg(err.Error())
-		} else {
+		if err == nil {
 			repositories = repo_res.Items
 		}
 
