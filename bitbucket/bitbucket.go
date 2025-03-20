@@ -62,11 +62,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
-		repositories, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
-		if err != nil {
-			sub.Error().
-				Msg(err.Error())
-			continue
+		repo_res, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
+		var repositories []bitbucket.Repository
+		if err == nil {
+			repositories = repo_res.Items
 		}
 
 		if repo.Token != "" {
@@ -92,7 +91,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							sub.Error().
 								Msg(err.Error())
 						} else {
-							repositories.Items = append(repositories.Items, workspacerepos.Items...)
+							repositories = append(repositories, workspacerepos.Items...)
 						}
 
 					}
@@ -100,7 +99,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 		}
 
-		for _, r := range repositories.Items {
+		for _, r := range repositories {
 			sub.Debug().Msg(r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string))
 			user := repo.User
 			if r.Owner != nil {
