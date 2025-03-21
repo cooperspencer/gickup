@@ -102,7 +102,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			}
 		} else {
 			auth = &http.BasicAuth{
-				Username: "xyz",
+				Username: repo.Origin.User,
 				Password: repo.Token,
 			}
 		}
@@ -505,7 +505,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 			}
 		} else {
 			auth = &http.BasicAuth{
-				Username: "xyz",
+				Username: repo.Origin.User,
 				Password: repo.Token,
 			}
 		}

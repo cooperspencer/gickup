@@ -237,7 +237,10 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
 				}
-
+				d.Token, err = d.GetKey(d.Token)
+				if err != nil {
+					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
 				err = s3.UploadDirToS3(tempdir, d)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
