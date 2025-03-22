@@ -51,6 +51,16 @@ func (g GitCmd) Fetch(path string) error {
 	return cmd.Run()
 }
 
+func (g GitCmd) LFSFetch(path string) error {
+	_, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	args := []string{"-C", path, "lfs", "fetch", "--all"}
+	cmd := exec.Command(g.CMD, args...)
+	return cmd.Run()
+}
+
 func (g GitCmd) MirrorPull(path string) error {
 	_, err := os.Stat(path)
 	if err != nil {

@@ -333,6 +333,16 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 			if err != nil {
 				return err
 			}
+
+			if l.Bare {
+				sub.Info().
+					Msgf("fetching lfs files for %s", types.Green(reponame))
+
+				err = gitc.LFSFetch(filepath.Join(l.Path, reponame))
+				if err != nil {
+					return err
+				}
+			}
 		} else {
 			// fetch to see if there are any unpullable commits, for example a force push
 			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin"})
@@ -431,6 +441,19 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 		}
 
 		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare)
+		if err != nil {
+			return err
+		}
+
+		if l.Bare {
+			sub.Info().
+				Msgf("fetching lfs files for %s", types.Green(repo.Name))
+
+			err = gitc.LFSFetch(filepath.Join(l.Path, repo.Name))
+			if err != nil {
+				return err
+			}
+		}
 	} else {
 		r := &git.Repository{}
 		r, err = git.PlainClone(filepath.Join(l.Path, repo.Name), l.Bare, &git.CloneOptions{
