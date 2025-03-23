@@ -539,6 +539,7 @@ type S3Repo struct {
 	Endpoint   string `yaml:"endpoint"`
 	AccessKey  string `yaml:"accesskey"`
 	SecretKey  string `yaml:"secretkey"`
+	Token      string `yaml:"token"`
 	Region     string `yaml:"region"`
 	UseSSL     bool   `yaml:"usessl"`
 	Structured bool   `yaml:"structured"`
