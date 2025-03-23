@@ -119,7 +119,10 @@ func (g GitCmd) Checkout(path, branch string) error {
 }
 
 func (g GitCmd) SSHPush(path, remote, key string) error {
-	os.Setenv("GIT_SSH_COMMAND", fmt.Sprintf("ssh -i %s", key))
+	err := os.Setenv("GIT_SSH_COMMAND", fmt.Sprintf("ssh -i %s", key))
+	if err != nil {
+		return err
+	}
 
 	return g.Push(path, remote)
 }
