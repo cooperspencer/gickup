@@ -538,6 +538,10 @@
                             "usessl": {
                                 "type": "boolean",
                                 "description": "Use SSL to connect to the S3 server"
+                            },
+                            "token": {
+                                "type": "string",
+                                "description": "The token to authenticate against the S3 server"
                             }
                         },
                         "additionalProperties": false
