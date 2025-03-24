@@ -543,6 +543,7 @@ type S3Repo struct {
 	Region     string `yaml:"region"`
 	UseSSL     bool   `yaml:"usessl"`
 	Structured bool   `yaml:"structured"`
+	Zip        bool   `yaml:"zip"`
 }
 
 func (s3 S3Repo) GetKey(accessString string) (string, error) {

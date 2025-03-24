@@ -276,6 +276,8 @@ destination:
      bucket: your-bucket-name
      accesskey: your-access-key # can be an environment variable, just don't add a $ in front of it
      secretkey: your-secret-key # can be an environment variable, just don't add a $ in front of it
+     token: your-token # can be an environment variable, just don't add a $ in front of it
+     zip: false # if true, will zip the entire git repo into a single zip file and upload that instead
      usessl: true # wheter to use ssl or not
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.

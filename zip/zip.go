@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 )
 
+// Create a Zip file `{repository}.zip` and recursively add the contents of all paths in the `tozip` array to it.
+// Deletes the original contents of `repository` such that only the newly created Zip file remains.
 func Zip(repository string, tozip []string) error {
 	file, err := os.Create(fmt.Sprintf("%s.zip", repository))
 	if err != nil {
