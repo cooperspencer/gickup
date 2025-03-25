@@ -90,15 +90,14 @@ func (g GitCmd) Push(path, remote string) error {
 	args := []string{"-C", path, "push", "--all", remote}
 	cmd := exec.Command(g.CMD, args...)
 
-	output, _ := cmd.CombinedOutput()
-
-	if err := cmd.Run(); err != nil {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
-	return nil
+	return err
 }
 
 func (g GitCmd) Checkout(path, branch string) error {
@@ -109,19 +108,21 @@ func (g GitCmd) Checkout(path, branch string) error {
 	args := []string{"checkout", branch}
 	cmd := exec.Command(g.CMD, args...)
 
-	output, _ := cmd.CombinedOutput()
-
-	if err := cmd.Run(); err != nil {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
 			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
-	return nil
+	return err
 }
 
 func (g GitCmd) SSHPush(path, remote, key string) error {
-	os.Setenv("GIT_SSH_COMMAND", fmt.Sprintf("ssh -i %s", key))
+	err := os.Setenv("GIT_SSH_COMMAND", fmt.Sprintf("ssh -i %s", key))
+	if err != nil {
+		return err
+	}
 
 	return g.Push(path, remote)
 }
