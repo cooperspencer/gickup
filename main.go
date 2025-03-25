@@ -33,6 +33,7 @@ import (
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/whatever"
+	"github.com/cooperspencer/gickup/zip"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -189,10 +190,14 @@ func backup(repos []types.Repo, conf *types.Conf) {
 			repotime := time.Now()
 			status := 0
 
+			logOp := "pushing"
+			if d.Zip {
+				logOp = "zipping and pushing"
+			}
 			log.Info().
 				Str("stage", "s3").
 				Str("url", d.Endpoint).
-				Msgf("pushing %s to %s", types.Blue(r.Name), d.Bucket)
+				Msgf("%s %s to %s", logOp, types.Blue(r.Name), d.Bucket)
 
 			if !cli.Dry {
 				tempname := fmt.Sprintf("s3-%x", repotime)
@@ -210,7 +215,8 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				}
 
 				defer os.RemoveAll(tempdir)
-				_, err = local.TempClone(r, path.Join(tempdir, r.Name))
+				tempClonePath := path.Join(tempdir, r.Name)
+				_, err = local.TempClone(r, tempClonePath)
 				if err != nil {
 					if err == git.NoErrAlreadyUpToDate {
 						log.Info().
@@ -240,6 +246,21 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				d.Token, err = d.GetKey(d.Token)
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
+				}
+
+				if d.Zip {
+					log.Info().
+						Msgf("zipping %s", types.Green(r.Name))
+					err := zip.Zip(tempClonePath, []string{tempClonePath})
+					if err != nil {
+						log.Error().
+							Str("stage", "zip").
+							Str("url", r.URL).
+							Str("repo", r.Name).
+							Msg(err.Error())
+						log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
+						continue
+					}
 				}
 				err = s3.UploadDirToS3(tempdir, d)
 				if err != nil {

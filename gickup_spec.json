@@ -542,6 +542,10 @@
                             "token": {
                                 "type": "string",
                                 "description": "The token to authenticate against the S3 server"
+                            },
+                            "zip": {
+                                "type": "boolean",
+                                "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
                             }
                         },
                         "additionalProperties": false
