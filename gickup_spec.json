@@ -546,6 +546,10 @@
                             "zip": {
                                 "type": "boolean",
                                 "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
+                            },
+                            "storageclass": {
+                                "type": "string",
+                                "description": "Storage class applied to all repos uploaded to this S3 bucket (optional)"
                             }
                         },
                         "additionalProperties": false
