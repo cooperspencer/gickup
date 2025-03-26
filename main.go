@@ -18,6 +18,7 @@ import (
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/go-git/go-git/v5"
 	"github.com/google/go-cmp/cmp"
+	"github.com/minio/minio-go/v7"
 
 	"github.com/alecthomas/kong"
 	"github.com/cooperspencer/gickup/bitbucket"
@@ -262,7 +263,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 				}
-				err = s3.UploadDirToS3(tempdir, d)
+				err = s3.UploadDirToS3(tempdir, d, &minio.PutObjectOptions{
+					StorageClass: d.StorageClass,
+				})
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
 				}
