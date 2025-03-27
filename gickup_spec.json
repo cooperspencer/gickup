@@ -499,6 +499,10 @@
                                 "type": "boolean",
                                 "description": "clone the repository as a bare repository"
                             },
+                            "mirror": {
+                                "type": "boolean",
+                                "description": "clone the repository as a mirror repository"
+                            },
                             "lfs": {
                                 "type": "boolean",
                                 "description": "uses lfs to clone repositories"

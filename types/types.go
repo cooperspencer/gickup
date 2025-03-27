@@ -47,6 +47,7 @@ func (dest Destination) Count() int {
 // Local TODO.
 type Local struct {
 	Bare       bool   `yaml:"bare"`
+	Mirror     bool   `yaml:"mirror" default:"false"`
 	Path       string `yaml:"path"`
 	Structured bool   `yaml:"structured"`
 	Zip        bool   `yaml:"zip"`
