@@ -50,7 +50,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 	}
 
-	if l.Bare {
+	if l.Bare || l.Mirror {
 		repo.Name += ".git"
 	}
 
