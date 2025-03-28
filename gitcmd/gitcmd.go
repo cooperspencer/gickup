@@ -22,17 +22,20 @@ func New() (GitCmd, error) {
 	return GitCmd{CMD: "git"}, nil
 }
 
-func (g GitCmd) Clone(url, reponame string, bare bool) error {
+func (g GitCmd) Clone(url, reponame string, bare bool, mirror bool) error {
 	cmd := exec.Command(g.CMD, "clone", url, reponame)
 	if bare {
 		cmd.Args = append(cmd.Args, "--bare")
 	}
+	if mirror {
+		cmd.Args = append(cmd.Args, "--mirror")
+	}
 	return cmd.Run()
 }
 
-func (g GitCmd) Pull(bare bool, repopath string) error {
+func (g GitCmd) Pull(bare bool, mirror bool, repopath string) error {
 	var args = []string{}
-	if bare {
+	if bare || mirror {
 		args = []string{"-C", repopath, "fetch", "--all"}
 	} else {
 		args = []string{"-C", repopath, "pull", "--all"}
