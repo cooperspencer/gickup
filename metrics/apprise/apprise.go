@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/cooperspencer/gickup/types"
 )
@@ -24,7 +25,11 @@ func Notify(msg string, config types.AppriseConfig) error {
 
 	jsonData, _ := json.Marshal(payload)
 
-	url := config.Url + "/notify/"
+	if !strings.HasSuffix(config.Url, "/") {
+		config.Url += "/"
+	}
+
+	url := config.Url + "notify/"
 
 	if config.Config != "" {
 		url += config.Config

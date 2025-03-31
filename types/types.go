@@ -86,7 +86,7 @@ type PushConfig struct {
 type AppriseConfig struct {
 	Url    string   `yaml:"url"`
 	Tags   []string `yaml:"tags"`
-	Config string   `yaml:"tags"`
+	Config string   `yaml:"config"`
 	Urls   []string `yaml:"notification_urls"`
 }
 
