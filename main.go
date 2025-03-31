@@ -27,6 +27,7 @@ import (
 	"github.com/cooperspencer/gickup/gogs"
 	"github.com/cooperspencer/gickup/local"
 	"github.com/cooperspencer/gickup/logger"
+	"github.com/cooperspencer/gickup/metrics/apprise"
 	"github.com/cooperspencer/gickup/metrics/gotify"
 	"github.com/cooperspencer/gickup/metrics/heartbeat"
 	"github.com/cooperspencer/gickup/metrics/ntfy"
@@ -97,7 +98,7 @@ func readConfigFile(configfile string) []*types.Conf {
 
 		if !reflect.ValueOf(c).IsZero() {
 			if len(conf) > 0 {
-				if len(c.Metrics.PushConfigs.Gotify) == 0 && len(c.Metrics.PushConfigs.Ntfy) == 0 {
+				if len(c.Metrics.PushConfigs.Gotify) == 0 && len(c.Metrics.PushConfigs.Ntfy) == 0 && len(c.Metrics.PushConfigs.Apprise) == 0 {
 					c.Metrics.PushConfigs = conf[0].Metrics.PushConfigs
 				}
 			}
@@ -866,6 +867,15 @@ func runBackup(conf *types.Conf, num int) {
 			err := gotify.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
 			if err != nil {
 				log.Warn().Str("push", "gotify").Err(err).Msg("couldn't send message")
+			}
+		}
+	}
+
+	if len(conf.Metrics.PushConfigs.Apprise) > 0 {
+		for _, pusher := range conf.Metrics.PushConfigs.Apprise {
+			err := apprise.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			if err != nil {
+				log.Warn().Str("push", "apprise").Err(err).Msg("couldn't send message")
 			}
 		}
 	}
