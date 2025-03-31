@@ -1103,6 +1103,37 @@
                                     }
                                 }
                             }
+                        },
+                        "apprise": {
+                            "type": "array",
+                            "description": "Send notification to apprise (apprise)",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "The url to your apprise server"
+                                    },
+                                    "config": {
+                                        "type": "string",
+                                        "description": "The id of your configuration in apprise"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "description": "A list of tags you want to send your message to"
+                                    },
+                                    "notification_urls": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "description": "A list of urls you want to send notifications to"
+                                    },
+                                }
+                            }
                         }
                     },
                     "additionalProperties": false
