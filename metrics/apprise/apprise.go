@@ -3,6 +3,8 @@ package apprise
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -13,6 +15,10 @@ type Request struct {
 	Body string   `json:"body"`
 	Tags []string `json:"tags,omitempty"`
 	Urls []string `json:"urls",omitempty`
+}
+
+type ErrorMsg struct {
+	Error string `json:"error"`
 }
 
 func Notify(msg string, config types.AppriseConfig) error {
@@ -39,6 +45,20 @@ func Notify(msg string, config types.AppriseConfig) error {
 	defer resp.Body.Close()
 	if err != nil {
 		return err
+	}
+
+	errormsg := ErrorMsg{}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, &errormsg)
+	if err != nil {
+		return err
+	}
+
+	if errormsg.Error != "" {
+		return errors.New(errormsg.Error)
 	}
 
 	return nil
