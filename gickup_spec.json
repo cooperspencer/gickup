@@ -1,1145 +1,1134 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema#",
-    "id": "gickup_spec.json",
-    "type": "object",
-    "title": "Gickup configuration spec",
-    "description": "The Gickup configuration spec",
-    "properties": {
-        "cron": {
-            "type": "string",
-            "description": "The cron expression to run the backup, You can create and test the expression on https://crontab.guru/"
-        },
-        "log": {
-            "$ref": "#/definitions/log"
-        },
-        "metrics": {
-            "$ref": "#/definitions/metrics"
-        },
-        "source": {
-            "type": "object",
-            "description": "Configuration for all git hoster source endpoints",
-            "additionalProperties": false,
-            "properties": {
-                "github": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "wiki": {
-                                "$ref": "#/definitions/source/properties/wiki"
-                            },
-                            "starred": {
-                                "$ref": "#/definitions/source/properties/starred"
-                            },
-                            "issues": {
-                                "$ref": "#/definitions/source/properties/issues"
-                            },
-                            "gists": {
-                                "$ref": "#/definitions/source/properties/gists"
-                            },
-                            "filter": {
-                                "$ref": "#/definitions/filter"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gitlab": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "wiki": {
-                                "$ref": "#/definitions/source/properties/wiki"
-                            },
-                            "starred": {
-                                "$ref": "#/definitions/source/properties/starred"
-                            },
-                            "issues": {
-                                "$ref": "#/definitions/source/properties/issues"
-                            },
-                            "filter": {
-                                "$ref": "#/definitions/filter"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gitea": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "wiki": {
-                                "$ref": "#/definitions/source/properties/wiki"
-                            },
-                            "starred": {
-                                "$ref": "#/definitions/source/properties/starred"
-                            },
-                            "issues": {
-                                "$ref": "#/definitions/source/properties/issues"
-                            },
-                            "filter": {
-                                "$ref": "#/definitions/filter"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gogs": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "wiki": {
-                                "$ref": "#/definitions/source/properties/wiki"
-                            },
-                            "starred": {
-                                "$ref": "#/definitions/source/properties/starred"
-                            },
-                            "issues": {
-                                "$ref": "#/definitions/source/properties/issues"
-                            },
-                            "filter": {
-                                "type": "object",
-                                "properties": {
-                                    "lastactivity": {
-                                        "$ref": "#/definitions/filter/properties/lastactivity"
-                                    },
-                                    "stars": {
-                                        "$ref": "#/definitions/filter/properties/stars"
-                                    },
-                                    "excludeforks": {
-                                        "$ref": "#/definitions/filter/properties/excludeforks"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "onedev": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "issues": {
-                                "$ref": "#/definitions/source/properties/issues"
-                            },
-                            "filter": {
-                                "type": "object",
-                                "properties": {
-                                    "lastactivity": {
-                                        "$ref": "#/definitions/filter/properties/lastactivity"
-                                    },
-                                    "excludeforks": {
-                                        "$ref": "#/definitions/filter/properties/excludeforks"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "sourcehut": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "wiki": {
-                                "$ref": "#/definitions/source/properties/wiki"
-                            },
-                            "filter": {
-                                "type": "object",
-                                "properties": {
-                                    "lastactivity": {
-                                        "$ref": "#/definitions/filter/properties/lastactivity"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "bitbucket": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            },
-                            "exclude": {
-                                "$ref": "#/definitions/source/properties/exclude"
-                            },
-                            "include": {
-                                "$ref": "#/definitions/source/properties/include"
-                            },
-                            "excludeorgs": {
-                                "$ref": "#/definitions/source/properties/excludeorgs"
-                            },
-                            "includeorgs": {
-                                "$ref": "#/definitions/source/properties/includeorgs"
-                            },
-                            "filter": {
-                                "type": "object",
-                                "properties": {
-                                    "lastactivity": {
-                                        "$ref": "#/definitions/filter/properties/lastactivity"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "any": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/source/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/source/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/source/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/source/properties/user"
-                            },
-                            "username": {
-                                "$ref": "#/definitions/source/properties/username"
-                            },
-                            "password": {
-                                "$ref": "#/definitions/source/properties/password"
-                            },
-                            "ssh": {
-                                "$ref": "#/definitions/source/properties/ssh"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/source/properties/sshkey"
-                            }
-                        },
-                        "additionalProperties": false
-                    },
-                    "required": [
-                        "url"
-                    ]
-                }
-            }
-        },
-        "destination": {
-            "type": "object",
-            "description": "Configuration for all git hoster destination endpoints",
-            "additionalProperties": false,
-            "properties": {
-                "local": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "path": {
-                                "type": "string",
-                                "description": "path to store your backup"
-                            },
-                            "structured": {
-                                "type": "boolean",
-                                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
-                            },
-                            "zip": {
-                                "type": "boolean",
-                                "description": "zips the repository"
-                            },
-                            "keep": {
-                                "type": "integer",
-                                "description": "keeps x latest backups"
-                            },
-                            "bare": {
-                                "type": "boolean",
-                                "description": "clone the repository as a bare repository"
-                            },
-                            "lfs": {
-                                "type": "boolean",
-                                "description": "uses lfs to clone repositories"
-                            }
-                        },
-                        "required": [
-                            "path"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                "s3": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "endpoint": {
-                                "type": "string",
-                                "description": "The endpoint of the S3 server"
-                            },
-                            "structured": {
-                                "type": "boolean",
-                                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
-                            },
-                            "bucket": {
-                                "type": "string",
-                                "description": "The bucket to store the backups in"
-                            },
-                            "accesskey": {
-                                "type": "string",
-                                "description": "The access key to authenticate against the S3 server"
-                            },
-                            "secretkey": {
-                                "type": "string",
-                                "description": "The secret key to authenticate against the S3 server"
-                            },
-                            "usessl": {
-                                "type": "boolean",
-                                "description": "Use SSL to connect to the S3 server"
-                            },
-                            "token": {
-                                "type": "string",
-                                "description": "The token to authenticate against the S3 server"
-                            },
-                            "zip": {
-                                "type": "boolean",
-                                "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "github": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "organization": {
-                                "$ref": "#/definitions/destination/properties/organization"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            },
-                            "visibility": {
-                                "type": "object",
-                                "properties": {
-                                    "repositories": {
-                                        "$ref": "#/definitions/visibility/properties/repositories"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gitlab": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/destination/properties/url"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            },
-                            "mirror": {
-                                "type": "object",
-                                "properties": {
-                                    "enabled": {
-                                        "$ref": "#/definitions/mirror/properties/enabled"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gitea": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/destination/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/destination/properties/user"
-                            },
-                            "createorg": {
-                                "$ref": "#/definitions/destination/properties/createorg"
-                            },
-                            "lfs": {
-                                "$ref": "#/definitions/destination/properties/lfs"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            },
-                            "mirror": {
-                                "$ref": "#/definitions/mirror"
-                            },
-                            "visibility": {
-                                "$ref": "#/definitions/visibility"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "gogs": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/destination/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/destination/properties/user"
-                            },
-                            "createorg": {
-                                "$ref": "#/definitions/destination/properties/createorg"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            },
-                            "mirror": {
-                                "type": "object",
-                                "properties": {
-                                    "enabled": {
-                                        "$ref": "#/definitions/mirror/properties/enabled"
-                                    }
-                                },
-                                "additionalProperties": false
-                            },
-                            "visibility": {
-                                "type": "object",
-                                "properties": {
-                                    "repositories": {
-                                        "$ref": "#/definitions/visibility/properties/repositories"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "onedev": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/destination/properties/url"
-                            },
-                            "organization": {
-                                "$ref": "#/definitions/destination/properties/organization"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                },
-                "sourcehut": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "token": {
-                                "$ref": "#/definitions/destination/properties/token"
-                            },
-                            "token_file": {
-                                "$ref": "#/definitions/destination/properties/token_file"
-                            },
-                            "url": {
-                                "$ref": "#/definitions/destination/properties/url"
-                            },
-                            "user": {
-                                "$ref": "#/definitions/destination/properties/user"
-                            },
-                            "sshkey": {
-                                "$ref": "#/definitions/destination/properties/sshkey"
-                            },
-                            "force": {
-                                "$ref": "#/definitions/destination/properties/force"
-                            },
-                            "visibility": {
-                                "type": "object",
-                                "properties": {
-                                    "repositories": {
-                                        "$ref": "#/definitions/visibility/properties/repositories"
-                                    }
-                                },
-                                "additionalProperties": false
-                            }
-                        },
-                        "additionalProperties": false
-                    }
-                }
-            }
-        }
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "id": "gickup_spec.json",
+  "type": "object",
+  "title": "Gickup configuration spec",
+  "description": "The Gickup configuration spec",
+  "properties": {
+    "cron": {
+      "type": "string",
+      "description": "The cron expression to run the backup, You can create and test the expression on https://crontab.guru/"
     },
-    "definitions": {
-        "source": {
-            "$id": "#/definitions/source",
+    "log": {
+      "$ref": "#/definitions/log"
+    },
+    "metrics": {
+      "$ref": "#/definitions/metrics"
+    },
+    "source": {
+      "type": "object",
+      "description": "Configuration for all git hoster source endpoints",
+      "additionalProperties": false,
+      "properties": {
+        "github": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-                "token": {
-                    "$id": "#/definitions/source/properties/token",
-                    "type": "string",
-                    "description": "The token to authenticate against the source"
-                },
-                "token_file": {
-                    "$id": "#/definitions/source/properties/token_file",
-                    "type": "string",
-                    "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
-                },
-                "url": {
-                    "$id": "#/definitions/source/properties/url",
-                    "type": "string",
-                    "description": "The url to the source repository"
-                },
-                "user": {
-                    "$id": "#/definitions/source/properties/user",
-                    "type": "string",
-                    "description": "The user you want to clone the repositories from. If you want to get everything from your user, leave out the user parameter and just use the token."
-                },
-                "organization": {
-                    "$id": "#/definitions/source/properties/organization",
-                    "type": "string",
-                    "description": "The organization to clone the repositories from"
-                },
-                "username": {
-                    "$id": "#/definitions/source/properties/username",
-                    "type": "string",
-                    "description": "The username to authenticate against the source"
-                },
-                "password": {
-                    "$id": "#/definitions/source/properties/password",
-                    "type": "string",
-                    "description": "The password to authenticate against the source"
-                },
-                "ssh": {
-                    "$id": "#/definitions/source/properties/ssh",
-                    "type": "boolean",
-                    "description": "Use ssh instead of https to clone the repositories"
-                },
-                "sshkey": {
-                    "$id": "#/definitions/source/properties/sshkey",
-                    "type": "string",
-                    "description": "The path to the ssh key to use for cloning the repositories"
-                },
-                "exclude": {
-                    "$id": "#/definitions/source/properties/exclude",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "uniqueItems": true,
-                    "description": "A list of repositories to exclude from the backup"
-                },
-                "include": {
-                    "$id": "#/definitions/source/properties/include",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "uniqueItems": true,
-                    "description": "A list of repositories to include in the backup"
-                },
-                "excludeorgs": {
-                    "$id": "#/definitions/source/properties/excludeorgs",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "uniqueItems": true,
-                    "description": "A list of organizations to exclude from the backup"
-                },
-                "includeorgs": {
-                    "$id": "#/definitions/source/properties/includeorgs",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "uniqueItems": true,
-                    "description": "A list of organizations to include in the backup"
-                },
-                "wiki": {
-                    "$id": "#/definitions/source/properties/wiki",
-                    "type": "boolean",
-                    "description": "Include the wiki in the backup"
-                },
-                "starred": {
-                    "$id": "#/definitions/source/properties/starred",
-                    "type": "boolean",
-                    "description": "Include the starred repositories in the backup"
-                },
-                "issues": {
-                    "$id": "#/definitions/source/properties/issues",
-                    "type": "boolean",
-                    "description": "Include the issues in the backup, only available for `local` destination"
-                },
-                "gists": {
-                    "$id": "#/definitions/source/properties/gists",
-                    "type": "boolean",
-                    "description": "Include the gists in the backup"
-                }
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "wiki": {
+                "$ref": "#/definitions/source/properties/wiki"
+              },
+              "starred": {
+                "$ref": "#/definitions/source/properties/starred"
+              },
+              "issues": {
+                "$ref": "#/definitions/source/properties/issues"
+              },
+              "gists": {
+                "$ref": "#/definitions/source/properties/gists"
+              },
+              "filter": {
+                "$ref": "#/definitions/filter"
+              }
             },
             "additionalProperties": false
+          }
         },
-        "destination": {
-            "$id": "#/definitions/destination",
+        "gitlab": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-                "token": {
-                    "$id": "#/definitions/destination/properties/token",
-                    "type": "string",
-                    "description": "The token to authenticate against the destination"
-                },
-                "token_file": {
-                    "$id": "#/definitions/destination/properties/token_file",
-                    "type": "string",
-                    "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
-                },
-                "url": {
-                    "$id": "#/definitions/destination/properties/url",
-                    "type": "string",
-                    "description": "The url to the destination repository"
-                },
-                "user": {
-                    "$id": "#/definitions/destination/properties/user",
-                    "type": "string",
-                    "description": "The user/org you want to backup the repositories to"
-                },
-                "organization": {
-                    "$id": "#/definitions/destination/properties/organization",
-                    "type": "string",
-                    "description": "The organization to backup the repositories to"
-                },
-                "sshkey": {
-                    "$id": "#/definitions/destination/properties/sshkey",
-                    "type": "string",
-                    "description": "The path to the ssh key to use for pushing the repositories"
-                },
-                "createorg": {
-                    "$id": "#/definitions/destination/properties/createorg",
-                    "type": "boolean",
-                    "description": "Create the organization if it does not exist"
-                },
-                "lfs": {
-                    "$id": "#/definitions/destination/properties/lfs",
-                    "type": "boolean",
-                    "description": "Use lfs to push the repositories"
-                },
-                "force": {
-                    "$id": "#/definitions/destination/properties/force",
-                    "type": "boolean",
-                    "description": "Force push the repositories"
-                }
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "wiki": {
+                "$ref": "#/definitions/source/properties/wiki"
+              },
+              "starred": {
+                "$ref": "#/definitions/source/properties/starred"
+              },
+              "issues": {
+                "$ref": "#/definitions/source/properties/issues"
+              },
+              "filter": {
+                "$ref": "#/definitions/filter"
+              }
             },
             "additionalProperties": false
+          }
         },
-        "filter": {
-            "$id": "#/definitions/filter",
+        "gitea": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-                "lastactivity": {
-                    "$id": "#/definitions/filter/properties/lastactivity",
-                    "type": "string",
-                    "description": "Only clone repositories that have been active in the last x days. The value is a string that can be parsed by the time.ParseDuration function from the go standard library."
-                },
-                "stars": {
-                    "$id": "#/definitions/filter/properties/stars",
-                    "type": "integer",
-                    "description": "Only clone repositories that have more than x stars"
-                },
-                "excludearchived": {
-                    "$id": "#/definitions/filter/properties/excludearchived",
-                    "type": "boolean",
-                    "description": "Exclude archived repositories"
-                },
-                "excludeforks": {
-                    "$id": "#/definitions/filter/properties/excludeforks",
-                    "type": "boolean",
-                    "description": "Exclude forked repositories"
-                },
-                "languages": {
-                    "$id": "#/definitions/filter/properties/languages",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "Only clone repositories that are written in one of the specified languages"
-                }
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "wiki": {
+                "$ref": "#/definitions/source/properties/wiki"
+              },
+              "starred": {
+                "$ref": "#/definitions/source/properties/starred"
+              },
+              "issues": {
+                "$ref": "#/definitions/source/properties/issues"
+              },
+              "filter": {
+                "$ref": "#/definitions/filter"
+              }
             },
             "additionalProperties": false
+          }
         },
-        "visibility": {
-            "$id": "#/definitions/visibility",
+        "gogs": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-                "repositories": {
-                    "$id": "#/definitions/visibility/properties/repositories",
-                    "type": "string",
-                    "enum": [
-                        "public",
-                        "private"
-                    ],
-                    "description": "The visibility of the repositories to clone"
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "wiki": {
+                "$ref": "#/definitions/source/properties/wiki"
+              },
+              "starred": {
+                "$ref": "#/definitions/source/properties/starred"
+              },
+              "issues": {
+                "$ref": "#/definitions/source/properties/issues"
+              },
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "lastactivity": {
+                    "$ref": "#/definitions/filter/properties/lastactivity"
+                  },
+                  "stars": {
+                    "$ref": "#/definitions/filter/properties/stars"
+                  },
+                  "excludeforks": {
+                    "$ref": "#/definitions/filter/properties/excludeforks"
+                  }
                 },
-                "organizations": {
-                    "$id": "#/definitions/visibility/properties/organizations",
-                    "type": "string",
-                    "enum": [
-                        "public",
-                        "private",
-                        "limited"
-                    ],
-                    "description": "The visibility of the organizations to clone"
-                }
+                "additionalProperties": false
+              }
             },
             "additionalProperties": false
+          }
         },
-        "mirror": {
-            "$id": "#/definitions/mirror",
+        "onedev": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-                "enabled": {
-                    "$id": "#/definitions/mirror/properties/enabled",
-                    "type": "boolean",
-                    "description": "Enable mirroring of the repositories"
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "issues": {
+                "$ref": "#/definitions/source/properties/issues"
+              },
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "lastactivity": {
+                    "$ref": "#/definitions/filter/properties/lastactivity"
+                  },
+                  "excludeforks": {
+                    "$ref": "#/definitions/filter/properties/excludeforks"
+                  }
                 },
-                "mirrorinterval": {
-                    "$id": "#/definitions/mirror/properties/mirrorinterval",
-                    "type": "string",
-                    "description": "The interval to mirror the repositories. The value is a string that can be parsed by the time.ParseDuration function from the go standard library."
-                }
+                "additionalProperties": false
+              }
             },
             "additionalProperties": false
+          }
         },
-        "log": {
-            "$id": "#/definitions/log",
+        "sourcehut": {
+          "type": "array",
+          "items": {
             "type": "object",
-            "description": "Configure logging related settings (optional)",
             "properties": {
-                "timeformat": {
-                    "type": "string",
-                    "description": "The time format to use in the logs, The basics for time formats can be found at https://yourbasic.org/golang/format-parse-string-time-date-example."
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "wiki": {
+                "$ref": "#/definitions/source/properties/wiki"
+              },
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "lastactivity": {
+                    "$ref": "#/definitions/filter/properties/lastactivity"
+                  }
                 },
-                "file-logging": {
-                    "type": "object",
-                    "description": "Configure file logging (optional)",
-                    "properties": {
-                        "dir": {
-                            "type": "string",
-                            "description": "The directory to store the logs in"
-                        },
-                        "file": {
-                            "type": "string",
-                            "description": "The file to store the logs in"
-                        },
-                        "maxage": {
-                            "type": "integer",
-                            "description": "The maximum age of the log file in days"
-                        }
-                    },
-                    "additionalProperties": false
-                }
+                "additionalProperties": false
+              }
             },
             "additionalProperties": false
+          }
         },
-        "metrics": {
-            "$id": "#/definitions/metrics",
+        "bitbucket": {
+          "type": "array",
+          "items": {
             "type": "object",
-            "description": "Configure metrics related settings (optional)",
             "properties": {
-                "prometheus": {
-                    "type": "object",
-                    "description": "Configure prometheus metrics (optional)",
-                    "properties": {
-                        "endpoint": {
-                            "type": "string",
-                            "description": "The endpoint to expose the metrics on"
-                        },
-                        "listen_addr": {
-                            "type": "string",
-                            "description": "The address to listen on"
-                        }
-                    },
-                    "additionalProperties": false
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              },
+              "exclude": {
+                "$ref": "#/definitions/source/properties/exclude"
+              },
+              "include": {
+                "$ref": "#/definitions/source/properties/include"
+              },
+              "excludeorgs": {
+                "$ref": "#/definitions/source/properties/excludeorgs"
+              },
+              "includeorgs": {
+                "$ref": "#/definitions/source/properties/includeorgs"
+              },
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "lastactivity": {
+                    "$ref": "#/definitions/filter/properties/lastactivity"
+                  }
                 },
-                "heartbeat": {
-                    "type": "object",
-                    "description": "Configure heartbeat for services like https://healthchecks.io/ or https://deadmanssnitch.com/ (optional)",
-                    "properties": {
-                        "urls": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            },
-                            "description": "A list of urls to check for heartbeat"
-                        }
-                    }
-                },
-                "push": {
-                    "type": "object",
-                    "description": "Configure pushgateways to get notifications on your phone or browser (optional)",
-                    "properties": {
-                        "ntfy": {
-                            "type": "array",
-                            "description": "Send notifications to ntfy.sh (optional)",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "The url to your nty server"
-                                    },
-                                    "token": {
-                                        "type": "string",
-                                        "description": "The token to authenticate against the nty server"
-                                    },
-                                    "user": {
-                                        "type": "string",
-                                        "description": "The user to authenticate against the nty server"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "description": "The password to authenticate against the nty server"
-                                    }
-                                }
-                            }
-                        },
-                        "gotify": {
-                            "type": "array",
-                            "description": "Send notifications to gotify.net (optional)",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "The url to your gotify server"
-                                    },
-                                    "token": {
-                                        "type": "string",
-                                        "description": "The token to authenticate against the gotify server"
-                                    }
-                                }
-                            }
-                        },
-                        "apprise": {
-                            "type": "array",
-                            "description": "Send notification to apprise (apprise)",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "The url to your apprise server"
-                                    },
-                                    "config": {
-                                        "type": "string",
-                                        "description": "The id of your configuration in apprise"
-                                    },
-                                    "tags": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "description": "A list of tags you want to send your message to"
-                                    },
-                                    "notification_urls": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "description": "A list of urls you want to send notifications to"
-                                    },
-                                }
-                            }
-                        }
-                    },
-                    "additionalProperties": false
-                }
+                "additionalProperties": false
+              }
             },
             "additionalProperties": false
+          }
+        },
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/source/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/source/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/source/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/source/properties/user"
+              },
+              "username": {
+                "$ref": "#/definitions/source/properties/username"
+              },
+              "password": {
+                "$ref": "#/definitions/source/properties/password"
+              },
+              "ssh": {
+                "$ref": "#/definitions/source/properties/ssh"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/source/properties/sshkey"
+              }
+            },
+            "additionalProperties": false
+          },
+          "required": ["url"]
         }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "description": "Configuration for all git hoster destination endpoints",
+      "additionalProperties": false,
+      "properties": {
+        "local": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "path to store your backup"
+              },
+              "structured": {
+                "type": "boolean",
+                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
+              },
+              "zip": {
+                "type": "boolean",
+                "description": "zips the repository"
+              },
+              "keep": {
+                "type": "integer",
+                "description": "keeps x latest backups"
+              },
+              "bare": {
+                "type": "boolean",
+                "description": "clone the repository as a bare repository"
+              },
+              "lfs": {
+                "type": "boolean",
+                "description": "uses lfs to clone repositories"
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        },
+        "s3": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "description": "The endpoint of the S3 server"
+              },
+              "structured": {
+                "type": "boolean",
+                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
+              },
+              "bucket": {
+                "type": "string",
+                "description": "The bucket to store the backups in"
+              },
+              "accesskey": {
+                "type": "string",
+                "description": "The access key to authenticate against the S3 server"
+              },
+              "secretkey": {
+                "type": "string",
+                "description": "The secret key to authenticate against the S3 server"
+              },
+              "usessl": {
+                "type": "boolean",
+                "description": "Use SSL to connect to the S3 server"
+              },
+              "token": {
+                "type": "string",
+                "description": "The token to authenticate against the S3 server"
+              },
+              "zip": {
+                "type": "boolean",
+                "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "github": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "organization": {
+                "$ref": "#/definitions/destination/properties/organization"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              },
+              "visibility": {
+                "type": "object",
+                "properties": {
+                  "repositories": {
+                    "$ref": "#/definitions/visibility/properties/repositories"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "gitlab": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/destination/properties/url"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              },
+              "mirror": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "$ref": "#/definitions/mirror/properties/enabled"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "gitea": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/destination/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/destination/properties/user"
+              },
+              "createorg": {
+                "$ref": "#/definitions/destination/properties/createorg"
+              },
+              "lfs": {
+                "$ref": "#/definitions/destination/properties/lfs"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              },
+              "mirror": {
+                "$ref": "#/definitions/mirror"
+              },
+              "visibility": {
+                "$ref": "#/definitions/visibility"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "gogs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/destination/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/destination/properties/user"
+              },
+              "createorg": {
+                "$ref": "#/definitions/destination/properties/createorg"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              },
+              "mirror": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "$ref": "#/definitions/mirror/properties/enabled"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "visibility": {
+                "type": "object",
+                "properties": {
+                  "repositories": {
+                    "$ref": "#/definitions/visibility/properties/repositories"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "onedev": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/destination/properties/url"
+              },
+              "organization": {
+                "$ref": "#/definitions/destination/properties/organization"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "sourcehut": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "$ref": "#/definitions/destination/properties/token"
+              },
+              "token_file": {
+                "$ref": "#/definitions/destination/properties/token_file"
+              },
+              "url": {
+                "$ref": "#/definitions/destination/properties/url"
+              },
+              "user": {
+                "$ref": "#/definitions/destination/properties/user"
+              },
+              "sshkey": {
+                "$ref": "#/definitions/destination/properties/sshkey"
+              },
+              "force": {
+                "$ref": "#/definitions/destination/properties/force"
+              },
+              "visibility": {
+                "type": "object",
+                "properties": {
+                  "repositories": {
+                    "$ref": "#/definitions/visibility/properties/repositories"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "source": {
+      "$id": "#/definitions/source",
+      "type": "object",
+      "properties": {
+        "token": {
+          "$id": "#/definitions/source/properties/token",
+          "type": "string",
+          "description": "The token to authenticate against the source"
+        },
+        "token_file": {
+          "$id": "#/definitions/source/properties/token_file",
+          "type": "string",
+          "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
+        },
+        "url": {
+          "$id": "#/definitions/source/properties/url",
+          "type": "string",
+          "description": "The url to the source repository"
+        },
+        "user": {
+          "$id": "#/definitions/source/properties/user",
+          "type": "string",
+          "description": "The user you want to clone the repositories from. If you want to get everything from your user, leave out the user parameter and just use the token."
+        },
+        "organization": {
+          "$id": "#/definitions/source/properties/organization",
+          "type": "string",
+          "description": "The organization to clone the repositories from"
+        },
+        "username": {
+          "$id": "#/definitions/source/properties/username",
+          "type": "string",
+          "description": "The username to authenticate against the source"
+        },
+        "password": {
+          "$id": "#/definitions/source/properties/password",
+          "type": "string",
+          "description": "The password to authenticate against the source"
+        },
+        "ssh": {
+          "$id": "#/definitions/source/properties/ssh",
+          "type": "boolean",
+          "description": "Use ssh instead of https to clone the repositories"
+        },
+        "sshkey": {
+          "$id": "#/definitions/source/properties/sshkey",
+          "type": "string",
+          "description": "The path to the ssh key to use for cloning the repositories"
+        },
+        "exclude": {
+          "$id": "#/definitions/source/properties/exclude",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of repositories to exclude from the backup"
+        },
+        "include": {
+          "$id": "#/definitions/source/properties/include",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of repositories to include in the backup"
+        },
+        "excludeorgs": {
+          "$id": "#/definitions/source/properties/excludeorgs",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of organizations to exclude from the backup"
+        },
+        "includeorgs": {
+          "$id": "#/definitions/source/properties/includeorgs",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of organizations to include in the backup"
+        },
+        "wiki": {
+          "$id": "#/definitions/source/properties/wiki",
+          "type": "boolean",
+          "description": "Include the wiki in the backup"
+        },
+        "starred": {
+          "$id": "#/definitions/source/properties/starred",
+          "type": "boolean",
+          "description": "Include the starred repositories in the backup"
+        },
+        "issues": {
+          "$id": "#/definitions/source/properties/issues",
+          "type": "boolean",
+          "description": "Include the issues in the backup, only available for `local` destination"
+        },
+        "gists": {
+          "$id": "#/definitions/source/properties/gists",
+          "type": "boolean",
+          "description": "Include the gists in the backup"
+        }
+      },
+      "additionalProperties": false
+    },
+    "destination": {
+      "$id": "#/definitions/destination",
+      "type": "object",
+      "properties": {
+        "token": {
+          "$id": "#/definitions/destination/properties/token",
+          "type": "string",
+          "description": "The token to authenticate against the destination"
+        },
+        "token_file": {
+          "$id": "#/definitions/destination/properties/token_file",
+          "type": "string",
+          "description": "Alternatively, specify the token in a file, relative to current working directory when executed"
+        },
+        "url": {
+          "$id": "#/definitions/destination/properties/url",
+          "type": "string",
+          "description": "The url to the destination repository"
+        },
+        "user": {
+          "$id": "#/definitions/destination/properties/user",
+          "type": "string",
+          "description": "The user/org you want to backup the repositories to"
+        },
+        "organization": {
+          "$id": "#/definitions/destination/properties/organization",
+          "type": "string",
+          "description": "The organization to backup the repositories to"
+        },
+        "sshkey": {
+          "$id": "#/definitions/destination/properties/sshkey",
+          "type": "string",
+          "description": "The path to the ssh key to use for pushing the repositories"
+        },
+        "createorg": {
+          "$id": "#/definitions/destination/properties/createorg",
+          "type": "boolean",
+          "description": "Create the organization if it does not exist"
+        },
+        "lfs": {
+          "$id": "#/definitions/destination/properties/lfs",
+          "type": "boolean",
+          "description": "Use lfs to push the repositories"
+        },
+        "force": {
+          "$id": "#/definitions/destination/properties/force",
+          "type": "boolean",
+          "description": "Force push the repositories"
+        }
+      },
+      "additionalProperties": false
+    },
+    "filter": {
+      "$id": "#/definitions/filter",
+      "type": "object",
+      "properties": {
+        "lastactivity": {
+          "$id": "#/definitions/filter/properties/lastactivity",
+          "type": "string",
+          "description": "Only clone repositories that have been active in the last x days. The value is a string that can be parsed by the time.ParseDuration function from the go standard library."
+        },
+        "stars": {
+          "$id": "#/definitions/filter/properties/stars",
+          "type": "integer",
+          "description": "Only clone repositories that have more than x stars"
+        },
+        "excludearchived": {
+          "$id": "#/definitions/filter/properties/excludearchived",
+          "type": "boolean",
+          "description": "Exclude archived repositories"
+        },
+        "excludeforks": {
+          "$id": "#/definitions/filter/properties/excludeforks",
+          "type": "boolean",
+          "description": "Exclude forked repositories"
+        },
+        "languages": {
+          "$id": "#/definitions/filter/properties/languages",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Only clone repositories that are written in one of the specified languages"
+        }
+      },
+      "additionalProperties": false
+    },
+    "visibility": {
+      "$id": "#/definitions/visibility",
+      "type": "object",
+      "properties": {
+        "repositories": {
+          "$id": "#/definitions/visibility/properties/repositories",
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "The visibility of the repositories to clone"
+        },
+        "organizations": {
+          "$id": "#/definitions/visibility/properties/organizations",
+          "type": "string",
+          "enum": ["public", "private", "limited"],
+          "description": "The visibility of the organizations to clone"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mirror": {
+      "$id": "#/definitions/mirror",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "$id": "#/definitions/mirror/properties/enabled",
+          "type": "boolean",
+          "description": "Enable mirroring of the repositories"
+        },
+        "mirrorinterval": {
+          "$id": "#/definitions/mirror/properties/mirrorinterval",
+          "type": "string",
+          "description": "The interval to mirror the repositories. The value is a string that can be parsed by the time.ParseDuration function from the go standard library."
+        }
+      },
+      "additionalProperties": false
+    },
+    "log": {
+      "$id": "#/definitions/log",
+      "type": "object",
+      "description": "Configure logging related settings (optional)",
+      "properties": {
+        "timeformat": {
+          "type": "string",
+          "description": "The time format to use in the logs, The basics for time formats can be found at https://yourbasic.org/golang/format-parse-string-time-date-example."
+        },
+        "file-logging": {
+          "type": "object",
+          "description": "Configure file logging (optional)",
+          "properties": {
+            "dir": {
+              "type": "string",
+              "description": "The directory to store the logs in"
+            },
+            "file": {
+              "type": "string",
+              "description": "The file to store the logs in"
+            },
+            "maxage": {
+              "type": "integer",
+              "description": "The maximum age of the log file in days"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "metrics": {
+      "$id": "#/definitions/metrics",
+      "type": "object",
+      "description": "Configure metrics related settings (optional)",
+      "properties": {
+        "prometheus": {
+          "type": "object",
+          "description": "Configure prometheus metrics (optional)",
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "The endpoint to expose the metrics on"
+            },
+            "listen_addr": {
+              "type": "string",
+              "description": "The address to listen on"
+            }
+          },
+          "additionalProperties": false
+        },
+        "heartbeat": {
+          "type": "object",
+          "description": "Configure heartbeat for services like https://healthchecks.io/ or https://deadmanssnitch.com/ (optional)",
+          "properties": {
+            "urls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "A list of urls to check for heartbeat"
+            }
+          }
+        },
+        "push": {
+          "type": "object",
+          "description": "Configure pushgateways to get notifications on your phone or browser (optional)",
+          "properties": {
+            "ntfy": {
+              "type": "array",
+              "description": "Send notifications to ntfy.sh (optional)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The url to your nty server"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The token to authenticate against the nty server"
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "The user to authenticate against the nty server"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The password to authenticate against the nty server"
+                  }
+                }
+              }
+            },
+            "gotify": {
+              "type": "array",
+              "description": "Send notifications to gotify.net (optional)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The url to your gotify server"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The token to authenticate against the gotify server"
+                  }
+                }
+              }
+            },
+            "apprise": {
+              "type": "array",
+              "description": "Send notification to apprise (apprise)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "The url to your apprise server"
+                  },
+                  "config": {
+                    "type": "string",
+                    "description": "The id of your configuration in apprise"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "A list of tags you want to send your message to"
+                  },
+                  "notification_urls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "A list of urls you want to send notifications to"
+                  }
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }
