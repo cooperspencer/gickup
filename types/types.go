@@ -535,15 +535,16 @@ func StatRemote(remoteURL, sshURL string, repo GenRepo) bool {
 }
 
 type S3Repo struct {
-	Bucket     string `yaml:"bucket"`
-	Endpoint   string `yaml:"endpoint"`
-	AccessKey  string `yaml:"accesskey"`
-	SecretKey  string `yaml:"secretkey"`
-	Token      string `yaml:"token"`
-	Region     string `yaml:"region"`
-	UseSSL     bool   `yaml:"usessl"`
-	Structured bool   `yaml:"structured"`
-	Zip        bool   `yaml:"zip"`
+	Bucket       string `yaml:"bucket"`
+	Endpoint     string `yaml:"endpoint"`
+	AccessKey    string `yaml:"accesskey"`
+	SecretKey    string `yaml:"secretkey"`
+	Token        string `yaml:"token"`
+	Region       string `yaml:"region"`
+	UseSSL       bool   `yaml:"usessl"`
+	Structured   bool   `yaml:"structured"`
+	Zip          bool   `yaml:"zip"`
+	StorageClass string `yaml:"storageclass"`
 }
 
 func (s3 S3Repo) GetKey(accessString string) (string, error) {

@@ -17,7 +17,7 @@ var (
 )
 
 // UploadDirToS3 uploads the contents of a directory to S3-compatible storage
-func UploadDirToS3(directory string, s3repo types.S3Repo) error {
+func UploadDirToS3(directory string, s3repo types.S3Repo, options *minio.PutObjectOptions) error {
 	// Initialize minio client object.
 	client, err := minio.New(s3repo.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
@@ -51,7 +51,11 @@ func UploadDirToS3(directory string, s3repo types.S3Repo) error {
 		// Upload the file to S3-compatible storage
 		objectName := filepath.ToSlash(path[len(directory)+1:]) // Object name in bucket
 
-		_, err = client.PutObject(context.Background(), s3repo.Bucket, objectName, file, stat.Size(), minio.PutObjectOptions{})
+		if options == nil {
+			options = &minio.PutObjectOptions{}
+		}
+
+		_, err = client.PutObject(context.Background(), s3repo.Bucket, objectName, file, stat.Size(), *options)
 		if err != nil {
 			return err
 		}
