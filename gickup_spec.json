@@ -1131,7 +1131,7 @@
                                             "type": "string"
                                         },
                                         "description": "A list of urls you want to send notifications to"
-                                    },
+                                    }
                                 }
                             }
                         }
