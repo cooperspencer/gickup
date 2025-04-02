@@ -225,6 +225,11 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							Str("stage", "s3").
 							Str("url", r.URL).
 							Msg(err.Error())
+					} else if err.Error() == "remote repository is empty" {
+						log.Warn().
+							Str("repo", r.Name).
+							Msgf("%s - Skipping backup", err.Error())
+						continue
 					} else {
 						log.Error().
 							Str("stage", "tempclone").
@@ -881,6 +886,10 @@ func runBackup(conf *types.Conf, num int) {
 				log.Warn().Str("push", "apprise").Err(err).Msg("couldn't send message")
 			}
 		}
+	}
+	exitCode := logger.GetExitCode()
+	if exitCode != 0 {
+		log.Warn().Msgf("Encountered at least one error during the run. Check the logs. Exiting with status=%d", exitCode)
 	}
 
 	log.Info().
