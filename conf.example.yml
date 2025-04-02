@@ -311,6 +311,13 @@ metrics:
     gotify:
     - url: http(s)://url-to-gotify
       token: your-token
+    apprise:
+    - url: http(s)://url-to-apprise
+      config: whatever-your-config-id-is
+      notification_urls:
+        - urls-to-notify(https://github.com/caronc/apprise/wiki)
+      tags:
+        - your-tag
 ---
 
 # you can define separate source and destination pairs,

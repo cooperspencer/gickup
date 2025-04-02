@@ -82,6 +82,14 @@ type PushConfig struct {
 	Url      string `yaml:"url"`
 }
 
+// AppriseConfig TODO
+type AppriseConfig struct {
+	Url    string   `yaml:"url"`
+	Tags   []string `yaml:"tags"`
+	Config string   `yaml:"config"`
+	Urls   []string `yaml:"notification_urls"`
+}
+
 func (p *PushConfig) ResolveToken() {
 	if p.Password != "" {
 		p.Password = resolve(p.Password)
@@ -102,8 +110,9 @@ func resolve(value string) string {
 
 // PushConfigs TODO.
 type PushConfigs struct {
-	Ntfy   []*PushConfig `yaml:"ntfy"`
-	Gotify []*PushConfig `yaml:"gotify"`
+	Ntfy    []*PushConfig    `yaml:"ntfy"`
+	Gotify  []*PushConfig    `yaml:"gotify"`
+	Apprise []*AppriseConfig `yaml:"apprise"`
 }
 
 // Metrics TODO.
