@@ -269,6 +269,7 @@ destination:
       zip: true # zips the repository after cloned and removes the repository afterwards
       keep: 5 # only keeps x backups
       bare: true # clone the repositories as bare
+      mirror: true # create mirror clones
       lfs: true # clone lfs repos, !! ATTENTION !! git and git-lfs must be installed on the system!
   s3:
    - endpoint: somewhere:9000 # whatever your s3 endpoint is
