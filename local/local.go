@@ -50,7 +50,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		repo.Name = path.Join(repo.Hoster, repo.Owner, repo.Name)
 	}
 
-	if l.Bare {
+	if l.Bare || l.Mirror {
 		repo.Name += ".git"
 	}
 
@@ -329,12 +329,12 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 			sub.Info().
 				Msgf("pulling %s", types.Green(reponame))
 
-			err = gitc.Pull(l.Bare, filepath.Join(l.Path, reponame))
+			err = gitc.Pull(l.Bare, l.Mirror, filepath.Join(l.Path, reponame))
 			if err != nil {
 				return err
 			}
 
-			if l.Bare {
+			if l.Bare || l.Mirror {
 				sub.Info().
 					Msgf("fetching lfs files for %s", types.Green(reponame))
 
@@ -355,7 +355,7 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 			}
 			sub.Info().
 				Msgf("pulling %s", types.Green(reponame))
-			if !l.Bare {
+			if !l.Bare && !l.Mirror {
 				w, err := r.Worktree()
 				if err != nil {
 					if err == git.NoErrAlreadyUpToDate {
@@ -440,12 +440,12 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 			}
 		}
 
-		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare)
+		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare, l.Mirror)
 		if err != nil {
 			return err
 		}
 
-		if l.Bare {
+		if l.Bare || l.Mirror {
 			sub.Info().
 				Msgf("fetching lfs files for %s", types.Green(repo.Name))
 
@@ -460,6 +460,7 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 			URL:          url,
 			Auth:         auth,
 			SingleBranch: false,
+			Mirror:       l.Mirror,
 		})
 		if err != nil {
 			return err
@@ -548,7 +549,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 			repo.URL = strings.Replace(repo.URL, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token), -1)
 		}
 
-		err = gitc.Clone(repo.URL, tempdir, false)
+		err = gitc.Clone(repo.URL, tempdir, false, false)
 		if err != nil {
 			return nil, err
 		}
