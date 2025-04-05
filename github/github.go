@@ -277,6 +277,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Description:   r.GetDescription(),
 					Private:       r.GetPrivate(),
 					Issues:        GetIssues(r, client, repo),
+					NoTokenUser:   true,
 				})
 				wiki := addWiki(*r, repo, token)
 				if wiki.Name != "" {
@@ -309,6 +310,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Description:   r.GetDescription(),
 							Private:       r.GetPrivate(),
 							Issues:        GetIssues(r, client, repo),
+							NoTokenUser:   true,
 						})
 						wiki := addWiki(*r, repo, token)
 						if wiki.Name != "" {
@@ -329,6 +331,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Description:   r.GetDescription(),
 						Private:       r.GetPrivate(),
 						Issues:        GetIssues(r, client, repo),
+						NoTokenUser:   true,
 					})
 					wiki := addWiki(*r, repo, token)
 					if wiki.Name != "" {
@@ -366,6 +369,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        "github.com",
 						Description:   gist.GetDescription(),
 						Private:       !gist.GetPublic(),
+						NoTokenUser:   true,
 					})
 				}
 
