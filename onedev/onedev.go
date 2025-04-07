@@ -141,6 +141,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				Hoster:        types.GetHost(repo.URL),
 				Description:   r.Description,
 				Issues:        GetIssues(&r, client, repo, urls.HTTP),
+				NoTokenUser:   true,
 			})
 		}
 
@@ -204,6 +205,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Hoster:        types.GetHost(repo.URL),
 						Description:   r.Description,
 						Issues:        GetIssues(&r, client, repo, urls.HTTP),
+						NoTokenUser:   true,
 					})
 				}
 			}
