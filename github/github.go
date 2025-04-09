@@ -11,7 +11,7 @@ import (
 
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
-	"github.com/google/go-github/v41/github"
+	"github.com/google/go-github/v71/github"
 	"github.com/rs/zerolog"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -107,7 +107,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Github {
-		sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
+		url := "https://github.com"
+		if repo.URL != "" {
+			url = repo.URL
+		}
+		sub = logger.CreateSubLogger("stage", "github", "url", url)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			sub.Warn().
@@ -142,6 +146,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			tc := oauth2.NewClient(context.TODO(), ts)
 
 			client = github.NewClient(tc)
+		}
+
+		if repo.URL != "" {
+			client, err = client.WithEnterpriseURLs(repo.URL, repo.URL)
+			if err != nil {
+				sub.Error().Msg(err.Error())
+				break
+			}
 		}
 
 		v4user := repo.User

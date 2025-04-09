@@ -14,7 +14,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/google/go-github/v41/github"
+	"github.com/google/go-github/v71/github"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
