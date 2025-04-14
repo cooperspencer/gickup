@@ -521,6 +521,14 @@ func VerifyHost(host string, remote net.Addr, key gossh.PublicKey) error {
 }
 
 func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
+	return tempCloneBase(repo, tempdir, false)
+}
+
+func TempCloneBare(repo types.Repo, tempdir string) (*git.Repository, error) {
+	return tempCloneBase(repo, tempdir, true)
+}
+
+func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repository, error) {
 	var auth transport.AuthMethod
 	if repo.Token != "" {
 		if repo.NoTokenUser {
@@ -549,7 +557,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 			repo.URL = strings.Replace(repo.URL, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token), -1)
 		}
 
-		err = gitc.Clone(repo.URL, tempdir, false, false)
+		err = gitc.Clone(repo.URL, tempdir, isBare, false)
 		if err != nil {
 			return nil, err
 		}
@@ -602,7 +610,7 @@ func TempClone(repo types.Repo, tempdir string) (*git.Repository, error) {
 
 		return r, err
 	} else {
-		r, err := git.PlainClone(tempdir, false, &git.CloneOptions{
+		r, err := git.PlainClone(tempdir, isBare, &git.CloneOptions{
 			URL:          repo.URL,
 			Auth:         auth,
 			SingleBranch: false,
