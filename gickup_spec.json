@@ -554,6 +554,10 @@
                             "storageclass": {
                                 "type": "string",
                                 "description": "Storage class applied to all repos uploaded to this S3 bucket (optional)"
+                            },
+                            "datecreate": {
+                                "type": "boolean",
+                                "description": "If true, gickup will create a directory for backup with the creation date"
                             }
                         },
                         "additionalProperties": false

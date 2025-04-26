@@ -155,6 +155,7 @@ func substituteHomeForTildeInPath(path string) string {
 
 func backup(repos []types.Repo, conf *types.Conf) {
 	checkedpath := false
+	currentDateDir := time.Now().Format("2006-01-02") + "/"
 
 	for _, r := range repos {
 		log.Info().
@@ -215,6 +216,10 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				if d.Structured {
 					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
+				}
+
+				if d.DateCreate {
+					r.Name = currentDateDir + r.Name
 				}
 
 				defer os.RemoveAll(tempdir)
