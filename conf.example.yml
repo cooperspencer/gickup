@@ -281,7 +281,7 @@ destination:
      zip: false # if true, will zip the entire git repo into a single zip file and upload that instead
      usessl: true # wheter to use ssl or not
      storageclass: "" # storage class for all repos to be uploaded to this S3 bucket. E.g. for AWS: STANDARD, STANDARD_IA, GLACIER, etc.
-     datecreate: false # if true, gickup will create a directory for backup with the creation date
+     datecreatedir: false # if true, gickup will create a directory for backup with the creation date
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
 # See timezone commentary in docker-compose.yml for making sure this container runs

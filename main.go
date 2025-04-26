@@ -218,7 +218,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
 				}
 
-				if d.DateCreate {
+				if d.DateCreateDir {
 					r.Name = currentDateDir + r.Name
 				}
 
