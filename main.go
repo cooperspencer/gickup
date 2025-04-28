@@ -219,7 +219,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				defer os.RemoveAll(tempdir)
 				tempClonePath := path.Join(tempdir, r.Name)
-				_, err = local.TempClone(r, tempClonePath)
+				_, err = local.TempCloneBare(r, tempClonePath)
 				if err != nil {
 					if err == git.NoErrAlreadyUpToDate {
 						log.Info().
