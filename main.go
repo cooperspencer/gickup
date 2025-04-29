@@ -277,6 +277,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				}
 				err = s3.UploadDirToS3(tempdir, d, &minio.PutObjectOptions{
 					StorageClass: d.StorageClass,
+					UserTags: map[string]string{
+						"url": r.URL,
+					},
 				})
 				if err != nil {
 					log.Error().Str("stage", "s3").Str("endpoint", d.Endpoint).Str("bucket", d.Bucket).Msg(err.Error())
