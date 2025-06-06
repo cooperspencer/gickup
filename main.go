@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -37,10 +36,10 @@ import (
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/whatever"
 	"github.com/cooperspencer/gickup/zip"
+	"github.com/goccy/go-yaml"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
 var cli struct {
@@ -56,7 +55,7 @@ var version = "unknown"
 
 func readConfigFile(configfile string) []*types.Conf {
 	conf := []*types.Conf{}
-	cfgdata, err := os.ReadFile(configfile)
+	cfgdata, err := os.Open(configfile)
 	if err != nil {
 		log.Fatal().
 			Str("stage", "readconfig").
@@ -64,15 +63,12 @@ func readConfigFile(configfile string) []*types.Conf {
 			Msgf("Cannot open config file from %s", types.Red(configfile))
 	}
 
-	//	t := types.Conf{}
-
-	dec := yaml.NewDecoder(bytes.NewReader(cfgdata))
-
-	//	err = yaml.Unmarshal(cfgdata, &t)
+	dec := yaml.NewDecoder(cfgdata)
 
 	i := 0
 	for {
-		var c *types.Conf
+		var c types.Conf
+
 		err = dec.Decode(&c)
 		if err == io.EOF {
 			break
@@ -90,7 +86,7 @@ func readConfigFile(configfile string) []*types.Conf {
 			}
 		}
 
-		if c == nil {
+		if &c == nil {
 			continue
 		}
 
@@ -104,7 +100,7 @@ func readConfigFile(configfile string) []*types.Conf {
 					c.Metrics.PushConfigs = conf[0].Metrics.PushConfigs
 				}
 			}
-			conf = append(conf, c)
+			conf = append(conf, &c)
 			i++
 		}
 	}

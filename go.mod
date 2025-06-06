@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/kong v1.9.0
 	github.com/cooperspencer/onedev v0.0.0-20240801121041-919f6d3f7ea6
 	github.com/go-git/go-git/v5 v5.14.0
+	github.com/goccy/go-yaml v1.18.0
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v41 v41.0.0
@@ -24,7 +25,6 @@ require (
 	golang.org/x/crypto v0.36.0
 	golang.org/x/oauth2 v0.28.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
