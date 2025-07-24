@@ -17,12 +17,12 @@ import (
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/zip"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/config"
-	"github.com/go-git/go-git/v6/plumbing"
-	"github.com/go-git/go-git/v6/plumbing/transport"
-	"github.com/go-git/go-git/v6/plumbing/transport/http"
-	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/melbahja/goph"
 	"github.com/rs/zerolog"
 	gossh "golang.org/x/crypto/ssh"
@@ -456,12 +456,11 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 		}
 	} else {
 		r := &git.Repository{}
-		r, err = git.PlainClone(filepath.Join(l.Path, repo.Name), &git.CloneOptions{
+		r, err = git.PlainClone(filepath.Join(l.Path, repo.Name), l.Bare, &git.CloneOptions{
 			URL:          url,
 			Auth:         auth,
 			SingleBranch: false,
 			Mirror:       l.Mirror,
-			Bare:         l.Bare,
 		})
 		if err != nil {
 			return err
@@ -611,11 +610,10 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 
 		return r, err
 	} else {
-		r, err := git.PlainClone(tempdir, &git.CloneOptions{
+		r, err := git.PlainClone(tempdir, isBare, &git.CloneOptions{
 			URL:          repo.URL,
 			Auth:         auth,
 			SingleBranch: false,
-			Bare:         isBare,
 		})
 		if err != nil {
 			return nil, err

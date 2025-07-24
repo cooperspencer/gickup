@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/config"
-	"github.com/go-git/go-git/v6/plumbing/transport"
-	"github.com/go-git/go-git/v6/plumbing/transport/http"
-	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/google/go-github/v41/github"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
@@ -396,18 +396,17 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 
 // Repo TODO.
 type Repo struct {
-	Name          string
-	URL           string
-	SSHURL        string
-	Token         string
-	Defaultbranch string
-	Origin        GenRepo
-	Owner         string
-	Hoster        string
-	Description   string
-	Issues        map[string]interface{}
-	Private       bool
-	NoTokenUser   bool
+	Name        string
+	URL         string
+	SSHURL      string
+	Token       string
+	Origin      GenRepo
+	Owner       string
+	Hoster      string
+	Description string
+	Issues      map[string]interface{}
+	Private     bool
+	NoTokenUser bool
 }
 
 // Site TODO.

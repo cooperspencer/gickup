@@ -103,40 +103,6 @@ func getCommits(url, reponame, token string) (Commits, error) {
 	return commits, nil
 }
 
-// getRefs TODO
-func getRefs(url, name, token string) (Refs, error) {
-	body, err := doRequest(fmt.Sprintf("%s%s/refs", url, name), token)
-	if err != nil {
-		return Refs{}, err
-	}
-
-	refs := Refs{}
-	err = json.Unmarshal(body, &refs)
-
-	for {
-		if refs.Next != "" {
-			body, err := doRequest(fmt.Sprintf("%s%s/refs/id=%s", url, name, refs.Next), token)
-			if err != nil {
-				return Refs{}, err
-			}
-
-			r := Refs{}
-
-			err = json.Unmarshal(body, &r)
-			if err != nil {
-				return Refs{}, err
-			}
-
-			refs.Results = append(refs.Results, r.Results...)
-			refs.Next = r.Next
-		} else {
-			break
-		}
-	}
-
-	return refs, nil
-}
-
 // Get TODO.
 func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
@@ -210,20 +176,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
 			sub.Debug().Msg(repoURL)
 
-			refs, err := getRefs(apiURL, r.Name, token)
-			if err != nil {
-				sub.Error().
-					Msg(err.Error())
-			}
-
-			head := ""
-			for _, ref := range refs.Results {
-				if strings.HasPrefix("refs/heads/", ref.Name) {
-					head = strings.TrimLeft(ref.Name, "refs/heads/")
-					break
-				}
-			}
-
 			commits, err := getCommits(apiURL, r.Name, token)
 			if err != nil {
 				sub.Error().
@@ -238,29 +190,27 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
-					Name:          r.Name,
-					URL:           repoURL,
-					SSHURL:        sshURL,
-					Token:         token,
-					Defaultbranch: refs.Results[0].Name,
-					Origin:        repo,
-					Owner:         r.Owner.Name,
-					Hoster:        types.GetHost(repo.URL),
-					Description:   r.Description,
-					Private:       r.Visibility == "private",
+					Name:        r.Name,
+					URL:         repoURL,
+					SSHURL:      sshURL,
+					Token:       token,
+					Origin:      repo,
+					Owner:       r.Owner.Name,
+					Hoster:      types.GetHost(repo.URL),
+					Description: r.Description,
+					Private:     r.Visibility == "private",
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
-						Name:          r.Name + ".-docs",
-						URL:           repoURL + "-docs",
-						SSHURL:        sshURL + "-docs",
-						Token:         token,
-						Defaultbranch: head,
-						Origin:        repo,
-						Owner:         r.Owner.Name,
-						Hoster:        types.GetHost(repo.URL),
-						Description:   r.Description,
-						Private:       r.Visibility == "private",
+						Name:        r.Name + "-docs",
+						URL:         repoURL + "-docs",
+						SSHURL:      sshURL + "-docs",
+						Token:       token,
+						Origin:      repo,
+						Owner:       r.Owner.Name,
+						Hoster:      types.GetHost(repo.URL),
+						Description: r.Description,
+						Private:     r.Visibility == "private",
 					})
 				}
 
@@ -273,44 +223,28 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if len(include) == 0 {
 				repos = append(repos, types.Repo{
-					Name:          r.Name,
-					URL:           repoURL,
-					SSHURL:        sshURL,
-					Token:         token,
-					Defaultbranch: head,
-					Origin:        repo,
-					Owner:         r.Owner.Name,
-					Hoster:        types.GetHost(repo.URL),
-					Description:   r.Description,
-					Private:       r.Visibility == "private",
+					Name:        r.Name,
+					URL:         repoURL,
+					SSHURL:      sshURL,
+					Token:       token,
+					Origin:      repo,
+					Owner:       r.Owner.Name,
+					Hoster:      types.GetHost(repo.URL),
+					Description: r.Description,
+					Private:     r.Visibility == "private",
 				})
 				if repo.Wiki {
-					refs, err := getRefs(apiURL, fmt.Sprintf("%s-docs", r.Name), token)
-					if err != nil {
-						continue
-					}
-					if len(refs.Results) > 0 {
-						head = ""
-						for _, ref := range refs.Results {
-							if strings.HasPrefix("refs/heads/", ref.Name) {
-								head = strings.TrimLeft(ref.Name, "refs/heads/")
-								break
-							}
-						}
-
-						repos = append(repos, types.Repo{
-							Name:          r.Name + "-docs",
-							URL:           repoURL + "-docs",
-							SSHURL:        sshURL + "-docs",
-							Token:         token,
-							Defaultbranch: head,
-							Origin:        repo,
-							Owner:         r.Owner.Name,
-							Hoster:        types.GetHost(repo.URL),
-							Description:   r.Description,
-							Private:       r.Visibility == "private",
-						})
-					}
+					repos = append(repos, types.Repo{
+						Name:        r.Name + "-docs",
+						URL:         repoURL + "-docs",
+						SSHURL:      sshURL + "-docs",
+						Token:       token,
+						Origin:      repo,
+						Owner:       r.Owner.Name,
+						Hoster:      types.GetHost(repo.URL),
+						Description: r.Description,
+						Private:     r.Visibility == "private",
+					})
 				}
 			}
 		}

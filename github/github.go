@@ -89,16 +89,15 @@ func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 	}
 
 	return types.Repo{
-		Name:          *r.Name + ".wiki",
-		URL:           types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"),
-		SSHURL:        types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"),
-		Token:         token,
-		Defaultbranch: r.GetDefaultBranch(),
-		Origin:        repo,
-		Owner:         r.GetOwner().GetLogin(),
-		Hoster:        "github.com",
-		Description:   r.GetDescription(),
-		Private:       r.GetPrivate(),
+		Name:        *r.Name + ".wiki",
+		URL:         types.DotGitRx.ReplaceAllString(r.GetCloneURL(), ".wiki.git"),
+		SSHURL:      types.DotGitRx.ReplaceAllString(r.GetSSHURL(), ".wiki.git"),
+		Token:       token,
+		Origin:      repo,
+		Owner:       r.GetOwner().GetLogin(),
+		Hoster:      "github.com",
+		Description: r.GetDescription(),
+		Private:     r.GetPrivate(),
 	}
 }
 
@@ -266,18 +265,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if include[*r.Name] {
 				repos = append(repos, types.Repo{
-					Name:          r.GetName(),
-					URL:           r.GetCloneURL(),
-					SSHURL:        r.GetSSHURL(),
-					Token:         token,
-					Defaultbranch: r.GetDefaultBranch(),
-					Origin:        repo,
-					Owner:         r.GetOwner().GetLogin(),
-					Hoster:        "github.com",
-					Description:   r.GetDescription(),
-					Private:       r.GetPrivate(),
-					Issues:        GetIssues(r, client, repo),
-					NoTokenUser:   true,
+					Name:        r.GetName(),
+					URL:         r.GetCloneURL(),
+					SSHURL:      r.GetSSHURL(),
+					Token:       token,
+					Origin:      repo,
+					Owner:       r.GetOwner().GetLogin(),
+					Hoster:      "github.com",
+					Description: r.GetDescription(),
+					Private:     r.GetPrivate(),
+					Issues:      GetIssues(r, client, repo),
+					NoTokenUser: true,
 				})
 				wiki := addWiki(*r, repo, token)
 				if wiki.Name != "" {
@@ -299,18 +297,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if len(includeorgs) > 0 {
 					if includeorgs[r.GetOwner().GetLogin()] {
 						repos = append(repos, types.Repo{
-							Name:          r.GetName(),
-							URL:           r.GetCloneURL(),
-							SSHURL:        r.GetSSHURL(),
-							Token:         token,
-							Defaultbranch: r.GetDefaultBranch(),
-							Origin:        repo,
-							Owner:         r.GetOwner().GetLogin(),
-							Hoster:        "github.com",
-							Description:   r.GetDescription(),
-							Private:       r.GetPrivate(),
-							Issues:        GetIssues(r, client, repo),
-							NoTokenUser:   true,
+							Name:        r.GetName(),
+							URL:         r.GetCloneURL(),
+							SSHURL:      r.GetSSHURL(),
+							Token:       token,
+							Origin:      repo,
+							Owner:       r.GetOwner().GetLogin(),
+							Hoster:      "github.com",
+							Description: r.GetDescription(),
+							Private:     r.GetPrivate(),
+							Issues:      GetIssues(r, client, repo),
+							NoTokenUser: true,
 						})
 						wiki := addWiki(*r, repo, token)
 						if wiki.Name != "" {
@@ -320,18 +317,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 				} else {
 					repos = append(repos, types.Repo{
-						Name:          r.GetName(),
-						URL:           r.GetCloneURL(),
-						SSHURL:        r.GetSSHURL(),
-						Token:         token,
-						Defaultbranch: r.GetDefaultBranch(),
-						Origin:        repo,
-						Owner:         r.GetOwner().GetLogin(),
-						Hoster:        "github.com",
-						Description:   r.GetDescription(),
-						Private:       r.GetPrivate(),
-						Issues:        GetIssues(r, client, repo),
-						NoTokenUser:   true,
+						Name:        r.GetName(),
+						URL:         r.GetCloneURL(),
+						SSHURL:      r.GetSSHURL(),
+						Token:       token,
+						Origin:      repo,
+						Owner:       r.GetOwner().GetLogin(),
+						Hoster:      "github.com",
+						Description: r.GetDescription(),
+						Private:     r.GetPrivate(),
+						Issues:      GetIssues(r, client, repo),
+						NoTokenUser: true,
 					})
 					wiki := addWiki(*r, repo, token)
 					if wiki.Name != "" {
@@ -359,17 +355,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for _, gist := range gists {
 					sub.Debug().Msg(gist.GetHTMLURL())
 					repos = append(repos, types.Repo{
-						Name:          fmt.Sprintf("gists%c%s", os.PathSeparator, gist.GetID()),
-						URL:           gist.GetHTMLURL(),
-						SSHURL:        fmt.Sprintf("git@gist.github.com:%s.git", gist.GetID()),
-						Token:         token,
-						Defaultbranch: "",
-						Origin:        repo,
-						Owner:         gist.GetOwner().GetLogin(),
-						Hoster:        "github.com",
-						Description:   gist.GetDescription(),
-						Private:       !gist.GetPublic(),
-						NoTokenUser:   true,
+						Name:        fmt.Sprintf("gists%c%s", os.PathSeparator, gist.GetID()),
+						URL:         gist.GetHTMLURL(),
+						SSHURL:      fmt.Sprintf("git@gist.github.com:%s.git", gist.GetID()),
+						Token:       token,
+						Origin:      repo,
+						Owner:       gist.GetOwner().GetLogin(),
+						Hoster:      "github.com",
+						Description: gist.GetDescription(),
+						Private:     !gist.GetPublic(),
+						NoTokenUser: true,
 					})
 				}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/rs/zerolog"
-	"gitlab.com/gitlab-org/api/client-go"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 var (
@@ -274,17 +274,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if include[r.Name] {
 					if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 						repos = append(repos, types.Repo{
-							Name:          r.Path,
-							URL:           r.HTTPURLToRepo,
-							SSHURL:        r.SSHURLToRepo,
-							Token:         token,
-							Defaultbranch: r.DefaultBranch,
-							Origin:        repo,
-							Owner:         r.Namespace.FullPath,
-							Hoster:        types.GetHost(repo.URL),
-							Description:   r.Description,
-							Private:       r.Visibility == gitlab.PrivateVisibility,
-							Issues:        GetIssues(r, client, repo),
+							Name:        r.Path,
+							URL:         r.HTTPURLToRepo,
+							SSHURL:      r.SSHURLToRepo,
+							Token:       token,
+							Origin:      repo,
+							Owner:       r.Namespace.FullPath,
+							Hoster:      types.GetHost(repo.URL),
+							Description: r.Description,
+							Private:     r.Visibility == gitlab.PrivateVisibility,
+							Issues:      GetIssues(r, client, repo),
 						})
 					}
 
@@ -293,16 +292,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 							sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 							repos = append(repos, types.Repo{
-								Name:          r.Path + ".wiki",
-								URL:           httpURLToRepo,
-								SSHURL:        sshURLToRepo,
-								Token:         token,
-								Defaultbranch: r.DefaultBranch,
-								Origin:        repo,
-								Owner:         r.Namespace.FullPath,
-								Hoster:        types.GetHost(repo.URL),
-								Description:   r.Description,
-								Private:       r.Visibility == gitlab.PrivateVisibility,
+								Name:        r.Path + ".wiki",
+								URL:         httpURLToRepo,
+								SSHURL:      sshURLToRepo,
+								Token:       token,
+								Origin:      repo,
+								Owner:       r.Namespace.FullPath,
+								Hoster:      types.GetHost(repo.URL),
+								Description: r.Description,
+								Private:     r.Visibility == gitlab.PrivateVisibility,
 							})
 						}
 					}
@@ -315,17 +313,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if len(include) == 0 {
 					if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 						repos = append(repos, types.Repo{
-							Name:          r.Path,
-							URL:           r.HTTPURLToRepo,
-							SSHURL:        r.SSHURLToRepo,
-							Token:         token,
-							Defaultbranch: r.DefaultBranch,
-							Origin:        repo,
-							Owner:         r.Namespace.FullPath,
-							Hoster:        types.GetHost(repo.URL),
-							Description:   r.Description,
-							Private:       r.Visibility == gitlab.PrivateVisibility,
-							Issues:        GetIssues(r, client, repo),
+							Name:        r.Path,
+							URL:         r.HTTPURLToRepo,
+							SSHURL:      r.SSHURLToRepo,
+							Token:       token,
+							Origin:      repo,
+							Owner:       r.Namespace.FullPath,
+							Hoster:      types.GetHost(repo.URL),
+							Description: r.Description,
+							Private:     r.Visibility == gitlab.PrivateVisibility,
+							Issues:      GetIssues(r, client, repo),
 						})
 					}
 
@@ -334,16 +331,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 							sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 							repos = append(repos, types.Repo{
-								Name:          r.Path + ".wiki",
-								URL:           httpURLToRepo,
-								SSHURL:        sshURLToRepo,
-								Token:         token,
-								Defaultbranch: r.DefaultBranch,
-								Origin:        repo,
-								Owner:         r.Namespace.FullPath,
-								Hoster:        types.GetHost(repo.URL),
-								Description:   r.Description,
-								Private:       r.Visibility == gitlab.PrivateVisibility,
+								Name:        r.Path + ".wiki",
+								URL:         httpURLToRepo,
+								SSHURL:      sshURLToRepo,
+								Token:       token,
+								Origin:      repo,
+								Owner:       r.Namespace.FullPath,
+								Hoster:      types.GetHost(repo.URL),
+								Description: r.Description,
+								Private:     r.Visibility == gitlab.PrivateVisibility,
 							})
 						}
 					}
@@ -445,17 +441,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						if include[r.Name] {
 							if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 								repos = append(repos, types.Repo{
-									Name:          r.Path,
-									URL:           r.HTTPURLToRepo,
-									SSHURL:        r.SSHURLToRepo,
-									Token:         token,
-									Defaultbranch: r.DefaultBranch,
-									Origin:        repo,
-									Owner:         k,
-									Hoster:        types.GetHost(repo.URL),
-									Description:   r.Description,
-									Private:       r.Visibility == gitlab.PrivateVisibility,
-									Issues:        GetIssues(r, client, repo),
+									Name:        r.Path,
+									URL:         r.HTTPURLToRepo,
+									SSHURL:      r.SSHURLToRepo,
+									Token:       token,
+									Origin:      repo,
+									Owner:       k,
+									Hoster:      types.GetHost(repo.URL),
+									Description: r.Description,
+									Private:     r.Visibility == gitlab.PrivateVisibility,
+									Issues:      GetIssues(r, client, repo),
 								})
 							}
 
@@ -464,16 +459,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 									httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 									sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 									repos = append(repos, types.Repo{
-										Name:          r.Path + ".wiki",
-										URL:           httpURLToRepo,
-										SSHURL:        sshURLToRepo,
-										Token:         token,
-										Defaultbranch: r.DefaultBranch,
-										Origin:        repo,
-										Owner:         k,
-										Hoster:        types.GetHost(repo.URL),
-										Description:   r.Description,
-										Private:       r.Visibility == gitlab.PrivateVisibility,
+										Name:        r.Path + ".wiki",
+										URL:         httpURLToRepo,
+										SSHURL:      sshURLToRepo,
+										Token:       token,
+										Origin:      repo,
+										Owner:       k,
+										Hoster:      types.GetHost(repo.URL),
+										Description: r.Description,
+										Private:     r.Visibility == gitlab.PrivateVisibility,
 									})
 								}
 							}
@@ -491,17 +485,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
 								if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 									repos = append(repos, types.Repo{
-										Name:          r.Path,
-										URL:           r.HTTPURLToRepo,
-										SSHURL:        r.SSHURLToRepo,
-										Token:         token,
-										Defaultbranch: r.DefaultBranch,
-										Origin:        repo,
-										Owner:         k,
-										Hoster:        types.GetHost(repo.URL),
-										Description:   r.Description,
-										Private:       r.Visibility == gitlab.PrivateVisibility,
-										Issues:        GetIssues(r, client, repo),
+										Name:        r.Path,
+										URL:         r.HTTPURLToRepo,
+										SSHURL:      r.SSHURLToRepo,
+										Token:       token,
+										Origin:      repo,
+										Owner:       k,
+										Hoster:      types.GetHost(repo.URL),
+										Description: r.Description,
+										Private:     r.Visibility == gitlab.PrivateVisibility,
+										Issues:      GetIssues(r, client, repo),
 									})
 								}
 
@@ -510,16 +503,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 										httpURLToRepo := types.DotGitRx.ReplaceAllString(r.HTTPURLToRepo, ".wiki.git")
 										sshURLToRepo := types.DotGitRx.ReplaceAllString(r.SSHURLToRepo, ".wiki.git")
 										repos = append(repos, types.Repo{
-											Name:          r.Path + ".wiki",
-											URL:           httpURLToRepo,
-											SSHURL:        sshURLToRepo,
-											Token:         token,
-											Defaultbranch: r.DefaultBranch,
-											Origin:        repo,
-											Owner:         k,
-											Hoster:        types.GetHost(repo.URL),
-											Description:   r.Description,
-											Private:       r.Visibility == gitlab.PrivateVisibility,
+											Name:        r.Path + ".wiki",
+											URL:         httpURLToRepo,
+											SSHURL:      sshURLToRepo,
+											Token:       token,
+											Origin:      repo,
+											Owner:       k,
+											Hoster:      types.GetHost(repo.URL),
+											Description: r.Description,
+											Private:     r.Visibility == gitlab.PrivateVisibility,
 										})
 									}
 								}

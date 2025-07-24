@@ -15,8 +15,8 @@ import (
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing/transport"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/google/go-cmp/cmp"
 	"github.com/minio/minio-go/v7"
 
