@@ -396,18 +396,17 @@ func resolveToken(tokenString string, tokenFile string) (string, error) {
 
 // Repo TODO.
 type Repo struct {
-	Name          string
-	URL           string
-	SSHURL        string
-	Token         string
-	Defaultbranch string
-	Origin        GenRepo
-	Owner         string
-	Hoster        string
-	Description   string
-	Issues        map[string]interface{}
-	Private       bool
-	NoTokenUser   bool
+	Name        string
+	URL         string
+	SSHURL      string
+	Token       string
+	Origin      GenRepo
+	Owner       string
+	Hoster      string
+	Description string
+	Issues      map[string]interface{}
+	Private     bool
+	NoTokenUser bool
 }
 
 // Site TODO.

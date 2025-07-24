@@ -118,16 +118,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
-					Name:          r.Name,
-					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
-					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
-					Token:         repo.Token,
-					Defaultbranch: r.Mainbranch.Name,
-					Origin:        repo,
-					Owner:         user,
-					Hoster:        types.GetHost(repo.URL),
-					Description:   r.Description,
-					Private:       r.Is_private,
+					Name:        r.Name,
+					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
+					Token:       repo.Token,
+					Origin:      repo,
+					Owner:       user,
+					Hoster:      types.GetHost(repo.URL),
+					Description: r.Description,
+					Private:     r.Is_private,
 				})
 
 				continue
@@ -139,16 +138,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 			if len(include) == 0 {
 				repos = append(repos, types.Repo{
-					Name:          r.Name,
-					URL:           r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
-					SSHURL:        r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
-					Token:         repo.Token,
-					Defaultbranch: r.Mainbranch.Name,
-					Origin:        repo,
-					Owner:         user,
-					Hoster:        types.GetHost(repo.URL),
-					Description:   r.Description,
-					Private:       r.Is_private,
+					Name:        r.Name,
+					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
+					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
+					Token:       repo.Token,
+					Origin:      repo,
+					Owner:       user,
+					Hoster:      types.GetHost(repo.URL),
+					Description: r.Description,
+					Private:     r.Is_private,
 				})
 			}
 		}

@@ -131,17 +131,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			}
 
 			repos = append(repos, types.Repo{
-				Name:          r.Name,
-				URL:           urls.HTTP,
-				SSHURL:        urls.SSH,
-				Token:         repo.Token,
-				Defaultbranch: defaultbranch,
-				Origin:        repo,
-				Owner:         repo.User,
-				Hoster:        types.GetHost(repo.URL),
-				Description:   r.Description,
-				Issues:        GetIssues(&r, client, repo, urls.HTTP),
-				NoTokenUser:   true,
+				Name:        r.Name,
+				URL:         urls.HTTP,
+				SSHURL:      urls.SSH,
+				Token:       repo.Token,
+				Origin:      repo,
+				Owner:       repo.User,
+				Hoster:      types.GetHost(repo.URL),
+				Description: r.Description,
+				Issues:      GetIssues(&r, client, repo, urls.HTTP),
+				NoTokenUser: true,
 			})
 		}
 
@@ -187,25 +186,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						continue
 					}
 
-					defaultbranch, _, err := client.GetDefaultBranch(r.ID)
-					if err != nil {
-						sub.Warn().
-							Msgf("couldn't get default branch for %s", r.Name)
-						defaultbranch = "main"
-					}
-
 					repos = append(repos, types.Repo{
-						Name:          r.Name,
-						URL:           urls.HTTP,
-						SSHURL:        urls.SSH,
-						Token:         repo.Token,
-						Defaultbranch: defaultbranch,
-						Origin:        repo,
-						Owner:         org,
-						Hoster:        types.GetHost(repo.URL),
-						Description:   r.Description,
-						Issues:        GetIssues(&r, client, repo, urls.HTTP),
-						NoTokenUser:   true,
+						Name:        r.Name,
+						URL:         urls.HTTP,
+						SSHURL:      urls.SSH,
+						Token:       repo.Token,
+						Origin:      repo,
+						Owner:       org,
+						Hoster:      types.GetHost(repo.URL),
+						Description: r.Description,
+						Issues:      GetIssues(&r, client, repo, urls.HTTP),
+						NoTokenUser: true,
 					})
 				}
 			}
