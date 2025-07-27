@@ -402,7 +402,28 @@ func GetIssues(repo *gogs.Repository, client *gogs.Client, conf types.GenRepo) m
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
-						issues[strconv.Itoa(int(issue.Index))] = issue
+						comments := []*gogs.Comment{}
+						errorcount := 0
+						if issue.Comments > 0 {
+							issue_comments, err := client.ListIssueComments(repo.Owner.UserName, repo.Name, issue.ID)
+							if err != nil {
+								if errorcount < 5 {
+									sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch comments")
+									time.Sleep(5 * time.Second)
+									errorcount++
+									continue
+								} else {
+									break
+								}
+							}
+							if len(issue_comments) > 0 {
+								comments = append(comments, issue_comments...)
+								errorcount = 0
+							} else {
+								break
+							}
+						}
+						issues[strconv.FormatInt(issue.ID, 10)] = types.GogsIssue{Issue: *issue, CommentList: comments}
 					}
 				} else {
 					break

@@ -9,11 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"code.gitea.io/sdk/gitea"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/gogs/go-gogs-client"
 	"github.com/google/go-github/v41/github"
 	"github.com/gookit/color"
 	"github.com/robfig/cron/v3"
@@ -570,4 +572,23 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 	}
 
 	return "", fmt.Errorf("accesskey or secretkey are empty")
+}
+
+// Issues
+// GithubIssue
+type GithubIssue struct {
+	github.Issue
+	CommentList []*github.IssueComment `json:"comments_list"`
+}
+
+// GiteaIssue
+type GiteaIssue struct {
+	gitea.Issue
+	CommentList []*gitea.Comment `json:"comments_list"`
+}
+
+// GogsIssue
+type GogsIssue struct {
+	gogs.Issue
+	CommentList []*gogs.Comment `json:"comments_list"`
 }
