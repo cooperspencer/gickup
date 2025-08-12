@@ -12,7 +12,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/gogs/go-gogs-client v0.0.0-20210131175652-1d7215cd8d85
 	github.com/google/go-cmp v0.7.0
-	github.com/google/go-github/v41 v41.0.0
+	github.com/google/go-github/v74 v74.0.0
 	github.com/gookit/color v1.5.4
 	github.com/ktrysmt/go-bitbucket v0.9.81
 	github.com/melbahja/goph v1.4.0

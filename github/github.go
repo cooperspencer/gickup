@@ -11,7 +11,7 @@ import (
 
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
-	"github.com/google/go-github/v41/github"
+	"github.com/google/go-github/v74/github"
 	"github.com/rs/zerolog"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -433,7 +433,7 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRepo) map[string]interface{} {
 	issues := map[string]interface{}{}
 	if conf.Issues {
-		listOptions := &github.IssueListByRepoOptions{State: "all", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
+		listOptions := &github.IssueListByRepoOptions{State: "all", ListCursorOptions: github.ListCursorOptions{PerPage: 100}}
 		errorcount := 0
 		for {
 			i, response, err := client.Issues.ListByRepo(context.Background(), *repo.Owner.Login, *repo.Name, listOptions)
@@ -450,14 +450,15 @@ func GetIssues(repo *github.Repository, client *github.Client, conf types.GenRep
 					return issues
 				}
 			} else {
-				if len(i) > 0 {
-					for _, issue := range i {
-						issues[strconv.Itoa(*issue.Number)] = issue
-					}
-				} else {
+				for _, issue := range i {
+					issues[strconv.Itoa(*issue.Number)] = issue
+				}
+
+				if response.After == "" {
 					break
 				}
-				listOptions.Page++
+
+				listOptions.After = response.After
 			}
 		}
 	}
