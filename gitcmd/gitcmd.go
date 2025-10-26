@@ -102,7 +102,7 @@ func (g GitCmd) Push(path, remote string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
@@ -120,7 +120,7 @@ func (g GitCmd) Checkout(path, branch string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
