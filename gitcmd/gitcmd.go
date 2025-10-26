@@ -13,8 +13,14 @@ type GitCmd struct {
 }
 
 func New() (GitCmd, error) {
-	cmd := exec.Command("git", "lfs")
+	cmd := exec.Command("git", "--help")
 	err := cmd.Run()
+	if err != nil {
+		return GitCmd{}, errors.New("git is not installed")
+	}
+
+	cmd = exec.Command("git", "lfs")
+	err = cmd.Run()
 	if err != nil {
 		return GitCmd{}, errors.New("git lfs is not installed")
 	}
