@@ -13,8 +13,14 @@ type GitCmd struct {
 }
 
 func New() (GitCmd, error) {
-	cmd := exec.Command("git", "lfs")
+	cmd := exec.Command("git", "--help")
 	err := cmd.Run()
+	if err != nil {
+		return GitCmd{}, errors.New("git is not installed")
+	}
+
+	cmd = exec.Command("git", "lfs")
+	err = cmd.Run()
 	if err != nil {
 		return GitCmd{}, errors.New("git lfs is not installed")
 	}
@@ -96,7 +102,7 @@ func (g GitCmd) Push(path, remote string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
@@ -114,7 +120,7 @@ func (g GitCmd) Checkout(path, branch string) error {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf(strings.TrimSuffix(string(output), "\n"))
+			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
 
