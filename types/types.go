@@ -575,9 +575,10 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 }
 
 type AzureBlob struct {
-	Url           string `yaml:"url"`
-	Container     string `yaml:"container"`
-	Structured    bool   `yaml:"structured"`
-	Zip           bool   `yaml:"zip"`
-	DateCreateDir bool   `yaml:"datecreatedir"`
+	Url              string `yaml:"url"`
+	Container        string `yaml:"container"`
+	UseCliCredential bool   `yaml:"useclicredential"`
+	Structured       bool   `yaml:"structured"`
+	Zip              bool   `yaml:"zip"`
+	DateCreateDir    bool   `yaml:"datecreatedir"`
 }

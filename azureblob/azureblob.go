@@ -6,12 +6,24 @@ import (
 	"path/filepath"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 )
 
 func NewAzureBlobClient(azureblob types.AzureBlob) (*azblob.Client, error) {
+	if azureblob.UseCliCredential {
+		// Use Azure CLI Credential
+		cred, err := azidentity.NewAzureCLICredential(nil)
+		if err != nil {
+			return nil, err
+		}
+		client, err := azblob.NewClient(azureblob.Url, cred, nil)
+		return client, err
+	}
+
+	// Use anonymous credential with SAS URL
 	client, err := azblob.NewClientWithNoCredential(azureblob.Url, nil)
 
 	return client, err
