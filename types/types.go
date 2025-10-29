@@ -578,6 +578,9 @@ type AzureBlob struct {
 	Url              string `yaml:"url"`
 	Container        string `yaml:"container"`
 	UseCliCredential bool   `yaml:"useclicredential"`
+	TenantId         string `yaml:"tenantid"`
+	ClientId         string `yaml:"clientid"`
+	ClientSecret     string `yaml:"clientsecret"`
 	Structured       bool   `yaml:"structured"`
 	Zip              bool   `yaml:"zip"`
 	DateCreateDir    bool   `yaml:"datecreatedir"`

@@ -10,11 +10,19 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
+	"github.com/rs/zerolog"
+)
+
+var (
+	sub zerolog.Logger
 )
 
 func NewAzureBlobClient(azureblob types.AzureBlob) (*azblob.Client, error) {
+	sub = logger.CreateSubLogger("stage", "azureblob", "container", azureblob.Container)
+
 	if azureblob.UseCliCredential {
 		// Use Azure CLI Credential
+		sub.Info().Msg("Using Azure CLI credential")
 		cred, err := azidentity.NewAzureCLICredential(nil)
 		if err != nil {
 			return nil, err
@@ -23,7 +31,19 @@ func NewAzureBlobClient(azureblob types.AzureBlob) (*azblob.Client, error) {
 		return client, err
 	}
 
+	if azureblob.ClientId != "" && azureblob.ClientSecret != "" && azureblob.TenantId != "" {
+		// Use Client Secret Credential
+		sub.Info().Msg("Using Azure Client Secret credential")
+		cred, err := azidentity.NewClientSecretCredential(azureblob.TenantId, azureblob.ClientId, azureblob.ClientSecret, nil)
+		if err != nil {
+			return nil, err
+		}
+		client, err := azblob.NewClient(azureblob.Url, cred, nil)
+		return client, err
+	}
+
 	// Use anonymous credential with SAS URL
+	sub.Info().Msg("Using no Azure credential (e.g. SAS URL)")
 	client, err := azblob.NewClientWithNoCredential(azureblob.Url, nil)
 
 	return client, err
@@ -65,7 +85,6 @@ func UploadDirToBlobStorage(directory string, blobstorage types.AzureBlob, azure
 
 // DeleteObjectsNotInRepo deletes objects from the container that are not present in the repository
 func DeleteObjectsNotInRepo(directory string, blobdir string, blobstorage types.AzureBlob, azureblobclient *azblob.Client) error {
-	sub := logger.CreateSubLogger("stage", "azureblob", "container", blobstorage.Container)
 	blobprefix := blobdir + "/"
 
 	pager := azureblobclient.NewListBlobsFlatPager(blobstorage.Container, &azblob.ListBlobsFlatOptions{
