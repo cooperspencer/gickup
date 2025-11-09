@@ -282,6 +282,16 @@ destination:
      usessl: true # wheter to use ssl or not
      storageclass: "" # storage class for all repos to be uploaded to this S3 bucket. E.g. for AWS: STANDARD, STANDARD_IA, GLACIER, etc.
      datecreatedir: false # if true, gickup will create a directory for backup with the creation date
+  azureblob:
+    - url: https://yourstorageaccount.blob.core.windows.net # blob storage endpoint for your storage account, can be a SAS url
+      container: name of your blob container
+      useclicredential: false # if true, uses Azure CLI credentials to authenticate
+      tenantid: your-tenant-id # required if using clientId and clientSecret to authenticate
+      clientid: your-client-id # clientId of your app registration if you want to authenticate that way
+      clientsecret: your-client-secret # client secret of your app registration
+      structured: true # checks repos out like hostersite/user|organization/repo
+      zip: false # if true, will zip the entire git repo into a single zip file and upload that instead
+      datecreatedir: false # if true, gickup will create a directory for backup with the creation date
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
 # See timezone commentary in docker-compose.yml for making sure this container runs
