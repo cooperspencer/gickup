@@ -22,14 +22,15 @@ import (
 
 // Destination TODO.
 type Destination struct {
-	Gitlab    []GenRepo `yaml:"gitlab"`
-	Local     []Local   `yaml:"local"`
-	Github    []GenRepo `yaml:"github"`
-	Gitea     []GenRepo `yaml:"gitea"`
-	Gogs      []GenRepo `yaml:"gogs"`
-	OneDev    []GenRepo `yaml:"onedev"`
-	Sourcehut []GenRepo `yaml:"sourcehut"`
-	S3        []S3Repo  `yaml:"s3"`
+	Gitlab    []GenRepo   `yaml:"gitlab"`
+	Local     []Local     `yaml:"local"`
+	Github    []GenRepo   `yaml:"github"`
+	Gitea     []GenRepo   `yaml:"gitea"`
+	Gogs      []GenRepo   `yaml:"gogs"`
+	OneDev    []GenRepo   `yaml:"onedev"`
+	Sourcehut []GenRepo   `yaml:"sourcehut"`
+	S3        []S3Repo    `yaml:"s3"`
+	AzureBlob []AzureBlob `yaml:"azureblob"`
 }
 
 // Count TODO.
@@ -41,7 +42,8 @@ func (dest Destination) Count() int {
 		len(dest.Gitlab) +
 		len(dest.OneDev) +
 		len(dest.Sourcehut) +
-		len(dest.S3)
+		len(dest.S3) +
+		len(dest.AzureBlob)
 }
 
 // Local TODO.
@@ -570,4 +572,16 @@ func (s3 S3Repo) GetKey(accessString string) (string, error) {
 	}
 
 	return "", fmt.Errorf("accesskey or secretkey are empty")
+}
+
+type AzureBlob struct {
+	Url              string `yaml:"url"`
+	Container        string `yaml:"container"`
+	UseCliCredential bool   `yaml:"useclicredential"`
+	TenantId         string `yaml:"tenantid"`
+	ClientId         string `yaml:"clientid"`
+	ClientSecret     string `yaml:"clientsecret"`
+	Structured       bool   `yaml:"structured"`
+	Zip              bool   `yaml:"zip"`
+	DateCreateDir    bool   `yaml:"datecreatedir"`
 }

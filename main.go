@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cooperspencer/gickup/azureblob"
 	"github.com/cooperspencer/gickup/onedev"
 	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
@@ -288,6 +289,96 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("s3").Inc()
+			}
+		}
+
+		for _, d := range conf.Destination.AzureBlob {
+			repotime := time.Now()
+			status := 0
+
+			azureblobclient, err := azureblob.NewAzureBlobClient(d)
+			if err != nil {
+				log.Error().
+					Str("stage", "init").
+					Msg(err.Error())
+				continue
+			}
+
+			logOp := "uploading"
+			if d.Zip {
+				logOp = "zipping and uploading"
+			}
+			log.Info().
+				Str("stage", "azureblob").
+				Msgf("%s %s to blob container %s", logOp, types.Blue(r.Name), d.Container)
+
+			if !cli.Dry {
+				tempname := fmt.Sprintf("azureblob-%x", repotime)
+				tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
+				if err != nil {
+					log.Error().
+						Str("stage", "tempclone").
+						Msg(err.Error())
+					continue
+				}
+
+				if d.Structured {
+					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
+				}
+
+				if d.DateCreateDir {
+					r.Name = currentDateDir + r.Name
+				}
+
+				defer os.RemoveAll(tempdir)
+				tempClonePath := path.Join(tempdir, r.Name)
+				_, err = local.TempCloneBare(r, tempClonePath)
+				if err != nil {
+					if err == git.NoErrAlreadyUpToDate {
+						log.Info().
+							Str("stage", "azureblob").
+							Msg(err.Error())
+					} else if err == transport.ErrEmptyRemoteRepository {
+						log.Warn().
+							Str("repo", r.Name).
+							Msgf("%s - Skipping backup", err.Error())
+						continue
+					} else {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("git", "clone").
+							Msg(err.Error())
+						os.RemoveAll(tempdir)
+						continue
+					}
+				}
+
+				if d.Zip {
+					log.Info().
+						Msgf("zipping %s", types.Green(r.Name))
+					err := zip.Zip(tempClonePath, []string{tempClonePath})
+					if err != nil {
+						log.Error().
+							Str("stage", "zip").
+							Str("repo", r.Name).
+							Msg(err.Error())
+						log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
+						continue
+					}
+				}
+				err = azureblob.UploadDirToBlobStorage(tempdir, d, azureblobclient)
+				if err != nil {
+					log.Error().Str("stage", "azureblob").Str("container", d.Container).Msg(err.Error())
+				}
+				err = azureblob.DeleteObjectsNotInRepo(tempdir, r.Name, d, azureblobclient)
+				if err != nil {
+					log.Error().Str("stage", "azureblob").Str("container", d.Container).Msg(err.Error())
+				}
+				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "azureblob", d.Container).Set(time.Since(repotime).Seconds())
+				status = 1
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "azureblob", d.Container).Set(float64(status))
+				prometheus.DestinationBackupsComplete.WithLabelValues("azureblob").Inc()
 			}
 		}
 
