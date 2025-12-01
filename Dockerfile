@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o gickup .
 
 # Use alpine as production environment -> Small builds
 FROM alpine:3.20 AS production
-RUN apk add -U --no-cache ca-certificates tzdata git git-lfs
+RUN apk add -U --no-cache ca-certificates tzdata git git-lfs openssh
 RUN git lfs install
 
 WORKDIR /
