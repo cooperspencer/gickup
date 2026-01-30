@@ -763,6 +763,42 @@
                         },
                         "additionalProperties": false
                     }
+                },
+                "webdav": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "type": "string",
+                                "description": "The URL to the WebDAV server (required, must start with http:// or https://)"
+                            },
+                            "username": {
+                                "type": "string",
+                                "description": "The username for authentication (optional)"
+                            },
+                            "password": {
+                                "$ref": "#/definitions/destination/properties/password"
+                            },
+                            "path": {
+                                "type": "string",
+                                "description": "The remote path prefix on the WebDAV server (optional)"
+                            },
+                            "structured": {
+                                "type": "boolean",
+                                "description": "If set to true, it checks out the repos in a more structured way, like hoster/user|organization/repository"
+                            },
+                            "zip": {
+                                "type": "boolean",
+                                "description": "If true, will zip the entire Git repo into a single zip file and upload that instead"
+                            },
+                            "datecreatedir": {
+                                "type": "boolean",
+                                "description": "If true, gickup will create a directory for backup with the creation date"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
                 }
             }
         }
