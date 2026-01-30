@@ -292,6 +292,14 @@ destination:
       structured: true # checks repos out like hostersite/user|organization/repo
       zip: false # if true, will zip the entire git repo into a single zip file and upload that instead
       datecreatedir: false # if true, gickup will create a directory for backup with the creation date
+  webdav:
+    - url: http(s)://url-to-webdav # WebDAV server URL (required)
+      username: your-username # username for authentication (optional)
+      password: your-password # password for authentication (optional, can be an environment variable)
+      path: /path/on/server # remote path prefix on the WebDAV server (optional)
+      structured: true # checks repos out like hostersite/user|organization/repo
+      zip: true # if true, will zip the entire git repo into a single zip file and upload that instead
+      datecreatedir: false # if true, gickup will create a directory for backup with the creation date
 cron: 0 22 * * * # optional - when cron is not provided, the program runs once and exits.
 # Otherwise, it runs according to the cron schedule.
 # See timezone commentary in docker-compose.yml for making sure this container runs
