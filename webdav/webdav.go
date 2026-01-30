@@ -190,6 +190,10 @@ func (c *webdavClient) Propfind(ctx context.Context, path string) (*DavResponse,
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+
 	if resp.StatusCode != http.StatusMultiStatus {
 		return nil, &WebDAVError{StatusCode: resp.StatusCode, Message: "PROPFIND failed"}
 	}
@@ -273,6 +277,9 @@ func IsEmptyResponse(resp *DavResponse) bool {
 }
 
 func DavResponseToPaths(resp *DavResponse) []string {
+	if resp == nil {
+		return nil
+	}
 	paths := make([]string, 0, len(resp.Responses))
 	for _, r := range resp.Responses {
 		for _, ps := range r.PropStat {
@@ -311,14 +318,16 @@ func UploadDirToWebDAV(ctx context.Context, directory string, repo types.Repo, c
 		}
 
 		webdavPath := NormalizePath(relPath)
+		if config.Path == "" && config.Structured {
+			webdavPath = repo.Hoster + "/" + repo.Owner + "/" + webdavPath
+		}
 		if config.Path != "" {
 			webdavPath = NormalizePath(config.Path) + "/" + webdavPath
 		}
-		if config.Structured {
-			webdavPath = repo.Hoster + "/" + repo.Owner + "/" + webdavPath
-		}
 
-		err = CreateParentDirectories(ctx, client, "/"+webdavPath)
+		fullPath := "/" + webdavPath
+
+		err = CreateParentDirectories(ctx, client, fullPath)
 		if err != nil {
 			return err
 		}
@@ -329,7 +338,7 @@ func UploadDirToWebDAV(ctx context.Context, directory string, repo types.Repo, c
 		}
 		defer file.Close()
 
-		return UploadWithRetry(ctx, client, "/"+webdavPath, file, "application/octet-stream")
+		return UploadWithRetry(ctx, client, fullPath, file, "application/octet-stream")
 	})
 }
 
@@ -351,7 +360,7 @@ func DeleteObjectsNotInRepo(ctx context.Context, directory string, repo types.Re
 		return err
 	}
 
-	if IsEmptyResponse(resp) {
+	if resp == nil || IsEmptyResponse(resp) {
 		return nil
 	}
 
