@@ -255,7 +255,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				if status.StatusCode == http.StatusNotFound {
+				if status != nil && status.StatusCode == http.StatusNotFound {
 					break
 				}
 				continue
@@ -563,7 +563,7 @@ func GetIssues(repo *gitea.Repository, client *gitea.Client, conf types.GenRepo)
 		for {
 			i, response, err := client.ListRepoIssues(repo.Owner.UserName, repo.Name, listOptions)
 			if err != nil {
-				if response.StatusCode == http.StatusForbidden {
+				if response != nil && response.StatusCode == http.StatusForbidden {
 					sub.Error().Err(err).Str("repo", repo.Name).Msg("can't fetch issues")
 					return issues
 				}
