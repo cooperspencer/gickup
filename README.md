@@ -52,6 +52,7 @@ You can clone/mirror repositories to:
 - Sourcehut
 - Local
 - S3
+- WebDAV
 
 
 If your hoster is not listed, feel free to open an issue and I will add it.
