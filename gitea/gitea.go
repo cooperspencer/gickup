@@ -12,9 +12,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 func getOrgVisibility(visibility string) gitea.VisibleType {
 	switch visibility {
@@ -99,7 +97,6 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 				return false
 			}
 		}
-
 	}
 
 	if dry {
@@ -305,17 +302,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					sub.Error().
 						Msg(err.Error())
 					continue
-				} else {
-					language := ""
-					percentage := int64(0)
-					for lang, percent := range langs {
-						if percent > percentage {
-							language = lang
-						}
+				}
+				language := ""
+				percentage := int64(0)
+				for lang, percent := range langs {
+					if percent > percentage {
+						language = lang
 					}
-					if !languages[strings.ToLower(language)] {
-						continue
-					}
+				}
+				if !languages[strings.ToLower(language)] {
+					continue
 				}
 			}
 
@@ -451,17 +447,16 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					sub.Error().
 						Msg(err.Error())
 					continue
-				} else {
-					language := ""
-					percentage := int64(0)
-					for lang, percent := range langs {
-						if percent > percentage {
-							language = lang
-						}
+				}
+				language := ""
+				percentage := int64(0)
+				for lang, percent := range langs {
+					if percent > percentage {
+						language = lang
 					}
-					if !languages[strings.ToLower(language)] {
-						continue
-					}
+				}
+				if !languages[strings.ToLower(language)] {
+					continue
 				}
 			}
 
@@ -546,7 +541,7 @@ func getOrgRepos(client *gitea.Client, org *gitea.Organization,
 	orgopt gitea.ListOptions, repo types.GenRepo,
 ) []*gitea.Repository {
 	o, _, err := client.ListOrgRepos(org.UserName,
-		gitea.ListOrgReposOptions{orgopt})
+		gitea.ListOrgReposOptions{ListOptions: orgopt})
 	if err != nil {
 		sub.Error().Str("stage", "gitea").Str("url", repo.URL).Msg(err.Error())
 	}
@@ -630,7 +625,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 				return "", err
 			}
 		}
-
 	}
 
 	r, _, err := giteaclient.GetRepo(user.UserName, repo.Name)

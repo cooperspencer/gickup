@@ -14,9 +14,7 @@ import (
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
@@ -158,7 +156,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				i := 1
 				for {
 					opt.Page = i
-					projects := []*gitlab.Project{}
+					var projects []*gitlab.Project
 					if userNotInConfig {
 						projects, _, err = client.Projects.ListProjects(opt)
 					} else {
@@ -250,18 +248,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						sub.Error().
 							Msg(err.Error())
 						continue
-					} else {
-						language := ""
-						percentage := float32(0)
+					}
+					language := ""
+					percentage := float32(0)
 
-						for lang, percent := range *langs {
-							if percent > percentage {
-								language = lang
-							}
+					for lang, percent := range *langs {
+						if percent > percentage {
+							language = lang
 						}
-						if !languages[strings.ToLower(language)] {
-							continue
-						}
+					}
+					if !languages[strings.ToLower(language)] {
+						continue
 					}
 				}
 
@@ -416,18 +413,17 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 								sub.Error().
 									Msg(err.Error())
 								continue
-							} else {
-								language := ""
-								percentage := float32(0)
+							}
+							language := ""
+							percentage := float32(0)
 
-								for lang, percent := range *langs {
-									if percent > percentage {
-										language = lang
-									}
+							for lang, percent := range *langs {
+								if percent > percentage {
+									language = lang
 								}
-								if !languages[strings.ToLower(language)] {
-									continue
-								}
+							}
+							if !languages[strings.ToLower(language)] {
+								continue
 							}
 						}
 
@@ -527,7 +523,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	return repos, ran
 }
 
-func activeWiki(r *gitlab.Project, client *gitlab.Client, repo types.GenRepo) bool {
+func activeWiki(r *gitlab.Project, client *gitlab.Client, _ types.GenRepo) bool {
 	wikilistoptions := &gitlab.ListWikisOptions{
 		WithContent: gitlab.Ptr(true),
 	}

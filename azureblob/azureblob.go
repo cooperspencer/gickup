@@ -13,9 +13,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 func NewAzureBlobClient(azureblob types.AzureBlob) (*azblob.Client, error) {
 	sub = logger.CreateSubLogger("stage", "azureblob", "container", azureblob.Container)

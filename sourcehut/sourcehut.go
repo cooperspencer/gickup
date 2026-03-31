@@ -2,6 +2,7 @@ package sourcehut
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,13 +15,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 // doRequest TODO
 func doRequest(url, token string) ([]byte, error) {
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 
@@ -37,7 +36,7 @@ func doRequest(url, token string) ([]byte, error) {
 
 // postRequest TODO
 func postRequest(url string, postbody []byte, token string) ([]byte, error) {
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(postbody))
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewBuffer(postbody))
 
 	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 	req.Header.Add("Content-Type", "application/json")
@@ -100,7 +99,7 @@ func getCommits(url, reponame, token string) (Commits, error) {
 	commits := Commits{}
 	err = json.Unmarshal(body, &commits)
 
-	return commits, nil
+	return commits, err
 }
 
 // Get TODO.
@@ -180,11 +179,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-			} else {
-				if len(commits.Results) > 0 {
-					if time.Since(commits.Results[0].Timestamp) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-						continue
-					}
+			} else if len(commits.Results) > 0 {
+				if time.Since(commits.Results[0].Timestamp) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
+					continue
 				}
 			}
 

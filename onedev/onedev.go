@@ -13,9 +13,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
@@ -241,7 +239,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 		Count:  100,
 	}
 	projects, _, err := client.GetProjects(&query)
-
 	if err != nil {
 		return "", err
 	}
@@ -315,7 +312,7 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 							onedevissue.Comments = comments
 						}
 
-						issues[strconv.Itoa(int(issue.Number))] = onedevissue
+						issues[strconv.Itoa(issue.Number)] = onedevissue
 					}
 				} else {
 					break
@@ -329,5 +326,6 @@ func GetIssues(repo *onedev.Project, client *onedev.Client, conf types.GenRepo, 
 
 type Issue struct {
 	onedev.Issue
+
 	Comments []onedev.Comment
 }

@@ -1,0 +1,76 @@
+linters:
+  enable-all: true
+  disable:
+    - tagalign
+    - cyclop # duplicate of gocyclo
+    - exhaustivestruct # not revelent
+    - gochecknoglobals
+    - gocognit # too strict
+    - goerr113 # too strict
+    - golint # deprecated
+    - gomnd # too strict
+    - interfacer # deprecated
+    - ireturn # not revelent
+    - maligned # deprecated
+    - scopelint # deprecated
+    - tagliatelle # breaking
+    - testpackage # too strict
+    - varnamelen # not revelent
+    - wrapcheck # too strict
+    - wsl # too strict
+    - maintidx # kind of duplicate of gocyclo
+
+issues:
+  exclude-rules:
+    - path: main.go
+      text: bad syntax for struct tag pair
+    - path: main.go # FIXME
+      text: Function 'main' is too long
+    - path: (.+)_test.go
+      linters:
+        - typecheck
+    - path: metrics/prometheus/prometheus.go # FIXME
+      text: counter metrics should have "_total" suffix
+    - path: local/local.go # FIXME
+      text: has complex nested blocks
+    - path: local/local.go # FIXME
+      text: Function 'Locally' has too many statements
+    - path: gitlab/gitlab.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gitlab/gitlab.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: gitlab/gitlab.go # FIXME
+      text: cyclomatic complexity \d+ of func `Get` is high
+    - path: gitlab/gitlab.go # FIXME
+      text: has complex nested blocks
+    - path: gogs/gogs.go # FIXME
+      text: has complex nested blocks
+    - path: gogs/gogs.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gogs/gogs.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: bitbucket/bitbucket.go # FIXME
+      text: Function 'Get' is too long
+    - path: bitbucket/bitbucket.go # FIXME
+      text: type assertion must be checked
+    - path: gitea/gitea.go
+      text: .code.gitea.io/sdk/gitea.ListOrgReposOptions. composite literal uses unkeyed fields
+    - path: gitea/gitea.go # FIXME
+      text: has complex nested blocks
+    - path: gitea/gitea.go # FIXME
+      text: Function 'Backup' is too long
+    - path: gitea/gitea.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: gitea/gitea.go # FIXME
+      text: cyclomatic complexity \d+ of func `Get` is high
+    - path: gitea/gitea.go # FIXME
+      text: lines are duplicate of `gitea/gitea.go:\d+-\d+`
+    - path: github/github.go # FIXME
+      text: Function 'Get' has too many statements
+    - path: github/github.go # FIXME
+      text: has complex nested blocks
+
+linters-settings:
+  forbidigo:
+    forbid:
+      - '^print(ln)?$'

@@ -12,9 +12,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 // UploadDirToS3 uploads the contents of a directory to S3-compatible storage
 func UploadDirToS3(directory string, s3repo types.S3Repo, options *minio.PutObjectOptions) error {

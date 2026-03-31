@@ -1,6 +1,7 @@
 package gitcmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -13,7 +14,7 @@ type GitCmd struct {
 }
 
 func New() (GitCmd, error) {
-	cmd := exec.Command("git", "lfs")
+	cmd := exec.CommandContext(context.Background(), "git", "lfs")
 	err := cmd.Run()
 	if err != nil {
 		return GitCmd{}, errors.New("git lfs is not installed")
@@ -23,7 +24,7 @@ func New() (GitCmd, error) {
 }
 
 func (g GitCmd) Clone(url, reponame string, bare bool, mirror bool) error {
-	cmd := exec.Command(g.CMD, "clone", url, reponame)
+	cmd := exec.CommandContext(context.Background(), g.CMD, "clone", url, reponame)
 	if bare {
 		cmd.Args = append(cmd.Args, "--bare")
 	}
@@ -34,13 +35,13 @@ func (g GitCmd) Clone(url, reponame string, bare bool, mirror bool) error {
 }
 
 func (g GitCmd) Pull(bare bool, mirror bool, repopath string) error {
-	var args = []string{}
+	var args []string
 	if bare || mirror {
 		args = []string{"-C", repopath, "fetch", "--all"}
 	} else {
 		args = []string{"-C", repopath, "pull", "--all"}
 	}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 	return cmd.Run()
 }
 
@@ -50,7 +51,7 @@ func (g GitCmd) Fetch(path string) error {
 		return err
 	}
 	args := []string{"-C", path, "fetch", "--all", "--tags"}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 	return cmd.Run()
 }
 
@@ -60,7 +61,7 @@ func (g GitCmd) LFSFetch(path string) error {
 		return err
 	}
 	args := []string{"-C", path, "lfs", "fetch", "--all"}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 	return cmd.Run()
 }
 
@@ -70,7 +71,7 @@ func (g GitCmd) MirrorPull(path string) error {
 		return err
 	}
 	args := []string{"-C", path, "pull", "--all", "--tags"}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 	return cmd.Run()
 }
 
@@ -80,7 +81,7 @@ func (g GitCmd) NewRemote(name, url, path string) error {
 		return err
 	}
 	args := []string{"-C", path, "remote", "add", name, url}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 
 	return cmd.Run()
 }
@@ -91,11 +92,12 @@ func (g GitCmd) Push(path, remote string) error {
 		return err
 	}
 	args := []string{"-C", path, "push", "--all", remote}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if _, ok := err.(*exec.ExitError); ok {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
 			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
@@ -109,11 +111,12 @@ func (g GitCmd) Checkout(path, branch string) error {
 		return err
 	}
 	args := []string{"checkout", branch}
-	cmd := exec.Command(g.CMD, args...)
+	cmd := exec.CommandContext(context.Background(), g.CMD, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if _, ok := err.(*exec.ExitError); ok {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
 			return fmt.Errorf("%s", strings.TrimSuffix(string(output), "\n"))
 		}
 	}
