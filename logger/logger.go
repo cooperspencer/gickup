@@ -12,9 +12,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-var (
-	exitcode int32
-)
+var exitcode int32
 
 // NewRollingFile TODO.
 func NewRollingFile(config types.FileLogging) io.Writer {
@@ -77,7 +75,7 @@ func GetExitCode() int32 {
 	return exitcode
 }
 
-func (h *ErrorHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
+func (h *ErrorHook) Run(_ *zerolog.Event, level zerolog.Level, _ string) {
 	if level == zerolog.ErrorLevel {
 		atomic.StoreInt32(&exitcode, 1)
 	}

@@ -1,0 +1,8 @@
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2025-01-04T21:04:01+01:00","message":"Configuration loaded"}
+{"level":"info","time":"2025-01-04T21:04:01+01:00","message":"Backup run starting"}
+{"level":"info","stage":"onedev","url":"https://code.onedev.io/","time":"2025-01-04T21:04:01+01:00","message":"grabbing repositories from robin"}
+{"level":"error","stage":"onedev","url":"https://code.onedev.io/","time":"2025-01-04T21:04:03+01:00","message":"can't get latest commit for Not authorized"}
+{"level":"info","sources":1,"destinations":1,"pairs":1,"time":"2025-03-13T17:25:17+01:00","message":"Configuration loaded"}
+{"level":"info","time":"2025-03-13T17:25:17+01:00","message":"Backup run starting"}
+{"level":"info","stage":"onedev","url":"https://code.onedev.io/","time":"2025-03-13T17:25:17+01:00","message":"grabbing repositories from robin"}
+{"level":"error","stage":"onedev","url":"https://code.onedev.io/","time":"2025-03-13T17:25:19+01:00","message":"can't get latest commit for Not authorized"}

@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -44,9 +45,7 @@ type V4Repo struct {
 	Repository string
 }
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 func getv4(token, user string) []V4Repo {
 	repos := []V4Repo{}
@@ -160,13 +159,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		if token != "" && v4user != "" && repo.Contributed {
 			for _, r := range getv4(token, v4user) {
-				github_repo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
+				githubRepo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
 					continue
 				}
-				githubrepos = append(githubrepos, github_repo)
+				githubrepos = append(githubrepos, githubRepo)
 			}
 		}
 
@@ -176,12 +175,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
-				if _, ok := err.(*github.RateLimitError); ok {
+				var rateLimitErr *github.RateLimitError
+				var abuseRateLimitErr *github.AbuseRateLimitError
+				if errors.As(err, &rateLimitErr) {
 					sub.Warn().Msg("wait for one hour.")
 					time.Sleep(1 * time.Hour)
 					continue
 				}
-				if _, ok := err.(*github.AbuseRateLimitError); ok {
+				if errors.As(err, &abuseRateLimitErr) {
 					sub.Warn().Msg("wait for one hour.")
 					time.Sleep(1 * time.Hour)
 					continue
@@ -313,7 +314,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						if wiki.Name != "" {
 							repos = append(repos, wiki)
 						}
-
 					}
 				} else {
 					repos = append(repos, types.Repo{
@@ -335,7 +335,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 				}
 			}
-
 		}
 		if repo.Gists {
 			gistlistoptions := &github.GistListOptions{ListOptions: github.ListOptions{PerPage: 50}}

@@ -139,7 +139,7 @@ type FileLogging struct {
 }
 
 // CheckAllValuesOrNone TODO.
-func CheckAllValuesOrNone(parent string, theMap map[string]string) bool {
+func CheckAllValuesOrNone(_ string, theMap map[string]string) bool {
 	var missing bool
 
 	for key, value := range theMap {

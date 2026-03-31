@@ -2,6 +2,7 @@ package gotify
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,7 +27,7 @@ func Notify(msg string, config types.PushConfig) error {
 		return err
 	}
 
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewBuffer(body))
 
 	req.Header.Add("Content-Type", "application/json")
 

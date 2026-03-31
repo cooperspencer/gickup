@@ -1,6 +1,7 @@
 package ntfy
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,21 +14,21 @@ func Notify(msg string, config types.PushConfig) error {
 
 	payload := strings.NewReader(msg)
 
-	req, _ := http.NewRequest("POST", url, payload)
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, url, payload)
 
 	req.Header.Add("Content-Type", "text/plain")
 	req.Header.Add("Title", "Backup done")
 
-	if config.Token != "" {
+	switch {
+	case config.Token != "":
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.Token))
-	} else if config.Password != "" && config.User != "" {
+	case config.Password != "" && config.User != "":
 		req.SetBasicAuth(config.User, config.Password)
-	} else {
+	default:
 		return fmt.Errorf("neither user, password and token are set")
 	}
 
 	res, err := http.DefaultClient.Do(req)
-
 	if err != nil {
 		return err
 	}

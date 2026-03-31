@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -12,16 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cooperspencer/gickup/azureblob"
-	"github.com/cooperspencer/gickup/onedev"
-	"github.com/cooperspencer/gickup/s3"
-	"github.com/cooperspencer/gickup/sourcehut"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/google/go-cmp/cmp"
-	"github.com/minio/minio-go/v7"
-
 	"github.com/alecthomas/kong"
+	"github.com/cooperspencer/gickup/azureblob"
 	"github.com/cooperspencer/gickup/bitbucket"
 	"github.com/cooperspencer/gickup/gitea"
 	"github.com/cooperspencer/gickup/github"
@@ -34,10 +27,17 @@ import (
 	"github.com/cooperspencer/gickup/metrics/heartbeat"
 	"github.com/cooperspencer/gickup/metrics/ntfy"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
+	"github.com/cooperspencer/gickup/onedev"
+	"github.com/cooperspencer/gickup/s3"
+	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/whatever"
 	"github.com/cooperspencer/gickup/zip"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/goccy/go-yaml"
+	"github.com/google/go-cmp/cmp"
+	"github.com/minio/minio-go/v7"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -71,14 +71,14 @@ func readConfigFile(configfile string) []*types.Conf {
 		var c types.Conf
 
 		err = dec.Decode(&c)
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			if len(conf) > 0 {
 				log.Fatal().
 					Str("stage", "readconfig").
 					Str("file", configfile).
-					Msgf("an error occured in the %d place of %s", i, configfile)
+					Msgf("an error occurred in the %d place of %s", i, configfile)
 			} else {
 				log.Fatal().
 					Str("stage", "readconfig").
@@ -87,7 +87,7 @@ func readConfigFile(configfile string) []*types.Conf {
 			}
 		}
 
-		if &c == nil {
+		if reflect.ValueOf(c).IsZero() {
 			continue
 		}
 
@@ -223,17 +223,18 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				tempClonePath := path.Join(tempdir, r.Name)
 				_, err = local.TempCloneBare(r, tempClonePath)
 				if err != nil {
-					if err == git.NoErrAlreadyUpToDate {
+					switch {
+					case errors.Is(err, git.NoErrAlreadyUpToDate):
 						log.Info().
 							Str("stage", "s3").
 							Str("url", r.URL).
 							Msg(err.Error())
-					} else if err == transport.ErrEmptyRemoteRepository {
+					case errors.Is(err, transport.ErrEmptyRemoteRepository):
 						log.Warn().
 							Str("repo", r.Name).
 							Msgf("%s - Skipping backup", err.Error())
 						continue
-					} else {
+					default:
 						log.Error().
 							Str("stage", "tempclone").
 							Str("url", r.URL).
@@ -334,16 +335,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				tempClonePath := path.Join(tempdir, r.Name)
 				_, err = local.TempCloneBare(r, tempClonePath)
 				if err != nil {
-					if err == git.NoErrAlreadyUpToDate {
+					switch {
+					case errors.Is(err, git.NoErrAlreadyUpToDate):
 						log.Info().
 							Str("stage", "azureblob").
 							Msg(err.Error())
-					} else if err == transport.ErrEmptyRemoteRepository {
+					case errors.Is(err, transport.ErrEmptyRemoteRepository):
 						log.Warn().
 							Str("repo", r.Name).
 							Msgf("%s - Skipping backup", err.Error())
 						continue
-					} else {
+					default:
 						log.Error().
 							Str("stage", "tempclone").
 							Str("git", "clone").
@@ -411,7 +413,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						defer os.RemoveAll(tempdir)
 						temprepo, err := local.TempClone(r, tempdir)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gitea").
 									Str("url", r.URL).
@@ -439,7 +441,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gitea").
 									Str("url", r.URL).
@@ -460,11 +462,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
 					}
-				} else {
-					if gitea.Backup(r, d, cli.Dry) {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Since(repotime).Seconds())
-						status = 1
-					}
+				} else if gitea.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
 				}
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
@@ -495,7 +495,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						defer os.RemoveAll(tempdir)
 						temprepo, err := local.TempClone(r, tempdir)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gogs").
 									Str("url", r.URL).
@@ -523,7 +523,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gogs").
 									Str("url", r.URL).
@@ -544,11 +544,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
 					}
-				} else {
-					if gogs.Backup(r, d, cli.Dry) {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
-						status = 1
-					}
+				} else if gogs.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
 				}
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
@@ -583,7 +581,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						defer os.RemoveAll(tempdir)
 						temprepo, err := local.TempClone(r, tempdir)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gitlab").
 									Str("url", r.URL).
@@ -611,7 +609,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 						if err != nil {
-							if err == git.NoErrAlreadyUpToDate {
+							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
 									Str("stage", "gitlab").
 									Str("url", r.URL).
@@ -632,11 +630,9 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 						prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
 					}
-				} else {
-					if gitlab.Backup(r, d, cli.Dry) {
-						prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
-						status = 1
-					}
+				} else if gitlab.Backup(r, d, cli.Dry) {
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(time.Since(repotime).Seconds())
+					status = 1
 				}
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
@@ -667,7 +663,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "github").
 								Str("url", r.URL).
@@ -695,7 +691,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "github").
 								Str("url", r.URL).
@@ -746,7 +742,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "onedev").
 								Str("url", r.URL).
@@ -773,7 +769,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "onedev").
 								Str("url", r.URL).
@@ -825,7 +821,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					defer os.RemoveAll(tempdir)
 					temprepo, err := local.TempClone(r, tempdir)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "sourcehut").
 								Str("url", r.URL).
@@ -852,7 +848,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
 					if err != nil {
-						if err == git.NoErrAlreadyUpToDate {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
 								Str("stage", "sourcehut").
 								Str("url", r.URL).

@@ -180,7 +180,7 @@ source:
         excludeforks: true # exclude forked repositories
       issues: true # back up issues, works only locally
   sourcehut:
-    - token: some-token # as of now only the legacy api works, use the legacy token
+    - token: some-token # sourcehut OAuth token (sent as Bearer token)
       # token_file: token.txt # alternatively, specify token in a file
       user: some-user # the user you want to clone the repositories from.
       url: http(s)://url-to-sourcehut # if empty, it uses https://git.sr.ht
@@ -254,7 +254,7 @@ destination:
       organization: whatever # name of the parent project you want to backup to
       force: false # force push to destination
   sourcehut:
-    - token: some-token # as of now only the legacy api works, use the legacy token
+    - token: some-token # sourcehut OAuth token (sent as Bearer token)
       # token_file: token.txt # alternatively, specify token in a file
       user: some-name # can be a user or an organization, it must exist on the system
       sshkey: /path/to/key # if empty, it uses your home directories' .ssh/id_rsa, sourcehut needs ssh to push to the repository
