@@ -1,7 +1,13 @@
 bla.conf
+conf.backup
 gickup.exe
 gickup
 conf.yml
 .idea
 dist/
 .vscode
+backup/
+log/
+*.db
+*.bck.*
+*.bak

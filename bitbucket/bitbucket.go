@@ -10,9 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 // Get TODO.
 func Get(conf *types.Conf) ([]types.Repo, bool) {
@@ -62,13 +60,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
-		repo_res, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
+		repoRes, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
 		var repositories []bitbucket.Repository
 		if err == nil {
-			repositories = repo_res.Items
-		}
-
-		if repo.Token != "" {
+			repositories = repoRes.Items
 			workspaces, err := client.Workspaces.List()
 			if err != nil {
 				sub.Error().
@@ -93,21 +88,31 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						} else {
 							repositories = append(repositories, workspacerepos.Items...)
 						}
-
 					}
 				}
 			}
 		}
 
 		for _, r := range repositories {
-			sub.Debug().Msg(r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string))
+			cloneLinks, _ := r.Links["clone"].([]interface{})
+			if len(cloneLinks) > 0 {
+				if firstLink, ok := cloneLinks[0].(map[string]interface{}); ok {
+					if href, ok2 := firstLink["href"].(string); ok2 {
+						sub.Debug().Msg(href)
+					}
+				}
+			}
 			user := repo.User
 			if r.Owner != nil {
 				if _, ok := r.Owner["username"]; ok {
-					user = r.Owner["username"].(string)
+					if v, ok2 := r.Owner["username"].(string); ok2 {
+						user = v
+					}
 				} else {
 					if _, ok := r.Owner["nickname"]; ok {
-						user = r.Owner["nickname"].(string)
+						if v, ok2 := r.Owner["nickname"].(string); ok2 {
+							user = v
+						}
 					}
 				}
 			}

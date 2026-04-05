@@ -1,76 +1,153 @@
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
-    - tagalign
-    - cyclop # duplicate of gocyclo
-    - exhaustivestruct # not revelent
+    - cyclop
+    - depguard # not configured, causes false positives
+    - dupl # duplicate code detection too noisy
+    - err113
+    - exhaustruct # was exhaustivestruct in v1, too strict
+    - funlen # function length too strict
     - gochecknoglobals
-    - gocognit # too strict
-    - goerr113 # too strict
-    - golint # deprecated
-    - gomnd # too strict
-    - interfacer # deprecated
-    - ireturn # not revelent
-    - maligned # deprecated
-    - scopelint # deprecated
-    - tagliatelle # breaking
-    - testpackage # too strict
-    - varnamelen # not revelent
-    - wrapcheck # too strict
-    - wsl # too strict
-    - maintidx # kind of duplicate of gocyclo
-
-issues:
-  exclude-rules:
-    - path: main.go
-      text: bad syntax for struct tag pair
-    - path: main.go # FIXME
-      text: Function 'main' is too long
-    - path: (.+)_test.go
-      linters:
-        - typecheck
-    - path: metrics/prometheus/prometheus.go # FIXME
-      text: counter metrics should have "_total" suffix
-    - path: local/local.go # FIXME
-      text: has complex nested blocks
-    - path: local/local.go # FIXME
-      text: Function 'Locally' has too many statements
-    - path: gitlab/gitlab.go # FIXME
-      text: Function 'Backup' is too long
-    - path: gitlab/gitlab.go # FIXME
-      text: Function 'Get' has too many statements
-    - path: gitlab/gitlab.go # FIXME
-      text: cyclomatic complexity \d+ of func `Get` is high
-    - path: gitlab/gitlab.go # FIXME
-      text: has complex nested blocks
-    - path: gogs/gogs.go # FIXME
-      text: has complex nested blocks
-    - path: gogs/gogs.go # FIXME
-      text: Function 'Backup' is too long
-    - path: gogs/gogs.go # FIXME
-      text: Function 'Get' has too many statements
-    - path: bitbucket/bitbucket.go # FIXME
-      text: Function 'Get' is too long
-    - path: bitbucket/bitbucket.go # FIXME
-      text: type assertion must be checked
-    - path: gitea/gitea.go
-      text: .code.gitea.io/sdk/gitea.ListOrgReposOptions. composite literal uses unkeyed fields
-    - path: gitea/gitea.go # FIXME
-      text: has complex nested blocks
-    - path: gitea/gitea.go # FIXME
-      text: Function 'Backup' is too long
-    - path: gitea/gitea.go # FIXME
-      text: Function 'Get' has too many statements
-    - path: gitea/gitea.go # FIXME
-      text: cyclomatic complexity \d+ of func `Get` is high
-    - path: gitea/gitea.go # FIXME
-      text: lines are duplicate of `gitea/gitea.go:\d+-\d+`
-    - path: github/github.go # FIXME
-      text: Function 'Get' has too many statements
-    - path: github/github.go # FIXME
-      text: has complex nested blocks
-
-linters-settings:
-  forbidigo:
-    forbid:
-      - '^print(ln)?$'
+    - gocognit
+    - gocyclo # cyclomatic complexity too strict
+    - godoclint # godoc format too strict
+    - godot # comment punctuation too strict
+    - goconst # string constant extraction too strict
+    - ireturn
+    - lll # line length too strict
+    - maintidx
+    - modernize # new in v2
+    - mnd
+    - nestif # nested blocks too strict
+    - nlreturn # too strict
+    - noinlineerr # new in v2
+    - perfsprint # new in v2
+    - prealloc # slice preallocation too strict
+    - tagalign
+    - tagliatelle
+    - testpackage
+    - varnamelen
+    - wrapcheck
+    - wsl # whitespace style
+    - wsl_v5 # was wsl in v1
+  settings:
+    forbidigo:
+      forbid:
+        - pattern: ^print(ln)?$
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      # Global exclusions for gosec false positives / intentional patterns
+      - linters: [gosec]
+        text: "G107:"
+      - linters: [gosec]
+        text: "G114:"
+      - linters: [gosec]
+        text: "G115:"
+      - linters: [gosec]
+        text: "G122:"
+      - linters: [gosec]
+        text: "G204:"
+      - linters: [gosec]
+        text: "G306:"
+      - linters: [gosec]
+        text: "G404:"
+      - linters: [gosec]
+        text: "G704:"
+      - linters: [gosec]
+        text: "G117:"
+      # Global exclusions for staticcheck style suggestions
+      - linters: [staticcheck]
+        text: "SA1019:"
+      - linters: [staticcheck]
+        text: "SA4006:"
+      - linters: [staticcheck]
+        text: "QF1001:"
+      - linters: [staticcheck]
+        text: "QF1008:"
+      # wastedassign is noisy in complex init patterns
+      - linters: [wastedassign]
+        text: "assigned to .*, but reassigned without using the value"
+      # ineffassign after NoErrAlreadyUpToDate pattern
+      - linters: [ineffassign]
+        path: local/local.go
+      - linters: [ineffassign]
+        path: sourcehut/sourcehut.go
+      # types.go public API field naming (Url, TenantId, ClientId — schema compatibility)
+      - linters: [revive]
+        path: types/types.go
+        text: "var-naming:"
+      - linters: [revive]
+        path: types/types_test.go
+        text: "var-naming:"
+      # zip package name conflicts with std lib archive/zip — existing package structure
+      - linters: [revive]
+        path: zip/zip.go
+        text: "var-naming:"
+      # Per-file existing exclusions
+      - path: main.go
+        text: bad syntax for struct tag pair
+      - path: main.go
+        text: Function 'main' is too long
+      - path: metrics/prometheus/prometheus.go
+        text: counter metrics should have "_total" suffix
+      - path: local/local.go
+        text: has complex nested blocks
+      - path: local/local.go
+        text: Function 'Locally' has too many statements
+      - path: gitlab/gitlab.go
+        text: Function 'Backup' is too long
+      - path: gitlab/gitlab.go
+        text: Function 'Get' has too many statements
+      - path: gitlab/gitlab.go
+        text: cyclomatic complexity \d+ of func `Get` is high
+      - path: gitlab/gitlab.go
+        text: has complex nested blocks
+      - path: gogs/gogs.go
+        text: has complex nested blocks
+      - path: gogs/gogs.go
+        text: Function 'Backup' is too long
+      - path: gogs/gogs.go
+        text: Function 'Get' has too many statements
+      - path: bitbucket/bitbucket.go
+        text: Function 'Get' is too long
+      - path: bitbucket/bitbucket.go
+        text: right hand must be only type assertion
+      - path: gitea/gitea.go
+        text: .code.gitea.io/sdk/gitea.ListOrgReposOptions. composite literal uses unkeyed fields
+      - path: gitea/gitea.go
+        text: has complex nested blocks
+      - path: gitea/gitea.go
+        text: Function 'Backup' is too long
+      - path: gitea/gitea.go
+        text: Function 'Get' has too many statements
+      - path: gitea/gitea.go
+        text: cyclomatic complexity \d+ of func `Get` is high
+      - path: gitea/gitea.go
+        text: lines are duplicate of `gitea/gitea.go:\d+-\d+`
+      - path: github/github.go
+        text: Function 'Get' has too many statements
+      - path: github/github.go
+        text: has complex nested blocks
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

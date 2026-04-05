@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -14,7 +14,7 @@ import (
 type Request struct {
 	Body string   `json:"body"`
 	Tags []string `json:"tags,omitempty"`
-	Urls []string `json:"urls",omitempty`
+	Urls []string `json:"urls,omitempty"`
 }
 
 type ErrorMsg struct {
@@ -22,14 +22,16 @@ type ErrorMsg struct {
 }
 
 func Notify(msg string, config types.AppriseConfig) error {
-
 	payload := Request{
 		Body: msg,
 		Urls: config.Urls,
 		Tags: config.Tags,
 	}
 
-	jsonData, _ := json.Marshal(payload)
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
 
 	if !strings.HasSuffix(config.Url, "/") {
 		config.Url += "/"
@@ -41,14 +43,15 @@ func Notify(msg string, config types.AppriseConfig) error {
 		url += config.Config
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
-	defer resp.Body.Close()
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData)) //nolint:noctx
 	if err != nil {
 		return err
 	}
 
+	defer resp.Body.Close()
+
 	errormsg := ErrorMsg{}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

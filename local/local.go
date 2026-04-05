@@ -2,6 +2,7 @@ package local
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -180,25 +181,24 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 				err := updateRepository(repo.Name, auth, dry, l)
 				if err != nil {
-					if err == git.NoErrAlreadyUpToDate {
+					switch {
+					case errors.Is(err, git.NoErrAlreadyUpToDate):
 						sub.Info().
 							Msg(err.Error())
-					} else {
-						if x == tries {
-							sub.Warn().
-								Str("repo", repo.Name).
-								Msg(err.Error())
+					case x == tries:
+						sub.Warn().
+							Str("repo", repo.Name).
+							Msg(err.Error())
 
-							return false
-						} else {
-							sub.Warn().
-								Str("repo", repo.Name).Err(err).
-								Msgf("retry %s from %s", types.Red(x), types.Red(tries))
+						return false
+					default:
+						sub.Warn().
+							Str("repo", repo.Name).Err(err).
+							Msgf("retry %s from %s", types.Red(x), types.Red(tries))
 
-							time.Sleep(5 * time.Second)
+						time.Sleep(5 * time.Second)
 
-							continue
-						}
+						continue
 					}
 				}
 			}
@@ -225,7 +225,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 							sub.Error().
 								Msg(err.Error())
 						} else {
-							err = os.WriteFile(filepath.Join(issuesDir, fmt.Sprintf("%s.json", k)), jsonData, 0644)
+							err = os.WriteFile(filepath.Join(issuesDir, fmt.Sprintf("%s.json", k)), jsonData, 0o644)
 							if err != nil {
 								sub.Error().
 									Msg(err.Error())
@@ -257,7 +257,6 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 
 				return false
 			}
-
 		}
 
 		if l.Keep > 0 {
@@ -346,28 +345,18 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 		} else {
 			// fetch to see if there are any unpullable commits, for example a force push
 			err = r.Fetch(&git.FetchOptions{Auth: auth, RemoteName: "origin"})
-			if err != nil {
-				if err == git.NoErrAlreadyUpToDate {
-					err = nil
-				} else {
-					return err
-				}
+			if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+				return err
 			}
 			sub.Info().
 				Msgf("pulling %s", types.Green(reponame))
 			if !l.Bare && !l.Mirror {
-				w, err := r.Worktree()
-				if err != nil {
-					if err == git.NoErrAlreadyUpToDate {
-						err = nil
-					} else {
-						return err
-					}
+				w, worktreeErr := r.Worktree()
+				if worktreeErr != nil && !errors.Is(worktreeErr, git.NoErrAlreadyUpToDate) {
+					return worktreeErr
 				}
 				err = w.Pull(&git.PullOptions{Auth: auth, RemoteName: "origin", SingleBranch: false})
-				if err == git.NoErrAlreadyUpToDate {
-					err = nil
-				} else {
+				if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 					return err
 				}
 			}
@@ -422,21 +411,19 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 	if l.LFS {
 		if repo.Token != "" {
 			if strings.HasPrefix(url, "http://") {
-				url = strings.Replace(url, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token), -1)
+				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token))
 			}
 
 			if strings.HasPrefix(url, "https://") {
-				url = strings.Replace(url, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token), -1)
+				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token))
 			}
-		} else {
-			if repo.Origin.Username != "" && repo.Origin.Password != "" {
-				if strings.HasPrefix(url, "http://") {
-					url = strings.Replace(url, "http://", fmt.Sprintf("http://%s:%s@", repo.Origin.Username, repo.Origin.Password), -1)
-				}
+		} else if repo.Origin.Username != "" && repo.Origin.Password != "" {
+			if strings.HasPrefix(url, "http://") {
+				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://%s:%s@", repo.Origin.Username, repo.Origin.Password))
+			}
 
-				if strings.HasPrefix(url, "https://") {
-					url = strings.Replace(url, "https://", fmt.Sprintf("https://%s:%s@", repo.Origin.Username, repo.Origin.Password), -1)
-				}
+			if strings.HasPrefix(url, "https://") {
+				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://%s:%s@", repo.Origin.Username, repo.Origin.Password))
 			}
 		}
 
@@ -470,7 +457,7 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 			Auth:     auth,
 			Force:    true,
 		})
-		if err == git.NoErrAlreadyUpToDate {
+		if errors.Is(err, git.NoErrAlreadyUpToDate) {
 			err = nil
 		}
 	}
@@ -550,11 +537,11 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 		gitc = g
 
 		if strings.HasPrefix(repo.URL, "http://") {
-			repo.URL = strings.Replace(repo.URL, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token), -1)
+			repo.URL = strings.ReplaceAll(repo.URL, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token))
 		}
 
 		if strings.HasPrefix(repo.URL, "https://") {
-			repo.URL = strings.Replace(repo.URL, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token), -1)
+			repo.URL = strings.ReplaceAll(repo.URL, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token))
 		}
 
 		err = gitc.Clone(repo.URL, tempdir, isBare, false)
@@ -571,7 +558,7 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 			Auth:     auth,
 			Force:    true,
 		})
-		if err == git.NoErrAlreadyUpToDate {
+		if errors.Is(err, git.NoErrAlreadyUpToDate) {
 			return r, nil
 		}
 
@@ -609,27 +596,25 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 		}
 
 		return r, err
-	} else {
-		r, err := git.PlainClone(tempdir, isBare, &git.CloneOptions{
-			URL:          repo.URL,
-			Auth:         auth,
-			SingleBranch: false,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		err = r.Fetch(&git.FetchOptions{
-			RefSpecs: []config.RefSpec{"refs/*:refs/*"},
-			Auth:     auth,
-			Force:    true,
-		})
-		if err == git.NoErrAlreadyUpToDate {
-			return r, nil
-		} else {
-			return r, err
-		}
 	}
+	r, err := git.PlainClone(tempdir, isBare, &git.CloneOptions{
+		URL:          repo.URL,
+		Auth:         auth,
+		SingleBranch: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.Fetch(&git.FetchOptions{
+		RefSpecs: []config.RefSpec{"refs/*:refs/*"},
+		Auth:     auth,
+		Force:    true,
+	})
+	if errors.Is(err, git.NoErrAlreadyUpToDate) {
+		return r, nil
+	}
+	return r, err
 }
 
 func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string, lfs bool) error {
@@ -697,11 +682,11 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 			}
 		} else {
 			if strings.HasPrefix(url, "http://") {
-				url = strings.Replace(url, "http://", fmt.Sprintf("http://xyz:%s@", token), -1)
+				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://xyz:%s@", token))
 			}
 
 			if strings.HasPrefix(url, "https://") {
-				url = strings.Replace(url, "https://", fmt.Sprintf("https://xyz:%s@", token), -1)
+				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://xyz:%s@", token))
 			}
 
 			err = gitc.NewRemote(remote, url, worktree.Filesystem.Root())
@@ -716,25 +701,24 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 		}
 
 		return nil
-	} else {
-		remoteconfig := config.RemoteConfig{Name: RandomString(8), URLs: []string{url}}
-		remote, err := repo.CreateRemote(&remoteconfig)
-		if err != nil {
-			return err
-		}
-
-		headref, _ := repo.Head()
-
-		pushoptions := git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("%s:%s", headref.Name(), headref.Name()))}}
-
-		err = repo.Push(&pushoptions)
-		if err == nil || err == git.NoErrAlreadyUpToDate {
-			pushoptions = git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
-
-			return repo.Push(&pushoptions)
-		}
+	}
+	remoteconfig := config.RemoteConfig{Name: RandomString(8), URLs: []string{url}}
+	remote, err := repo.CreateRemote(&remoteconfig)
+	if err != nil {
 		return err
 	}
+
+	headref, _ := repo.Head()
+
+	pushoptions := git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{config.RefSpec(fmt.Sprintf("%s:%s", headref.Name(), headref.Name()))}}
+
+	err = repo.Push(&pushoptions)
+	if err == nil || errors.Is(err, git.NoErrAlreadyUpToDate) {
+		pushoptions = git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
+
+		return repo.Push(&pushoptions)
+	}
+	return err
 }
 
 func RandomString(length int) string {

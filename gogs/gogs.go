@@ -10,9 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
 func getRepoVisibility(visibility string, private bool) bool {
 	switch visibility {
@@ -447,7 +445,6 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 				return "", err
 			}
 		}
-
 	}
 
 	r, err := gogsclient.GetRepo(user.UserName, repo.Name)
