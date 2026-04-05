@@ -16,13 +16,9 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	sub zerolog.Logger
-)
+var sub zerolog.Logger
 
-const (
-	defaultSourcehutURL = "https://git.sr.ht"
-)
+const defaultSourcehutURL = "https://git.sr.ht"
 
 func normalizeBearerToken(token string) string {
 	token = strings.TrimSpace(token)
