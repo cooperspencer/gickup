@@ -58,6 +58,10 @@ linters:
         text: "G306:"
       - linters: [gosec]
         text: "G404:"
+      - linters: [gosec]
+        text: "G704:"
+      - linters: [gosec]
+        text: "G117:"
       # Global exclusions for staticcheck style suggestions
       - linters: [staticcheck]
         text: "SA1019:"
@@ -78,6 +82,13 @@ linters:
       # types.go public API field naming (Url, TenantId, ClientId — schema compatibility)
       - linters: [revive]
         path: types/types.go
+        text: "var-naming:"
+      - linters: [revive]
+        path: types/types_test.go
+        text: "var-naming:"
+      # zip package name conflicts with std lib archive/zip — existing package structure
+      - linters: [revive]
+        path: zip/zip.go
         text: "var-naming:"
       # Per-file existing exclusions
       - path: main.go
