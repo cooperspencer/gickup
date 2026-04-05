@@ -2,12 +2,15 @@ package sourcehut
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	graphqlclient "github.com/hasura/go-graphql-client"
 
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
@@ -18,89 +21,231 @@ var (
 	sub zerolog.Logger
 )
 
-// doRequest TODO
-func doRequest(url, token string) ([]byte, error) {
-	req, _ := http.NewRequest("GET", url, nil)
+const (
+	defaultSourcehutURL = "https://git.sr.ht"
+)
 
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return []byte{}, err
+func normalizeBearerToken(token string) string {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return token
 	}
 
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
+	lower := strings.ToLower(token)
+	if strings.HasPrefix(lower, "bearer ") {
+		return strings.TrimSpace(token[len("bearer "):])
+	}
 
-	return body, err
+	if strings.HasPrefix(lower, "token ") {
+		return strings.TrimSpace(token[len("token "):])
+	}
+
+	return token
 }
 
-// postRequest TODO
-func postRequest(url string, postbody []byte, token string) ([]byte, error) {
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(postbody))
-
-	req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return []byte{}, err
+func normalizeURL(rawURL string) string {
+	if strings.TrimSpace(rawURL) == "" {
+		return defaultSourcehutURL
 	}
 
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-
-	return body, err
+	return strings.TrimRight(strings.TrimSpace(rawURL), "/")
 }
 
-// getRepos TODO
-func getRepos(url, token string) (Repositories, error) {
-	repositories := Repositories{}
+func graphQLEndpoint(rawURL string) string {
+	return fmt.Sprintf("%s/query", normalizeURL(rawURL))
+}
 
-	body, err := doRequest(url, token)
+func newGraphQLClient(endpoint, token string) *graphqlclient.Client {
+	token = normalizeBearerToken(token)
+	client := graphqlclient.NewClient(endpoint, &http.Client{})
+	if token != "" {
+		client = client.WithRequestModifier(func(r *http.Request) {
+			r.Header.Set("Authorization", "Bearer "+token)
+		})
+	}
+	return client
+}
+
+func execGraphQL(endpoint, token, query string, variables map[string]interface{}, dataTarget interface{}) error {
+	client := newGraphQLClient(endpoint, token)
+	raw, err := client.ExecRaw(context.Background(), query, variables)
 	if err != nil {
-		return Repositories{}, err
+		return err
+	}
+	if dataTarget == nil {
+		return nil
+	}
+	if len(raw) == 0 || bytes.Equal(raw, []byte("null")) {
+		return errors.New("sourcehut graphql returned no data")
+	}
+	return json.Unmarshal(raw, dataTarget)
+}
+
+func resolveSourcehutUsername(endpoint, token, configuredUser string) (string, error) {
+	if configuredUser != "" {
+		return strings.TrimPrefix(configuredUser, "~"), nil
 	}
 
-	err = json.Unmarshal(body, &repositories)
-	if err != nil {
-		return Repositories{}, err
+	query := `query { me { username } }`
+	response := queryMe{}
+	if err := execGraphQL(endpoint, token, query, nil, &response); err != nil {
+		return "", err
 	}
+
+	if response.Me.Username == "" {
+		return "", errors.New("no user associated with this token")
+	}
+
+	return response.Me.Username, nil
+}
+
+func getRepositoriesForUser(endpoint, token, username string) ([]repository, error) {
+	query := `query($username: String!, $cursor: Cursor) {
+		user(username: $username) {
+			repositories(cursor: $cursor) {
+				results {
+					id
+					created
+					updated
+					name
+					description
+					visibility
+					owner {
+						canonicalName
+					}
+				}
+				cursor
+			}
+		}
+	}`
+
+	allRepos := []repository{}
+	var cursor *string
 
 	for {
-		if repositories.Next != "" {
-			body, err := doRequest(fmt.Sprintf("%s/id=%s", url, repositories.Next), token)
-			if err != nil {
-				return Repositories{}, err
-			}
+		variables := map[string]interface{}{
+			"username": strings.TrimPrefix(username, "~"),
+			"cursor":   cursor,
+		}
 
-			r := Repositories{}
+		response := queryUser{}
+		if err := execGraphQL(endpoint, token, query, variables, &response); err != nil {
+			return nil, err
+		}
 
-			err = json.Unmarshal(body, &r)
-			if err != nil {
-				return Repositories{}, err
-			}
+		if response.User == nil {
+			return nil, fmt.Errorf("couldn't find sourcehut user %s", username)
+		}
 
-			repositories.Results = append(repositories.Results, r.Results...)
-			repositories.Next = r.Next
-		} else {
+		allRepos = append(allRepos, response.User.Repositories.Results...)
+		if response.User.Repositories.Cursor == nil {
 			break
 		}
+
+		cursor = response.User.Repositories.Cursor
 	}
-	return repositories, nil
+
+	return allRepos, nil
 }
 
-// getCommits TODO
-func getCommits(url, reponame, token string) (Commits, error) {
-	body, err := doRequest(fmt.Sprintf("%s%s/log", url, reponame), token)
-	if err != nil {
-		return Commits{}, err
+func getRepositoryByName(endpoint, token, username, repoName string) (*repository, error) {
+	if username != "" {
+		query := `query($username: String!, $name: String!) {
+			user(username: $username) {
+				repository(name: $name) {
+					id
+					name
+					owner {
+						canonicalName
+					}
+				}
+			}
+		}`
+
+		response := queryUser{}
+		variables := map[string]interface{}{
+			"username": strings.TrimPrefix(username, "~"),
+			"name":     repoName,
+		}
+
+		if err := execGraphQL(endpoint, token, query, variables, &response); err != nil {
+			return nil, err
+		}
+
+		if response.User == nil {
+			return nil, fmt.Errorf("couldn't find sourcehut user %s", username)
+		}
+
+		return response.User.Repository, nil
 	}
 
-	commits := Commits{}
-	err = json.Unmarshal(body, &commits)
+	query := `query($name: String!) {
+		me {
+			repository(name: $name) {
+				id
+				name
+				owner {
+					canonicalName
+				}
+			}
+		}
+	}`
 
-	return commits, nil
+	response := queryMe{}
+	variables := map[string]interface{}{"name": repoName}
+	if err := execGraphQL(endpoint, token, query, variables, &response); err != nil {
+		return nil, err
+	}
+
+	return response.Me.Repository, nil
+}
+
+func createRepository(endpoint, token string, repo types.Repo, visibility string) (*repository, error) {
+	query := `mutation($name: String!, $visibility: Visibility!, $description: String) {
+		createRepository(name: $name, visibility: $visibility, description: $description) {
+			id
+			name
+			owner {
+				canonicalName
+			}
+		}
+	}`
+
+	response := mutationCreateRepository{}
+	variables := map[string]interface{}{
+		"name":        repo.Name,
+		"visibility":  visibility,
+		"description": repo.Description,
+	}
+
+	if err := execGraphQL(endpoint, token, query, variables, &response); err != nil {
+		return nil, err
+	}
+
+	if response.CreateRepository == nil {
+		return nil, errors.New("sourcehut did not return a created repository")
+	}
+
+	return response.CreateRepository, nil
+}
+
+func mapVisibilityToGraphQLEnum(visibility string) string {
+	switch strings.ToLower(strings.TrimSpace(visibility)) {
+	case "private":
+		return "PRIVATE"
+	case "unlisted":
+		return "UNLISTED"
+	default:
+		return "PUBLIC"
+	}
+}
+
+func buildHTTPURL(baseURL, canonicalOwner, repoName string) string {
+	return fmt.Sprintf("%s/%s/%s", normalizeURL(baseURL), canonicalOwner, repoName)
+}
+
+func buildSSHURL(baseURL, canonicalOwner, repoName string) string {
+	return fmt.Sprintf("git@%s:%s/%s", types.GetHost(normalizeURL(baseURL)), canonicalOwner, repoName)
 }
 
 // Get TODO.
@@ -108,13 +253,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Sourcehut {
-		if repo.URL == "" {
-			repo.URL = "https://git.sr.ht"
-		}
-
-		if !strings.HasSuffix(repo.URL, "/") {
-			repo.URL += "/"
-		}
+		repo.URL = normalizeURL(repo.URL)
 
 		sub = logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
@@ -124,69 +263,53 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 		ran = true
 
-		apiURL := fmt.Sprintf("%sapi/", repo.URL)
+		endpoint := graphQLEndpoint(repo.URL)
 
 		token := repo.GetToken()
 
-		if repo.User == "" {
-			user := User{}
-			body, err := doRequest(fmt.Sprintf("%suser", apiURL), token)
-			if err != nil {
-				sub.Error().
-					Msg("no user associated with this token")
-				continue
-			}
-
-			err = json.Unmarshal(body, &user)
-			if err != nil {
-				sub.Error().
-					Msg("cannot unmarshal user")
-				continue
-			}
-			repo.User = user.Name
+		repo.User, err = resolveSourcehutUsername(endpoint, token, repo.User)
+		if err != nil {
+			sub.Error().
+				Msg(err.Error())
+			continue
 		}
 
 		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
-		if repo.User != "" {
-			if !strings.HasPrefix(repo.User, "~") {
-				repo.User = fmt.Sprintf("~%s", repo.User)
-			}
-		}
-
-		apiURL = fmt.Sprintf("%sapi/%s/repos/", repo.URL, repo.User)
-
 		include := types.GetMap(repo.Include)
 		exclude := types.GetMap(repo.Exclude)
 
-		repositories, err := getRepos(apiURL, token)
+		repositories, err := getRepositoriesForUser(endpoint, token, repo.User)
 		if err != nil {
 			sub.Error().
 				Msg(err.Error())
+			continue
 		}
 
-		if len(repositories.Results) == 0 {
+		if len(repositories) == 0 {
 			sub.Error().Msgf("couldn't find any repositories for user %s", repo.User)
-			break
+			continue
 		}
 
-		for _, r := range repositories.Results {
-			repoURL := fmt.Sprintf("%s%s/%s", repo.URL, repo.User, r.Name)
-			sshURL := fmt.Sprintf("git@%s:%s/%s", types.GetHost(repo.URL), r.Owner.CanonicalName, r.Name)
+		for _, r := range repositories {
+			ownerCanonicalName := r.Owner.CanonicalName
+			if ownerCanonicalName == "" {
+				ownerCanonicalName = fmt.Sprintf("~%s", strings.TrimPrefix(repo.User, "~"))
+			}
+
+			repoURL := buildHTTPURL(repo.URL, ownerCanonicalName, r.Name)
+			sshURL := buildSSHURL(repo.URL, ownerCanonicalName, r.Name)
 			sub.Debug().Msg(repoURL)
 
-			commits, err := getCommits(apiURL, r.Name, token)
-			if err != nil {
-				sub.Error().
-					Msg(err.Error())
-			} else {
-				if len(commits.Results) > 0 {
-					if time.Since(commits.Results[0].Timestamp) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
-						continue
-					}
+			if repo.Filter.LastActivityDuration != 0 {
+				if !r.Updated.IsZero() && time.Since(r.Updated) > repo.Filter.LastActivityDuration {
+					continue
 				}
 			}
+
+			ownerName := strings.TrimPrefix(ownerCanonicalName, "~")
+			isPrivate := strings.EqualFold(r.Visibility, "PRIVATE") || strings.EqualFold(r.Visibility, "private")
 
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
@@ -195,10 +318,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					SSHURL:      sshURL,
 					Token:       token,
 					Origin:      repo,
-					Owner:       r.Owner.Name,
+					Owner:       ownerName,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,
-					Private:     r.Visibility == "private",
+					Private:     isPrivate,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -207,10 +330,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						SSHURL:      sshURL + "-docs",
 						Token:       token,
 						Origin:      repo,
-						Owner:       r.Owner.Name,
+						Owner:       ownerName,
 						Hoster:      types.GetHost(repo.URL),
 						Description: r.Description,
-						Private:     r.Visibility == "private",
+						Private:     isPrivate,
 					})
 				}
 
@@ -228,10 +351,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					SSHURL:      sshURL,
 					Token:       token,
 					Origin:      repo,
-					Owner:       r.Owner.Name,
+					Owner:       ownerName,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,
-					Private:     r.Visibility == "private",
+					Private:     isPrivate,
 				})
 				if repo.Wiki {
 					repos = append(repos, types.Repo{
@@ -240,10 +363,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						SSHURL:      sshURL + "-docs",
 						Token:       token,
 						Origin:      repo,
-						Owner:       r.Owner.Name,
+						Owner:       ownerName,
 						Hoster:      types.GetHost(repo.URL),
 						Description: r.Description,
-						Private:     r.Visibility == "private",
+						Private:     isPrivate,
 					})
 				}
 			}
@@ -254,44 +377,29 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 }
 
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
-	if destination.URL == "" {
-		destination.URL = "https://git.sr.ht"
-	}
+	destination.URL = normalizeURL(destination.URL)
 
 	sub = logger.CreateSubLogger("stage", "sourcehut", "url", destination.URL)
 
-	if !strings.HasSuffix(destination.URL, "/") {
-		destination.URL += "/"
-	}
+	token := destination.GetToken()
+	endpoint := graphQLEndpoint(destination.URL)
+	configuredUser := strings.TrimPrefix(destination.User, "~")
 
-	repository := Repository{}
-	body, err := doRequest(fmt.Sprintf("%sapi/repos/%s", destination.URL, repo.Name), destination.GetToken())
+	remoteRepo, err := getRepositoryByName(endpoint, token, configuredUser, repo.Name)
 	if err != nil {
 		return "", err
 	}
 
-	err = json.Unmarshal(body, &repository)
-	if err != nil {
-		return "", err
-	}
-	if repository.Name == "" {
-		if destination.Visibility.Repositories != "public" && destination.Visibility.Repositories != "private" && destination.Visibility.Repositories != "unlisted" {
-			destination.Visibility.Repositories = "public"
-		}
-		postRepo := PostRepo{Name: repo.Name, Visibility: destination.Visibility.Repositories}
-		postBody, err := json.Marshal(postRepo)
-		if err != nil {
-			return "", err
-		}
-		body, err := postRequest(fmt.Sprintf("%sapi/repos", destination.URL), postBody, destination.GetToken())
-		if err != nil {
-			return "", err
-		}
-		err = json.Unmarshal(body, &repository)
+	if remoteRepo == nil {
+		remoteRepo, err = createRepository(endpoint, token, repo, mapVisibilityToGraphQLEnum(destination.Visibility.Repositories))
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return fmt.Sprintf("git@%s:%s/%s", types.GetHost(destination.URL), repository.Owner.CanonicalName, repo.Name), nil
+	if remoteRepo == nil || remoteRepo.Owner.CanonicalName == "" {
+		return "", errors.New("sourcehut repository owner could not be determined")
+	}
+
+	return buildSSHURL(destination.URL, remoteRepo.Owner.CanonicalName, repo.Name), nil
 }
