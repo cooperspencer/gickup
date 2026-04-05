@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
-	graphqlclient "github.com/hasura/go-graphql-client"
-
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
+	graphqlclient "github.com/hasura/go-graphql-client"
 	"github.com/rs/zerolog"
 )
 
