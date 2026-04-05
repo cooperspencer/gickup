@@ -7,3 +7,5 @@ conf.yml
 dist/
 .vscode
 backup/
+log/
+*.db
