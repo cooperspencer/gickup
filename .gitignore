@@ -9,3 +9,5 @@ dist/
 backup/
 log/
 *.db
+*.bck.*
+*.bak
