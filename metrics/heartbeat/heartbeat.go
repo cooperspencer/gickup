@@ -15,6 +15,8 @@ func Send(conf types.HeartbeatConfig) {
 			log.Error().Str("monitoring", "heartbeat").Msg(err.Error())
 			continue
 		}
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Error().Str("monitoring", "heartbeat").Str("url", u).Msg(err.Error())
+		}
 	}
 }

@@ -308,6 +308,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for lang, percent := range langs {
 					if percent > percentage {
 						language = lang
+						percentage = percent
 					}
 				}
 				if !languages[strings.ToLower(language)] {
@@ -453,6 +454,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				for lang, percent := range langs {
 					if percent > percentage {
 						language = lang
+						percentage = percent
 					}
 				}
 				if !languages[strings.ToLower(language)] {
