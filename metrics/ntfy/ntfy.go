@@ -2,6 +2,7 @@ package ntfy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,7 +15,10 @@ func Notify(msg string, config types.PushConfig) error {
 
 	payload := strings.NewReader(msg)
 
-	req, _ := http.NewRequestWithContext(context.Background(), http.MethodPost, url, payload)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, payload)
+	if err != nil {
+		return err
+	}
 
 	req.Header.Add("Content-Type", "text/plain")
 	req.Header.Add("Title", "Backup done")
@@ -33,10 +37,17 @@ func Notify(msg string, config types.PushConfig) error {
 		return err
 	}
 
-	res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("received status %d from %s", res.StatusCode, config.Url)
+		statusErr := fmt.Errorf("received status %d from %s", res.StatusCode, config.Url)
+		if err := res.Body.Close(); err != nil {
+			return errors.Join(statusErr, err)
+		}
+
+		return statusErr
+	}
+
+	if err := res.Body.Close(); err != nil {
+		return err
 	}
 
 	return nil
