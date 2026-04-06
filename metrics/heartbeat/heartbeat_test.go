@@ -10,6 +10,8 @@ import (
 )
 
 func TestSendCallsEachHeartbeatURL(t *testing.T) {
+	t.Parallel()
+
 	var hits int32
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {

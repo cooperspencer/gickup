@@ -10,6 +10,8 @@ import (
 )
 
 func TestNotifySendsExpectedRequest(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/notify/team" {
 			t.Fatalf("path = %q, want /notify/team", r.URL.Path)
@@ -52,6 +54,8 @@ func TestNotifySendsExpectedRequest(t *testing.T) {
 }
 
 func TestNotifyReturnsAPIError(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(`{"error":"push failed"}`))
 	}))

@@ -10,6 +10,8 @@ import (
 )
 
 func TestNotifySendsExpectedPayload(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/message" {
 			t.Fatalf("path = %q, want /message", r.URL.Path)
@@ -43,6 +45,8 @@ func TestNotifySendsExpectedPayload(t *testing.T) {
 }
 
 func TestNotifyReturnsStatusError(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 	}))

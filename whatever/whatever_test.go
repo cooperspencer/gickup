@@ -9,6 +9,8 @@ import (
 )
 
 func TestGetBuildsRemoteRepo(t *testing.T) {
+	t.Parallel()
+
 	conf := &types.Conf{
 		Source: types.Source{
 			Any: []types.GenRepo{{URL: "https://example.com/org/repo.git"}},
@@ -31,6 +33,8 @@ func TestGetBuildsRemoteRepo(t *testing.T) {
 }
 
 func TestGetBuildsLocalRepo(t *testing.T) {
+	t.Parallel()
+
 	localPath := filepath.Join(t.TempDir(), "repo.git")
 	if err := os.MkdirAll(localPath, 0o755); err != nil {
 		t.Fatalf("mkdir repo: %v", err)

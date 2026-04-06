@@ -11,6 +11,8 @@ import (
 )
 
 func TestNotifyUsesBearerToken(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("method = %s, want POST", r.Method)
@@ -48,6 +50,8 @@ func TestNotifyUsesBearerToken(t *testing.T) {
 }
 
 func TestNotifyUsesBasicAuth(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, password, ok := r.BasicAuth()
 		if !ok {
@@ -69,6 +73,8 @@ func TestNotifyUsesBasicAuth(t *testing.T) {
 }
 
 func TestNotifyRequiresCredentials(t *testing.T) {
+	t.Parallel()
+
 	err := Notify("backup complete", types.PushConfig{Url: "https://ntfy.sh/topic"})
 	if err == nil {
 		t.Fatal("expected credential error")
@@ -80,6 +86,8 @@ func TestNotifyRequiresCredentials(t *testing.T) {
 }
 
 func TestNotifyReturnsStatusError(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))

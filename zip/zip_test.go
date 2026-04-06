@@ -9,6 +9,8 @@ import (
 )
 
 func TestZipCreatesArchiveAndRemovesSources(t *testing.T) {
+	t.Parallel()
+
 	root := t.TempDir()
 	repoDir := filepath.Join(root, "repo")
 	issuesDir := filepath.Join(root, "repo.issues")

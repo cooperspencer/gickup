@@ -38,6 +38,8 @@ func newGraphQLServer(t *testing.T, handler func(*http.Request, graphQLRequest) 
 }
 
 func TestNormalizeHelpers(t *testing.T) {
+	t.Parallel()
+
 	if got := normalizeBearerToken("  Bearer secret  "); got != "secret" {
 		t.Fatalf("normalizeBearerToken() = %q, want secret", got)
 	}
@@ -72,6 +74,8 @@ func TestNormalizeHelpers(t *testing.T) {
 }
 
 func TestResolveSourcehutUsernameUsesConfiguredUser(t *testing.T) {
+	t.Parallel()
+
 	got, err := resolveSourcehutUsername("https://unused.invalid/query", "ignored", "~alice")
 	if err != nil {
 		t.Fatalf("resolveSourcehutUsername() error = %v", err)
@@ -83,6 +87,8 @@ func TestResolveSourcehutUsernameUsesConfiguredUser(t *testing.T) {
 }
 
 func TestResolveSourcehutUsernameQueriesGraphQL(t *testing.T) {
+	t.Parallel()
+
 	server := newGraphQLServer(t, func(r *http.Request, req graphQLRequest) map[string]interface{} {
 		if got := r.Header.Get("Authorization"); got != "Bearer secret-token" {
 			t.Fatalf("authorization = %q, want Bearer secret-token", got)
@@ -107,6 +113,8 @@ func TestResolveSourcehutUsernameQueriesGraphQL(t *testing.T) {
 }
 
 func TestGetRepositoriesForUserPaginates(t *testing.T) {
+	t.Parallel()
+
 	updated := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC).Format(time.RFC3339)
 	server := newGraphQLServer(t, func(_ *http.Request, req graphQLRequest) map[string]interface{} {
 		cursor, _ := req.Variables["cursor"].(string)
@@ -168,6 +176,8 @@ func TestGetRepositoriesForUserPaginates(t *testing.T) {
 }
 
 func TestCreateRepository(t *testing.T) {
+	t.Parallel()
+
 	server := newGraphQLServer(t, func(_ *http.Request, req graphQLRequest) map[string]interface{} {
 		if !strings.Contains(req.Query, "mutation") {
 			t.Fatalf("unexpected query: %s", req.Query)
@@ -198,6 +208,8 @@ func TestCreateRepository(t *testing.T) {
 }
 
 func TestGetBuildsRepositoriesAndWikiMirrors(t *testing.T) {
+	t.Parallel()
+
 	updated := time.Now().UTC().Format(time.RFC3339)
 	server := newGraphQLServer(t, func(_ *http.Request, req graphQLRequest) map[string]interface{} {
 		if !strings.Contains(req.Query, "repositories") {
@@ -253,6 +265,8 @@ func TestGetBuildsRepositoriesAndWikiMirrors(t *testing.T) {
 }
 
 func TestGetOrCreateReturnsExistingRepositoryURL(t *testing.T) {
+	t.Parallel()
+
 	server := newGraphQLServer(t, func(_ *http.Request, req graphQLRequest) map[string]interface{} {
 		if !strings.Contains(req.Query, "repository(name") {
 			t.Fatalf("unexpected query: %s", req.Query)
@@ -281,6 +295,8 @@ func TestGetOrCreateReturnsExistingRepositoryURL(t *testing.T) {
 }
 
 func TestGetOrCreateCreatesMissingRepository(t *testing.T) {
+	t.Parallel()
+
 	server := newGraphQLServer(t, func(_ *http.Request, req graphQLRequest) map[string]interface{} {
 		switch {
 		case strings.Contains(req.Query, "repository(name"):

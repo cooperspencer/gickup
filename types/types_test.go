@@ -39,6 +39,8 @@ func TestParseInvalidCron(t *testing.T) {
 }
 
 func TestDestinationCount(t *testing.T) {
+	t.Parallel()
+
 	dest := Destination{
 		Gitlab:    []GenRepo{{}, {}},
 		Local:     []Local{{}},
@@ -57,6 +59,8 @@ func TestDestinationCount(t *testing.T) {
 }
 
 func TestSourceCount(t *testing.T) {
+	t.Parallel()
+
 	source := Source{
 		Gogs:      []GenRepo{{}},
 		Gitlab:    []GenRepo{{}},
@@ -90,12 +94,16 @@ func TestPushConfigResolveToken(t *testing.T) {
 }
 
 func TestResolveFallsBackToLiteral(t *testing.T) {
+	t.Parallel()
+
 	if got := resolve("literal"); got != "literal" {
 		t.Fatalf("resolve() = %q, want literal", got)
 	}
 }
 
 func TestCheckAllValuesOrNone(t *testing.T) {
+	t.Parallel()
+
 	if !CheckAllValuesOrNone("prometheus", map[string]string{"listenaddr": ":8080", "endpoint": "/metrics"}) {
 		t.Fatal("expected all populated values to pass")
 	}
@@ -106,6 +114,8 @@ func TestCheckAllValuesOrNone(t *testing.T) {
 }
 
 func TestGetNextRunMissingCron(t *testing.T) {
+	t.Parallel()
+
 	conf := Conf{}
 
 	if _, err := conf.GetNextRun(); err == nil {
@@ -114,6 +124,8 @@ func TestGetNextRunMissingCron(t *testing.T) {
 }
 
 func TestGetNextRunValidCron(t *testing.T) {
+	t.Parallel()
+
 	conf := Conf{Cron: "0 0 * * *"}
 
 	next, err := conf.GetNextRun()
@@ -131,6 +143,8 @@ func TestGetNextRunValidCron(t *testing.T) {
 }
 
 func TestFilterParseDuration(t *testing.T) {
+	t.Parallel()
+
 	filter := Filter{LastActivityString: "1d2h30m"}
 
 	if err := filter.ParseDuration(); err != nil {
@@ -144,6 +158,8 @@ func TestFilterParseDuration(t *testing.T) {
 }
 
 func TestFilterParseDurationInvalid(t *testing.T) {
+	t.Parallel()
+
 	filter := Filter{LastActivityString: "nonsense"}
 
 	if err := filter.ParseDuration(); err == nil {
@@ -165,6 +181,8 @@ func TestResolveTokenPrefersEnvironment(t *testing.T) {
 }
 
 func TestResolveTokenReadsFromFile(t *testing.T) {
+	t.Parallel()
+
 	path := filepath.Join(t.TempDir(), "token.txt")
 	if err := os.WriteFile(path, []byte("file-token\n"), 0o644); err != nil {
 		t.Fatalf("write token file: %v", err)
@@ -181,6 +199,8 @@ func TestResolveTokenReadsFromFile(t *testing.T) {
 }
 
 func TestResolveTokenWithNoSource(t *testing.T) {
+	t.Parallel()
+
 	got, err := resolveToken("", "")
 	if err != nil {
 		t.Fatalf("resolveToken() error = %v", err)
@@ -200,6 +220,8 @@ func TestGenRepoGetTokenFromEnvironment(t *testing.T) {
 }
 
 func TestGetHost(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]string{
 		"https://example.com/org/repo": "example.com",
 		"http://example.com/org/repo":  "example.com",
@@ -214,6 +236,8 @@ func TestGetHost(t *testing.T) {
 }
 
 func TestSiteGetValuesSSHURL(t *testing.T) {
+	t.Parallel()
+
 	var site Site
 
 	if err := site.GetValues("ssh://git@example.com:2222/org/repo.git"); err != nil {
@@ -226,6 +250,8 @@ func TestSiteGetValuesSSHURL(t *testing.T) {
 }
 
 func TestSiteGetValuesScpStyle(t *testing.T) {
+	t.Parallel()
+
 	var site Site
 
 	if err := site.GetValues("git@example.com:org/repo.git"); err != nil {
@@ -238,6 +264,8 @@ func TestSiteGetValuesScpStyle(t *testing.T) {
 }
 
 func TestGetMap(t *testing.T) {
+	t.Parallel()
+
 	got := GetMap([]string{"repo-a", "repo-b"})
 	if !got["repo-a"] || !got["repo-b"] || len(got) != 2 {
 		t.Fatalf("unexpected map contents: %#v", got)
@@ -261,6 +289,8 @@ func TestS3RepoGetKey(t *testing.T) {
 }
 
 func TestResolveTokenPreservesLiteralToken(t *testing.T) {
+	t.Parallel()
+
 	got, err := resolveToken("literal-token", "")
 	if err != nil {
 		t.Fatalf("resolveToken() error = %v", err)
@@ -272,6 +302,8 @@ func TestResolveTokenPreservesLiteralToken(t *testing.T) {
 }
 
 func TestResolveTrimsNothingFromLiteral(t *testing.T) {
+	t.Parallel()
+
 	if got := resolve("already-set"); !strings.EqualFold(got, "already-set") {
 		t.Fatalf("resolve() = %q, want already-set", got)
 	}

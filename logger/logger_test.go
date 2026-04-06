@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewRollingFileCreatesDirectory(t *testing.T) {
+	t.Parallel()
+
 	logDir := filepath.Join(t.TempDir(), "logs")
 
 	writer := NewRollingFile(types.FileLogging{Dir: logDir, File: "gickup.log", MaxAge: 7})
@@ -22,6 +24,7 @@ func TestNewRollingFileCreatesDirectory(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Mutates package-global exitcode and must remain serial.
 func TestErrorHookSetsExitCode(t *testing.T) {
 	exitcode = 0
 	hook := ErrorHook{}

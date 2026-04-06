@@ -38,6 +38,8 @@ func TestTildeReplacement_TildeDir(t *testing.T) {
 }
 
 func TestReadConfigFile_InheritsPushConfigsAndExpandsHome(t *testing.T) {
+	t.Parallel()
+
 	configPath := filepath.Join(t.TempDir(), "conf.yml")
 	config := `destination:
   local:

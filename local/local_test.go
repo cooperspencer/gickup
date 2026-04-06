@@ -6,6 +6,8 @@ import (
 )
 
 func TestRandomStringLengthAndCharset(t *testing.T) {
+	t.Parallel()
+
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	got := RandomString(64)
@@ -21,6 +23,8 @@ func TestRandomStringLengthAndCharset(t *testing.T) {
 }
 
 func TestRandomStringZeroLength(t *testing.T) {
+	t.Parallel()
+
 	if got := RandomString(0); got != "" {
 		t.Fatalf("RandomString(0) = %q, want empty string", got)
 	}
