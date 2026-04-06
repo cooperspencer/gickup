@@ -2,8 +2,11 @@ package s3
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
@@ -14,14 +17,61 @@ import (
 
 var sub zerolog.Logger
 
+func newClient(s3repo types.S3Repo) (*minio.Client, error) {
+	endpoint, secure, err := normalizeEndpoint(s3repo.Endpoint, s3repo.UseSSL)
+	if err != nil {
+		return nil, err
+	}
+
+	return minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
+		Secure: secure,
+		Region: s3repo.Region,
+	})
+}
+
+func normalizeEndpoint(endpoint string, secure bool) (string, bool, error) {
+	trimmed := strings.TrimSpace(endpoint)
+	if trimmed == "" {
+		return "", secure, fmt.Errorf("s3 endpoint is empty")
+	}
+
+	parsedInput := trimmed
+	if !strings.Contains(parsedInput, "://") {
+		parsedInput = "https://" + parsedInput
+	}
+
+	parsed, err := url.Parse(parsedInput)
+	if err != nil {
+		return "", secure, err
+	}
+
+	if parsed.Host == "" {
+		return "", secure, fmt.Errorf("invalid s3 endpoint %q", endpoint)
+	}
+
+	if parsed.Path != "" && parsed.Path != "/" {
+		return "", secure, fmt.Errorf("s3 endpoint must not include a path; set only host[:port] in endpoint and use bucket for the bucket name")
+	}
+
+	if strings.Contains(trimmed, "://") {
+		switch parsed.Scheme {
+		case "http":
+			secure = false
+		case "https":
+			secure = true
+		default:
+			return "", secure, fmt.Errorf("unsupported s3 endpoint scheme %q", parsed.Scheme)
+		}
+	}
+
+	return parsed.Host, secure, nil
+}
+
 // UploadDirToS3 uploads the contents of a directory to S3-compatible storage
 func UploadDirToS3(directory string, s3repo types.S3Repo, options *minio.PutObjectOptions) error {
 	// Initialize minio client object.
-	client, err := minio.New(s3repo.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
-		Secure: s3repo.UseSSL,
-		Region: s3repo.Region,
-	})
+	client, err := newClient(s3repo)
 	if err != nil {
 		return err
 	}
@@ -70,11 +120,7 @@ func UploadDirToS3(directory string, s3repo types.S3Repo, options *minio.PutObje
 func DeleteObjectsNotInRepo(directory, bucketdir string, s3repo types.S3Repo) error {
 	sub = logger.CreateSubLogger("stage", "s3", "endpoint", s3repo.Endpoint, "bucket", s3repo.Bucket)
 	// Initialize minio client object.
-	client, err := minio.New(s3repo.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
-		Secure: s3repo.UseSSL,
-		Region: s3repo.Region,
-	})
+	client, err := newClient(s3repo)
 	if err != nil {
 		return err
 	}

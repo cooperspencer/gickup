@@ -272,7 +272,7 @@ destination:
       mirror: true # create mirror clones
       lfs: true # clone lfs repos, !! ATTENTION !! git and git-lfs must be installed on the system!
   s3:
-   - endpoint: somewhere:9000 # whatever your s3 endpoint is
+   - endpoint: somewhere:9000 # S3 host or host:port only; optional http:// or https:// is accepted, but no bucket/path
      structured: true # checks repos out like hostersite/user|organization/repo
      bucket: your-bucket-name
      accesskey: your-access-key # can be an environment variable, just don't add a $ in front of it
