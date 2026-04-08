@@ -320,6 +320,7 @@ metrics:
       token: your-token 
       user: your-user
       password: your-password
+      email: your-email@example.com # optional - passed as the Email header for ntfy mail delivery
     gotify:
     - url: http(s)://url-to-gotify
       token: your-token

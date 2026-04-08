@@ -22,6 +22,9 @@ func Notify(msg string, config types.PushConfig) error {
 
 	req.Header.Add("Content-Type", "text/plain")
 	req.Header.Add("Title", "Backup done")
+	if config.Email != "" {
+		req.Header.Add("Email", config.Email)
+	}
 
 	switch {
 	case config.Token != "":

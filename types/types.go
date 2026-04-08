@@ -82,6 +82,7 @@ type PushConfig struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Token    string `yaml:"token"`
+	Email    string `yaml:"email"`
 	Url      string `yaml:"url"`
 }
 
@@ -99,6 +100,9 @@ func (p *PushConfig) ResolveToken() {
 	}
 	if p.Token != "" {
 		p.Token = resolve(p.Token)
+	}
+	if p.Email != "" {
+		p.Email = resolve(p.Email)
 	}
 }
 
