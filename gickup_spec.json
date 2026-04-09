@@ -1095,6 +1095,10 @@
                                     "password": {
                                         "type": "string",
                                         "description": "The password to authenticate against the nty server"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "description": "Optional email address to pass as the Email header for ntfy notifications"
                                     }
                                 }
                             }
