@@ -559,8 +559,9 @@ type S3Repo struct {
 	UseSSL        bool   `yaml:"usessl"`
 	Structured    bool   `yaml:"structured"`
 	Zip           bool   `yaml:"zip"`
-	StorageClass  string `yaml:"storageclass"`
-	DateCreateDir bool   `yaml:"datecreatedir"`
+	StorageClass     string  `yaml:"storageclass"`
+	DateCreateDir    bool    `yaml:"datecreatedir"`
+	SrcRepoUrlTagKey *string `yaml:"src_repo_url_tag_key"`
 }
 
 func (s3 S3Repo) GetKey(accessString string) (string, error) {

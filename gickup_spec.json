@@ -555,6 +555,10 @@
                                 "type": "string",
                                 "description": "Storage class applied to all repos uploaded to this S3 bucket (optional)"
                             },
+                            "src_repo_url_tag_key": {
+                                "type": "string",
+                                "description": "If set, tag each uploaded object with this key and the source repo URL as value"
+                            },
                             "datecreatedir": {
                                 "type": "boolean",
                                 "description": "If true, gickup will create a directory for backup with the creation date"
