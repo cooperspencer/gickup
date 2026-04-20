@@ -28,14 +28,15 @@
 
 
 ## What is GICKUP?
-Gickup is a tool that allows you to clone/mirror repositories from one hoster to another.
-This is useful if you want to have a backup of your repositories on another hoster or to a local server.
+Gickup is a tool that allows you to clone/mirror repositories from one host to another.
+This is useful if you want to have a backup of your repositories on another host or on a local server.
 
 
-### Supported Source and Destionations
+### Supported Source and Destinations
 You can clone/mirror repositories from:
 - Github
 - Gitlab
+- Codeberg (Forgejo)
 - Gitea
 - Gogs
 - Bitbucket
@@ -46,6 +47,7 @@ You can clone/mirror repositories from:
 You can clone/mirror repositories to:
 - Github
 - Gitlab
+- Codeberg (Forgejo)
 - Gitea
 - Gogs
 - OneDev
