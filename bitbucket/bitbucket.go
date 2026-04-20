@@ -35,7 +35,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
-		client := bitbucket.NewBasicAuth(repo.Username, repo.Password)
+		client, err := bitbucket.NewBasicAuth(repo.Username, repo.Password)
 
 		if repo.URL == "" {
 			repo.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
@@ -51,7 +51,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			client.SetApiBaseURL(*bitbucketURL)
 		}
 
-		err := repo.Filter.ParseDuration()
+		if err != nil {
+			sub.Error().Err(err).Msg("issues creating basic auth")
+		}
+
+		err = repo.Filter.ParseDuration()
 		if err != nil {
 			sub.Warn().
 				Msg(err.Error())

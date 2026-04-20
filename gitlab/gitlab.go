@@ -153,7 +153,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		opt.PerPage = 50
 		for _, user := range users {
 			if user.Username == repo.User {
-				i := 1
+				i := int64(1)
 				for {
 					opt.Page = i
 					var projects []*gitlab.Project
@@ -180,7 +180,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if user.Username == repo.User {
 					i := 1
 					for {
-						opt.Page = i
+						opt.Page = int64(i)
 						projects, _, err := client.Projects.ListUserStarredProjects(user.ID, opt)
 						if err != nil {
 							sub.Error().
@@ -263,7 +263,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 				}
 
-				if r.StarCount < repo.Filter.Stars {
+				if r.StarCount < int64(repo.Filter.Stars) {
 					continue
 				}
 				if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
@@ -348,7 +348,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		if token != "" {
 			groups := []*gitlab.Group{}
-			i := 1
+			i := int64(1)
 			for {
 				g, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{
 					ListOptions: gitlab.ListOptions{
@@ -429,7 +429,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							}
 						}
 
-						if r.StarCount < repo.Filter.Stars {
+						if r.StarCount < int64(repo.Filter.Stars) {
 							continue
 						}
 						if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
@@ -562,7 +562,7 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
-						issues[strconv.Itoa(issue.IID)] = issue
+						issues[strconv.FormatInt(issue.IID, 64)] = issue
 					}
 				} else {
 					break
