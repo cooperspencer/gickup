@@ -57,6 +57,11 @@ type Local struct {
 	LFS        bool   `yaml:"lfs"`
 }
 
+// WebUIConfig holds web interface settings.
+type WebUIConfig struct {
+	Addr string `yaml:"addr"`
+}
+
 // Conf TODO.
 type Conf struct {
 	Source      Source      `yaml:"source"`
@@ -64,6 +69,7 @@ type Conf struct {
 	Cron        string      `yaml:"cron"`
 	Log         Logging     `yaml:"log"`
 	Metrics     Metrics     `yaml:"metrics"`
+	WebUI       WebUIConfig `yaml:"webui"`
 }
 
 // PrometheusConfig TODO.
