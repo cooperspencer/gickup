@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -31,6 +32,7 @@ import (
 	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/cooperspencer/gickup/types"
+	"github.com/cooperspencer/gickup/webui"
 	"github.com/cooperspencer/gickup/whatever"
 	"github.com/cooperspencer/gickup/zip"
 	"github.com/go-git/go-git/v5"
@@ -185,6 +187,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 			prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Set(float64(status))
 			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
+			webui.Global.Record(webui.BackupEntry{
+				Timestamp:  repotime,
+				RepoName:   r.Name,
+				RepoURL:    r.URL,
+				Owner:      r.Owner,
+				Hoster:     r.Hoster,
+				DestType:   "local",
+				DestAddr:   d.Path,
+				Status:     webui.StatusFromInt(status),
+				DurationMs: time.Since(repotime).Milliseconds(),
+			})
 		}
 
 		for _, d := range conf.Destination.S3 {
@@ -296,6 +309,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("s3").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "s3",
+					DestAddr:   d.Endpoint,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -387,6 +411,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "azureblob", d.Container).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("azureblob").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "azureblob",
+					DestAddr:   d.Container,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -475,6 +510,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gitea",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -557,6 +603,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gogs",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -643,6 +700,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gitlab",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -718,6 +786,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("github").Inc()
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "github",
+						DestAddr:   "https://github.com",
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -796,6 +875,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("onedev").Inc()
 					os.RemoveAll(tempdir)
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "onedev",
+						DestAddr:   d.URL,
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -875,6 +965,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("sourcehut").Inc()
 					os.RemoveAll(tempdir)
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "sourcehut",
+						DestAddr:   d.URL,
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -1014,8 +1115,10 @@ func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 		if !cmp.Equal(confs, checkconfigs) {
 			log.Info().Msg("config changed")
 			log.Debug().Msg(cmp.Diff(confs, checkconfigs))
-			for _, entry := range c.Entries() {
-				c.Remove(entry.ID)
+			if c != nil {
+				for _, entry := range c.Entries() {
+					c.Remove(entry.ID)
+				}
 			}
 			return true
 		}
@@ -1064,10 +1167,15 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
+	var webuiOnce sync.Once
+	var webuiAddr string
+	_ = webuiAddr // will be set from config
+
 	init := true
 	for {
 		reload := false
 		confs := []*types.Conf{}
+		confNames := []string{}
 		for i, f := range cli.Configfiles {
 			log.Info().Str("file", f).
 				Msgf("Reading %s", types.Green(f))
@@ -1076,7 +1184,17 @@ func main() {
 				log.Panic().Err(err).Msgf("there is an issue with %s", f)
 			}
 			cli.Configfiles[i] = absf
+			base := filepath.Base(absf)
+			before := len(confs)
 			confs = append(confs, readConfigFile(absf)...)
+			added := len(confs) - before
+			for j := 0; j < added; j++ {
+				if added > 1 {
+					confNames = append(confNames, fmt.Sprintf("%s #%d", base, j+1))
+				} else {
+					confNames = append(confNames, base)
+				}
+			}
 		}
 
 		logConf := confs[0].Log
@@ -1086,6 +1204,46 @@ func main() {
 		}
 
 		log.Logger = logger.CreateLogger(logConf)
+
+		// Determine webUI address from config file.
+		if webuiAddr == "" && confs[0].WebUI.Addr != "" {
+			webuiAddr = confs[0].WebUI.Addr
+		}
+
+		// Register config summaries and run callback; start server once.
+		if webuiAddr != "" {
+			infos := make([]webui.ConfigInfo, len(confs))
+			for i, c := range confs {
+				info := webui.ConfigInfo{
+					Index:   i,
+					Name:    confNames[i],
+					Sources: c.Source.Count(),
+					Dests:   c.Destination.Count(),
+				}
+				if c.HasValidCronSpec() {
+					info.CronSpec = c.Cron
+					if next, err := c.GetNextRun(); err == nil {
+						info.NextRun = next.Format(time.RFC3339)
+					}
+				}
+				infos[i] = info
+			}
+			webui.Global.SetConfigFiles(cli.Configfiles)
+			webui.Global.SetConfigs(infos)
+			currentConfs := confs
+			webui.Global.SetRunFunc(func(idx int) {
+				if idx < 0 {
+					for i, c := range currentConfs {
+						runBackup(c, i)
+					}
+				} else if idx < len(currentConfs) {
+					runBackup(currentConfs[idx], idx)
+				}
+			})
+			webuiOnce.Do(func() {
+				go webui.Serve(webuiAddr)
+			})
+		}
 
 		validcron := confs[0].HasValidCronSpec()
 
@@ -1145,6 +1303,12 @@ func main() {
 			}
 			reload = playsForever(c, cli.Configfiles, confs)
 			log.Info().Msg("reloading config...")
+		} else if webuiAddr != "" {
+			// No cron but web UI is active: stay alive and watch for config changes.
+			reload = playsForever(nil, cli.Configfiles, confs)
+			if reload {
+				log.Info().Msg("reloading config...")
+			}
 		}
 		if !reload {
 			break
