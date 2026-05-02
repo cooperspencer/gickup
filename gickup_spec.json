@@ -15,6 +15,17 @@
         "metrics": {
             "$ref": "#/definitions/metrics"
         },
+        "webui": {
+            "type": "object",
+            "description": "Configuration for the built-in web interface",
+            "additionalProperties": false,
+            "properties": {
+                "addr": {
+                    "type": "string",
+                    "description": "Address and port to listen on, e.g. ':8282'"
+                }
+            }
+        },
         "source": {
             "type": "object",
             "description": "Configuration for all git hoster source endpoints",
