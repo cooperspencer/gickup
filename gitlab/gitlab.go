@@ -562,7 +562,7 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 			} else {
 				if len(i) > 0 {
 					for _, issue := range i {
-						issues[strconv.FormatInt(issue.IID, 64)] = issue
+						issues[strconv.FormatInt(issue.IID, 10)] = issue
 					}
 				} else {
 					break
