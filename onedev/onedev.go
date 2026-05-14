@@ -95,11 +95,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					continue
 				}
 			}
+			if exclude[r.Name] {
+				continue
+			}
+
 			if len(repo.Include) > 0 {
 				if !include[r.Name] {
-					continue
-				}
-				if exclude[r.Name] {
 					continue
 				}
 			}

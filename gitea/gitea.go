@@ -322,6 +322,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
 				continue
 			}
+
+			if exclude[r.Name] {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
@@ -351,10 +356,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					})
 				}
 
-				continue
-			}
-
-			if exclude[r.Name] {
 				continue
 			}
 
@@ -468,6 +469,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if time.Since(r.Updated) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
 				continue
 			}
+
+			if exclude[r.Name] {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
@@ -497,10 +503,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					})
 				}
 
-				continue
-			}
-
-			if exclude[r.Name] {
 				continue
 			}
 

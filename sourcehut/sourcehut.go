@@ -306,6 +306,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			ownerName := strings.TrimPrefix(ownerCanonicalName, "~")
 			isPrivate := strings.EqualFold(r.Visibility, "PRIVATE") || strings.EqualFold(r.Visibility, "private")
 
+			if exclude[r.Name] {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
@@ -332,10 +336,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					})
 				}
 
-				continue
-			}
-
-			if exclude[r.Name] {
 				continue
 			}
 

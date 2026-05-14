@@ -269,6 +269,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				if time.Since(*r.LastActivityAt) > repo.Filter.LastActivityDuration && repo.Filter.LastActivityDuration != 0 {
 					continue
 				}
+				if exclude[r.Name] {
+					continue
+				}
+				if excludeorgs[r.Namespace.FullPath] {
+					continue
+				}
 				if include[r.Name] {
 					if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 						repos = append(repos, types.Repo{
@@ -303,9 +309,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						}
 					}
 
-					continue
-				}
-				if exclude[r.Name] {
 					continue
 				}
 				if len(include) == 0 {
@@ -436,6 +439,12 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							continue
 						}
 
+						if exclude[r.Name] {
+							continue
+						}
+						if excludeorgs[r.Namespace.FullPath] {
+							continue
+						}
 						if include[r.Name] {
 							if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
 								repos = append(repos, types.Repo{
@@ -472,13 +481,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 							continue
 						}
-						if exclude[r.Name] {
-							continue
-						}
-						if excludeorgs[r.Namespace.FullPath] {
-							continue
-						}
-
 						if len(include) == 0 {
 							if len(includeorgs) == 0 || includeorgs[r.Namespace.FullPath] {
 								if r.RepositoryAccessLevel != gitlab.DisabledAccessControl {
