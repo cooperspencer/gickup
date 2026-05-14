@@ -159,6 +159,20 @@ func handleConfigs(w http.ResponseWriter, r *http.Request) {
 	cfgs := make([]ConfigInfo, len(Global.configs))
 	copy(cfgs, Global.configs)
 	Global.mu.RUnlock()
+
+	now := time.Now()
+	for i := range cfgs {
+		if cfgs[i].CronSpec == "" {
+			continue
+		}
+		sched, err := types.ParseCronSpec(cfgs[i].CronSpec)
+		if err != nil {
+			cfgs[i].NextRun = ""
+			continue
+		}
+		cfgs[i].NextRun = sched.Next(now).Format(time.RFC3339)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(cfgs)
 }
