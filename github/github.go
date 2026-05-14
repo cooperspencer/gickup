@@ -264,6 +264,14 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
+			if exclude[*r.Name] {
+				continue
+			}
+
+			if excludeorgs[r.GetOwner().GetLogin()] {
+				continue
+			}
+
 			if include[*r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.GetName(),
@@ -283,14 +291,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					repos = append(repos, wiki)
 				}
 
-				continue
-			}
-
-			if exclude[*r.Name] {
-				continue
-			}
-
-			if excludeorgs[r.GetOwner().GetLogin()] {
 				continue
 			}
 

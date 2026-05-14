@@ -125,6 +125,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
+			if exclude[r.Name] {
+				continue
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
@@ -138,10 +142,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Private:     r.Is_private,
 				})
 
-				continue
-			}
-
-			if exclude[r.Name] {
 				continue
 			}
 
