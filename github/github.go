@@ -197,7 +197,21 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		for {
 			opt.Page = i
-			repos, status, err := client.Repositories.List(context.TODO(), repo.User, opt)
+			var fetchedRepos []*github.Repository
+			var status *github.Response
+			var err error
+
+			if repo.HasAppAuth() {
+				appListOpt := &github.ListOptions{Page: i, PerPage: opt.PerPage}
+				var result *github.ListRepositories
+				result, status, err = client.Apps.ListRepos(context.TODO(), appListOpt)
+				if result != nil {
+					fetchedRepos = result.Repositories
+				}
+			} else {
+				fetchedRepos, status, err = client.Repositories.List(context.TODO(), repo.User, opt)
+			}
+
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
@@ -214,14 +228,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					continue
 				}
 
-				if status.StatusCode == http.StatusNotFound {
+				if status != nil && status.StatusCode == http.StatusNotFound {
 					break
 				}
-			}
-			if len(repos) == 0 {
 				break
 			}
-			githubrepos = append(githubrepos, repos...)
+			if len(fetchedRepos) == 0 {
+				break
+			}
+			githubrepos = append(githubrepos, fetchedRepos...)
 			i++
 		}
 
