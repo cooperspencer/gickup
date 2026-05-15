@@ -14,11 +14,19 @@ import (
 
 var sub zerolog.Logger
 
+// getCredentials returns the appropriate credentials based on the S3Repo configuration
+func getCredentials(s3repo types.S3Repo) *credentials.Credentials {
+	if s3repo.UseStaticCreds {
+		return credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token)
+	}
+	return credentials.NewIAM("")
+}
+
 // UploadDirToS3 uploads the contents of a directory to S3-compatible storage
 func UploadDirToS3(directory string, s3repo types.S3Repo, options *minio.PutObjectOptions) error {
 	// Initialize minio client object.
 	client, err := minio.New(s3repo.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
+		Creds:  getCredentials(s3repo),
 		Secure: s3repo.UseSSL,
 		Region: s3repo.Region,
 	})
@@ -71,7 +79,7 @@ func DeleteObjectsNotInRepo(directory, bucketdir string, s3repo types.S3Repo) er
 	sub = logger.CreateSubLogger("stage", "s3", "endpoint", s3repo.Endpoint, "bucket", s3repo.Bucket)
 	// Initialize minio client object.
 	client, err := minio.New(s3repo.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(s3repo.AccessKey, s3repo.SecretKey, s3repo.Token),
+		Creds:  getCredentials(s3repo),
 		Secure: s3repo.UseSSL,
 		Region: s3repo.Region,
 	})
