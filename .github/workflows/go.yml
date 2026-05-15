@@ -12,10 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v6
       with:
         go-version: 1.26
 
@@ -23,7 +23,7 @@ jobs:
       run: go test -v ./...
 
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v2
+      uses: goreleaser/goreleaser-action@v7
       with:
         # either 'goreleaser' (default) or 'goreleaser-pro'
         distribution: goreleaser
@@ -33,7 +33,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: gickup
         path: dist/*

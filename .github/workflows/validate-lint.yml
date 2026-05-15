@@ -20,18 +20,18 @@ jobs:
 
     steps:
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           path: go/src/github.com/cooperspencer/gickup
           fetch-depth: 0
 
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod
