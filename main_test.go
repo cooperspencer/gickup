@@ -4,8 +4,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/cooperspencer/gickup/types"
 )
 
 func TestTildeReplacement_NoAction(t *testing.T) {
@@ -54,7 +52,7 @@ destination:
   local:
     - path: "/tmp/secondary"
 `
-	f, err := os.CreateTemp("", "gickup-test-*.yml")
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
 	if err != nil {
 		t.Fatalf("create temp file: %v", err)
 	}
@@ -63,7 +61,6 @@ destination:
 		t.Fatalf("write config: %v", err)
 	}
 	f.Close()
-	t.Cleanup(func() { os.Remove(configPath) })
 
 	confs := readConfigFile(configPath)
 	if len(confs) != 2 {
@@ -98,7 +95,7 @@ func TestReadConfigFile_S3UseStaticCredsTrue(t *testing.T) {
       accesskey: "AKID"
       secretkey: "SECRET"
 `
-	f, err := os.CreateTemp("", "gickup-test-*.yml")
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
 	if err != nil {
 		t.Fatalf("create temp file: %v", err)
 	}
@@ -107,7 +104,6 @@ func TestReadConfigFile_S3UseStaticCredsTrue(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 	f.Close()
-	t.Cleanup(func() { os.Remove(configPath) })
 
 	confs := readConfigFile(configPath)
 	if len(confs) != 1 {
@@ -133,7 +129,7 @@ func TestReadConfigFile_S3UseStaticCredsFalse(t *testing.T) {
       endpoint: "s3.example.com"
       use_static_creds: false
 `
-	f, err := os.CreateTemp("", "gickup-test-*.yml")
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
 	if err != nil {
 		t.Fatalf("create temp file: %v", err)
 	}
@@ -142,7 +138,6 @@ func TestReadConfigFile_S3UseStaticCredsFalse(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 	f.Close()
-	t.Cleanup(func() { os.Remove(configPath) })
 
 	confs := readConfigFile(configPath)
 	if len(confs) != 1 {
@@ -171,7 +166,7 @@ func TestReadConfigFile_S3UseStaticCredsResolvesEnvVars(t *testing.T) {
       accesskey: "TEST_S3_ACCESS"
       secretkey: "TEST_S3_SECRET"
 `
-	f, err := os.CreateTemp("", "gickup-test-*.yml")
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
 	if err != nil {
 		t.Fatalf("create temp file: %v", err)
 	}
@@ -180,7 +175,6 @@ func TestReadConfigFile_S3UseStaticCredsResolvesEnvVars(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 	f.Close()
-	t.Cleanup(func() { os.Remove(configPath) })
 
 	confs := readConfigFile(configPath)
 	s3 := confs[0].Destination.S3[0]
@@ -217,7 +211,7 @@ func TestReadConfigFile_S3UseStaticCredsAbsentSkipsKeyResolution(t *testing.T) {
     - bucket: "my-bucket"
       endpoint: "s3.example.com"
 `
-	f, err := os.CreateTemp("", "gickup-test-*.yml")
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
 	if err != nil {
 		t.Fatalf("create temp file: %v", err)
 	}
@@ -226,7 +220,6 @@ func TestReadConfigFile_S3UseStaticCredsAbsentSkipsKeyResolution(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 	f.Close()
-	t.Cleanup(func() { os.Remove(configPath) })
 
 	confs := readConfigFile(configPath)
 	s3 := confs[0].Destination.S3[0]
@@ -235,7 +228,4 @@ func TestReadConfigFile_S3UseStaticCredsAbsentSkipsKeyResolution(t *testing.T) {
 	if s3.UseStaticCreds {
 		t.Fatal("expected UseStaticCreds to be false when absent from config")
 	}
-
-	// Verify the struct type is correct
-	var _ types.S3Repo = s3
 }
