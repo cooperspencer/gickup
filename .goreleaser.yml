@@ -1,6 +1,7 @@
+version: 2
+
 builds:
-  -
-    goos:
+  - goos:
       - freebsd
       - windows
       - darwin
@@ -9,19 +10,20 @@ builds:
       - amd64
       - arm
       - arm64
-      - 386
+      - "386"
     goarm:
-      - 6
-      - 7
+      - "6"
+      - "7"
     ignore:
       - goos: darwin
-        goarch: 386
+        goarch: "386"
       - goos: windows
         goarch: arm
 
 archives:
-  -
-    format: tar.gz
+  - formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
