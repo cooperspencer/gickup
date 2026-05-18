@@ -70,6 +70,15 @@
                             "gists": {
                                 "$ref": "#/definitions/source/properties/gists"
                             },
+                            "app_id": {
+                                "$ref": "#/definitions/source/properties/app_id"
+                            },
+                            "app_installation_id": {
+                                "$ref": "#/definitions/source/properties/app_installation_id"
+                            },
+                            "app_private_key_file": {
+                                "$ref": "#/definitions/source/properties/app_private_key_file"
+                            },
                             "filter": {
                                 "$ref": "#/definitions/filter"
                             }
@@ -584,6 +593,15 @@
                             "force": {
                                 "$ref": "#/definitions/destination/properties/force"
                             },
+                            "app_id": {
+                                "$ref": "#/definitions/destination/properties/app_id"
+                            },
+                            "app_installation_id": {
+                                "$ref": "#/definitions/destination/properties/app_installation_id"
+                            },
+                            "app_private_key_file": {
+                                "$ref": "#/definitions/destination/properties/app_private_key_file"
+                            },
                             "visibility": {
                                 "type": "object",
                                 "properties": {
@@ -876,6 +894,21 @@
                     "$id": "#/definitions/source/properties/gists",
                     "type": "boolean",
                     "description": "Include the gists in the backup"
+                },
+                "app_id": {
+                    "$id": "#/definitions/source/properties/app_id",
+                    "type": "integer",
+                    "description": "GitHub App ID (numeric). Used together with app_installation_id and app_private_key_file to authenticate as a GitHub App."
+                },
+                "app_installation_id": {
+                    "$id": "#/definitions/source/properties/app_installation_id",
+                    "type": "integer",
+                    "description": "Installation ID of the GitHub App on the target account or organization."
+                },
+                "app_private_key_file": {
+                    "$id": "#/definitions/source/properties/app_private_key_file",
+                    "type": "string",
+                    "description": "Path to the RSA private key PEM file for the GitHub App."
                 }
             },
             "additionalProperties": false
@@ -928,6 +961,21 @@
                     "$id": "#/definitions/destination/properties/force",
                     "type": "boolean",
                     "description": "Force push the repositories"
+                },
+                "app_id": {
+                    "$id": "#/definitions/destination/properties/app_id",
+                    "type": "integer",
+                    "description": "GitHub App ID (numeric). Used together with app_installation_id and app_private_key_file to authenticate as a GitHub App."
+                },
+                "app_installation_id": {
+                    "$id": "#/definitions/destination/properties/app_installation_id",
+                    "type": "integer",
+                    "description": "Installation ID of the GitHub App on the target account or organization."
+                },
+                "app_private_key_file": {
+                    "$id": "#/definitions/destination/properties/app_private_key_file",
+                    "type": "string",
+                    "description": "Path to the RSA private key PEM file for the GitHub App."
                 }
             },
             "additionalProperties": false
