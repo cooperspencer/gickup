@@ -90,6 +90,9 @@ linters:
       - linters: [revive]
         path: zip/zip.go
         text: "var-naming:"
+      - linters: [revive]
+        path: zip/zip_test.go
+        text: "var-naming:"
       # Per-file existing exclusions
       - path: main.go
         text: bad syntax for struct tag pair
