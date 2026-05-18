@@ -56,7 +56,7 @@ var version = "unknown"
 
 func readConfigFile(configfile string) []*types.Conf {
 	conf := []*types.Conf{}
-	cfgdata, err := os.Open(configfile)
+	cfgdata, err := os.Open(filepath.Clean(configfile))
 	if err != nil {
 		log.Fatal().
 			Str("stage", "readconfig").
