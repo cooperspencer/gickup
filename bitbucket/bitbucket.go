@@ -129,13 +129,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
+			origin := repo
+			if repo.Username != "" {
+				origin.User = repo.Username
+			}
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
 					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
 					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:       repo.Token,
-					Origin:      repo,
+					Origin:      origin,
 					Owner:       user,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,
@@ -151,7 +156,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
 					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:       repo.Token,
-					Origin:      repo,
+					Origin:      origin,
 					Owner:       user,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,
