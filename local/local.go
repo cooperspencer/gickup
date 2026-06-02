@@ -283,6 +283,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 					sub.Warn().
 						Str("repo", repo.Name).
 						Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
+					continue
 				}
 				if l.Zip && !strings.HasSuffix(file.Name(), ".zip") {
 					continue
