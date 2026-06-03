@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/google/go-github/v74/github"
@@ -46,6 +47,34 @@ type V4Repo struct {
 }
 
 var sub zerolog.Logger
+
+// newGithubClient creates an authenticated GitHub client.
+// When App authentication fields are configured it uses a GitHub App installation token;
+// otherwise it falls back to a personal access token or an unauthenticated client.
+// It returns the client, the access token string (for git operations), and any error.
+func newGithubClient(ctx context.Context, repo types.GenRepo) (*github.Client, string, error) {
+	if repo.HasAppAuth() {
+		itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, repo.AppID, repo.AppInstallationID, repo.AppPrivateKeyFile)
+		if err != nil {
+			return nil, "", fmt.Errorf("github app auth: %w", err)
+		}
+		client := github.NewClient(&http.Client{Transport: itr})
+		token, err := itr.Token(ctx)
+		if err != nil {
+			return nil, "", fmt.Errorf("github app token: %w", err)
+		}
+		return client, token, nil
+	}
+
+	token := repo.GetToken()
+	if token == "" {
+		return github.NewClient(nil), "", nil
+	}
+
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+	return github.NewClient(tc), token, nil
+}
 
 func getv4(token, user string) []V4Repo {
 	repos := []V4Repo{}
@@ -128,22 +157,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 		i := 1
 		githubrepos := []*github.Repository{}
-		token := repo.GetToken()
 
-		var client *github.Client
-		if token == "" {
-			client = github.NewClient(nil)
-		} else {
-			ts := oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: token},
-			)
-			tc := oauth2.NewClient(context.TODO(), ts)
-
-			client = github.NewClient(tc)
+		client, token, err := newGithubClient(context.TODO(), repo)
+		if err != nil {
+			sub.Error().Msg(err.Error())
+			continue
 		}
 
 		v4user := repo.User
-		if token != "" {
+		if token != "" && !repo.HasAppAuth() {
 			user, _, err := client.Users.Get(context.TODO(), "")
 			if err != nil {
 				sub.Error().
@@ -158,20 +180,38 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		}
 
 		if token != "" && v4user != "" && repo.Contributed {
-			for _, r := range getv4(token, v4user) {
-				githubRepo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
-				if err != nil {
-					sub.Error().
-						Msg(err.Error())
-					continue
+			if repo.HasAppAuth() {
+				sub.Warn().Msg("contributed repos are not supported with GitHub App authentication, skipping")
+			} else {
+				for _, r := range getv4(token, v4user) {
+					githubRepo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
+					if err != nil {
+						sub.Error().
+							Msg(err.Error())
+						continue
+					}
+					githubrepos = append(githubrepos, githubRepo)
 				}
-				githubrepos = append(githubrepos, githubRepo)
 			}
 		}
 
 		for {
 			opt.Page = i
-			repos, status, err := client.Repositories.List(context.TODO(), repo.User, opt)
+			var fetchedRepos []*github.Repository
+			var status *github.Response
+			var err error
+
+			if repo.HasAppAuth() {
+				appListOpt := &github.ListOptions{Page: i, PerPage: opt.PerPage}
+				var result *github.ListRepositories
+				result, status, err = client.Apps.ListRepos(context.TODO(), appListOpt)
+				if result != nil {
+					fetchedRepos = result.Repositories
+				}
+			} else {
+				fetchedRepos, status, err = client.Repositories.List(context.TODO(), repo.User, opt)
+			}
+
 			if err != nil {
 				sub.Error().
 					Msg(err.Error())
@@ -188,14 +228,15 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					continue
 				}
 
-				if status.StatusCode == http.StatusNotFound {
+				if status != nil && status.StatusCode == http.StatusNotFound {
 					break
 				}
-			}
-			if len(repos) == 0 {
 				break
 			}
-			githubrepos = append(githubrepos, repos...)
+			if len(fetchedRepos) == 0 {
+				break
+			}
+			githubrepos = append(githubrepos, fetchedRepos...)
 			i++
 		}
 
@@ -378,13 +419,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 // GetOrCreate Get or create a repository
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
-	token := destination.GetToken()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(context.TODO(), ts)
-
-	client := github.NewClient(tc)
+	client, _, err := newGithubClient(context.TODO(), destination)
+	if err != nil {
+		return "", err
+	}
 
 	dest := types.GithubDestination{}
 	login := ""
