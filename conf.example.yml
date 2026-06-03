@@ -290,6 +290,7 @@ destination:
    - endpoint: somewhere:9000 # whatever your s3 endpoint is
      structured: true # checks repos out like hostersite/user|organization/repo
      bucket: your-bucket-name
+     use_static_creds: true # if true, use static credentials (accesskey/secretkey/token); if false, use IAM instance credentials (e.g. for AWS EC2/ECS)
      accesskey: your-access-key # can be an environment variable, just don't add a $ in front of it
      secretkey: your-secret-key # can be an environment variable, just don't add a $ in front of it
      token: your-token # can be an environment variable, just don't add a $ in front of it

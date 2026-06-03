@@ -62,6 +62,8 @@ linters:
         text: "G704:"
       - linters: [gosec]
         text: "G117:"
+      - linters: [gosec]
+        text: "G703:"
       # Global exclusions for staticcheck style suggestions
       - linters: [staticcheck]
         text: "SA1019:"

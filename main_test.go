@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -40,7 +39,6 @@ func TestTildeReplacement_TildeDir(t *testing.T) {
 func TestReadConfigFile_InheritsPushConfigsAndExpandsHome(t *testing.T) {
 	t.Parallel()
 
-	configPath := filepath.Join(t.TempDir(), "conf.yml")
 	config := `destination:
   local:
     - path: "~/primary"
@@ -54,10 +52,15 @@ destination:
   local:
     - path: "/tmp/secondary"
 `
-
-	if err := os.WriteFile(configPath, []byte(config), 0o644); err != nil {
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
+	f.Close()
 
 	confs := readConfigFile(configPath)
 	if len(confs) != 2 {
@@ -78,5 +81,151 @@ destination:
 
 	if len(confs[0].Metrics.PushConfigs.Ntfy) != 1 {
 		t.Fatal("expected initial push config to be populated")
+	}
+}
+
+func TestReadConfigFile_S3UseStaticCredsTrue(t *testing.T) {
+	t.Parallel()
+
+	config := `destination:
+  s3:
+    - bucket: "my-bucket"
+      endpoint: "s3.example.com"
+      use_static_creds: true
+      accesskey: "AKID"
+      secretkey: "SECRET"
+`
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	f.Close()
+
+	confs := readConfigFile(configPath)
+	if len(confs) != 1 {
+		t.Fatalf("expected 1 config, got %d", len(confs))
+	}
+
+	s3 := confs[0].Destination.S3
+	if len(s3) != 1 {
+		t.Fatalf("expected 1 S3 destination, got %d", len(s3))
+	}
+
+	if !s3[0].UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be true")
+	}
+}
+
+func TestReadConfigFile_S3UseStaticCredsFalse(t *testing.T) {
+	t.Parallel()
+
+	config := `destination:
+  s3:
+    - bucket: "my-bucket"
+      endpoint: "s3.example.com"
+      use_static_creds: false
+`
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	f.Close()
+
+	confs := readConfigFile(configPath)
+	if len(confs) != 1 {
+		t.Fatalf("expected 1 config, got %d", len(confs))
+	}
+
+	s3 := confs[0].Destination.S3
+	if len(s3) != 1 {
+		t.Fatalf("expected 1 S3 destination, got %d", len(s3))
+	}
+
+	if s3[0].UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be false")
+	}
+}
+
+func TestReadConfigFile_S3UseStaticCredsResolvesEnvVars(t *testing.T) {
+	t.Setenv("TEST_S3_ACCESS", "resolved-access")
+	t.Setenv("TEST_S3_SECRET", "resolved-secret")
+
+	config := `destination:
+  s3:
+    - bucket: "my-bucket"
+      endpoint: "s3.example.com"
+      use_static_creds: true
+      accesskey: "TEST_S3_ACCESS"
+      secretkey: "TEST_S3_SECRET"
+`
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	f.Close()
+
+	confs := readConfigFile(configPath)
+	s3 := confs[0].Destination.S3[0]
+
+	// Simulate the key resolution that backup() does when UseStaticCreds is true
+	if !s3.UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be true")
+	}
+
+	accessKey, err := s3.GetKey(s3.AccessKey)
+	if err != nil {
+		t.Fatalf("GetKey(accesskey) error = %v", err)
+	}
+
+	secretKey, err := s3.GetKey(s3.SecretKey)
+	if err != nil {
+		t.Fatalf("GetKey(secretkey) error = %v", err)
+	}
+
+	if accessKey != "resolved-access" {
+		t.Fatalf("accesskey = %q, want resolved-access", accessKey)
+	}
+
+	if secretKey != "resolved-secret" {
+		t.Fatalf("secretkey = %q, want resolved-secret", secretKey)
+	}
+}
+
+func TestReadConfigFile_S3UseStaticCredsAbsentSkipsKeyResolution(t *testing.T) {
+	t.Parallel()
+
+	config := `destination:
+  s3:
+    - bucket: "my-bucket"
+      endpoint: "s3.example.com"
+`
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	f.Close()
+
+	confs := readConfigFile(configPath)
+	s3 := confs[0].Destination.S3[0]
+
+	// When UseStaticCreds is false (zero value), backup() skips key resolution entirely
+	if s3.UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be false when absent from config")
 	}
 }

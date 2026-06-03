@@ -560,6 +560,7 @@ func StatRemote(remoteURL, sshURL string, repo GenRepo) bool {
 type S3Repo struct {
 	Bucket           string  `yaml:"bucket"`
 	Endpoint         string  `yaml:"endpoint"`
+	UseStaticCreds   bool    `yaml:"use_static_creds" default:"true"`
 	AccessKey        string  `yaml:"accesskey"`
 	SecretKey        string  `yaml:"secretkey"`
 	Token            string  `yaml:"token"`

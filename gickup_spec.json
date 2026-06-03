@@ -540,6 +540,10 @@
                                 "type": "string",
                                 "description": "The bucket to store the backups in"
                             },
+                            "use_static_creds": {
+                                "type": "boolean",
+                                "description": "If true, use static credentials (accesskey/secretkey/token). If false, use IAM instance credentials (e.g. for AWS EC2/ECS). Default: false"
+                            },
                             "accesskey": {
                                 "type": "string",
                                 "description": "The access key to authenticate against the S3 server"

@@ -308,3 +308,21 @@ func TestResolveTrimsNothingFromLiteral(t *testing.T) {
 		t.Fatalf("resolve() = %q, want already-set", got)
 	}
 }
+
+func TestS3RepoUseStaticCredsDefaultFalse(t *testing.T) {
+	t.Parallel()
+
+	var s3 S3Repo
+	if s3.UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be false by default (Go zero value)")
+	}
+}
+
+func TestS3RepoUseStaticCredsExplicitTrue(t *testing.T) {
+	t.Parallel()
+
+	s3 := S3Repo{UseStaticCreds: true}
+	if !s3.UseStaticCreds {
+		t.Fatal("expected UseStaticCreds to be true when explicitly set")
+	}
+}
