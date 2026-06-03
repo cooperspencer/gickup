@@ -63,6 +63,7 @@ func readConfigFile(configfile string) []*types.Conf {
 			Str("file", configfile).
 			Msgf("Cannot open config file from %s", types.Red(configfile))
 	}
+	defer cfgdata.Close()
 
 	dec := yaml.NewDecoder(cfgdata)
 
