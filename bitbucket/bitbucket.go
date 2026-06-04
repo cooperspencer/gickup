@@ -2,6 +2,7 @@ package bitbucket
 
 import (
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/cooperspencer/gickup/logger"
@@ -35,7 +36,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		includeorgs := types.GetMap(repo.IncludeOrgs)
 		excludeorgs := types.GetMap(repo.ExcludeOrgs)
 
-		client, err := bitbucket.NewBasicAuth(repo.Username, repo.Password)
+		client, err := bitbucket.NewBasicAuth(repo.Email, repo.Password)
 
 		if repo.URL == "" {
 			repo.URL = bitbucket.DEFAULT_BITBUCKET_API_BASE_URL
@@ -64,7 +65,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		sub.Info().
 			Msgf("grabbing repositories from %s", repo.User)
 
-		repoRes, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.User})
+		repoRes, err := client.Repositories.ListForAccount(&bitbucket.RepositoriesOptions{Owner: repo.Organization})
 		var repositories []bitbucket.Repository
 		if err == nil {
 			repositories = repoRes.Items
@@ -95,6 +96,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					}
 				}
 			}
+		} else {
+			sub.Error().Msgf("Exiting due to error fetching Bitbucket workspace repositories: %s", err.Error())
+			os.Exit(1)
 		}
 
 		for _, r := range repositories {
@@ -129,13 +133,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
+            origin := repo
+            if repo.Username != "" {
+                origin.User = repo.Username
+            }
+
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
 					Name:        r.Name,
 					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
 					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:       repo.Token,
-					Origin:      repo,
+					Origin:      origin,
 					Owner:       user,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,
@@ -151,7 +160,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					URL:         r.Links["clone"].([]interface{})[0].(map[string]interface{})["href"].(string),
 					SSHURL:      r.Links["clone"].([]interface{})[1].(map[string]interface{})["href"].(string),
 					Token:       repo.Token,
-					Origin:      repo,
+					Origin:      origin,
 					Owner:       user,
 					Hoster:      types.GetHost(repo.URL),
 					Description: r.Description,

@@ -16,7 +16,7 @@ require (
 	github.com/google/go-github/v74 v74.0.0
 	github.com/gookit/color v1.6.0
 	github.com/hasura/go-graphql-client v0.16.0
-	github.com/ktrysmt/go-bitbucket v0.9.100
+	github.com/ktrysmt/go-bitbucket v0.10.0
 	github.com/melbahja/goph v1.5.0
 	github.com/minio/minio-go/v7 v7.0.100
 	github.com/prometheus/client_golang v1.23.2
@@ -24,7 +24,7 @@ require (
 	github.com/rs/zerolog v1.35.0
 	github.com/shurcooL/githubv4 v0.0.0-20260209031235-2402fdf4a9ed
 	gitlab.com/gitlab-org/api/client-go v1.46.0
-	golang.org/x/crypto v0.50.0
+	golang.org/x/crypto v0.51.0
 	golang.org/x/oauth2 v0.36.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
@@ -85,9 +85,9 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.53.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
