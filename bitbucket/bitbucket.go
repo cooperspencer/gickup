@@ -133,10 +133,10 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				continue
 			}
 
-            origin := repo
-            if repo.Username != "" {
-                origin.User = repo.Username
-            }
+			origin := repo
+			if repo.Username != "" {
+				origin.User = repo.Username
+			}
 
 			if include[r.Name] {
 				repos = append(repos, types.Repo{
