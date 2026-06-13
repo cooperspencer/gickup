@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gickup</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <style>
+    :root, [data-theme="dark"] {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --green:     #3fb950;
+      --red:       #f85149;
+      --yellow:    #d29922;
+      --blue:      #58a6ff;
+      --purple:    #bc8cff;
+      --api-get-bg:    #0d4429;
+      --api-post-bg:   #1a3150;
+      --api-del-bg:    #3d1a1a;
+    }
+    [data-theme="light"] {
+      --bg:        #f6f8fa;
+      --surface:   #ffffff;
+      --surface2:  #f0f2f5;
+      --border:    #d0d7de;
+      --text:      #1f2328;
+      --muted:     #636c76;
+      --green:     #1a7f37;
+      --red:       #cf222e;
+      --yellow:    #9a6700;
+      --blue:      #0969da;
+      --purple:    #8250df;
+      --api-get-bg:    #d1fae5;
+      --api-post-bg:   #dbeafe;
+      --api-del-bg:    #fee2e2;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* navigation */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 56px;
+      gap: 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo img { width: 32px; height: 32px; object-fit: contain; }
+    .nav-tabs { display: flex; align-items: stretch; height: 100%; }
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      cursor: pointer;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--blue); }
+    .theme-toggle {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--text); }
+    /* layout */
+    main { padding: 28px 24px; max-width: 1280px; margin: 0 auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* stat cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .stat-card .value {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* card / table */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card + .card { margin-top: 20px; }
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-header h2 { font-size: 15px; font-weight: 600; }
+    .card-actions { display: flex; align-items: center; gap: 10px; }
+    .last-updated { font-size: 12px; color: var(--muted); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 9px 16px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+      white-space: nowrap;
+      background: var(--surface);
+    }
+    tbody td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface2); }
+
+    /* badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .badge.success { background: rgba(63,185,80,0.12); color: var(--green); }
+    .badge.success .badge-dot { background: var(--green); }
+    .badge.failed  { background: rgba(248,81,73,0.12);  color: var(--red);   }
+    .badge.failed  .badge-dot { background: var(--red); }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary   { background: #238636; color: #fff; border-color: rgba(240,246,252,.1); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border-color: var(--border); }
+    .btn-danger    { background: rgba(248,81,73,.15); color: var(--red); border-color: rgba(248,81,73,.3); }
+    .btn-icon      { padding: 7px 10px; }
+
+    /* empty state */
+    .empty {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 42px; margin-bottom: 14px; opacity: 0.7; }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; }
+
+    /* api docs */
+    .api-list { padding: 8px 0; }
+    .api-entry {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .api-entry:last-child { border-bottom: none; }
+    .api-sig {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .api-sig code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .api-method {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+      min-width: 56px;
+      text-align: center;
+    }
+    .api-method.get    { background: var(--api-get-bg);  color: var(--green); }
+    .api-method.post   { background: var(--api-post-bg); color: var(--blue); }
+    .api-method.delete { background: var(--api-del-bg);  color: var(--red); }
+    .api-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .api-desc code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 12px;
+      color: var(--purple);
+      background: var(--surface2);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* config editor */
+    .config-body { padding: 20px; }
+    #config-content {
+      width: 100%;
+      height: 520px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      tab-size: 2;
+    }
+    #config-content:focus { border-color: var(--blue); }
+    .config-actions { margin-top: 14px; display: flex; gap: 10px; align-items: center; }
+    .save-status { font-size: 13px; font-weight: 500; }
+    .save-status.ok  { color: var(--green); }
+    .save-status.err { color: var(--red); }
+
+    /* run card */
+    .run-body {
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .run-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+    .btn-run { background: #1f6feb; color: #fff; border-color: rgba(240,246,252,.1); }
+    .btn-run:hover { opacity: 0.85; }
+    .btn-run:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .running-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--blue);
+    }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cron-schedule {
+      padding: 10px 20px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cron-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .cron-name { font-weight: 600; color: var(--text); min-width: 120px; }
+    .cron-spec { font-family: monospace; color: var(--purple); }
+    .cron-next { color: var(--green); }
+
+    /* config file tabs */
+    .file-tabs {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+    .file-tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      user-select: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .file-tab:hover { color: var(--text); }
+    .file-tab.active { color: var(--text); border-bottom-color: var(--blue); }
+
+    /* filter bar */
+    .filter-bar {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 6px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 220px;
+    }
+    .filter-input:focus { border-color: var(--blue); }
+    .filter-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 6px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/" onclick="return false">
+    <img src="/logo.png" alt="Gickup logo">
+    Gickup
+  </a>
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-dashboard" onclick="showPage('dashboard')">Dashboard</div>
+    <div class="nav-tab" id="tab-config" onclick="showPage('config')">Config</div>
+    <div class="nav-tab" id="tab-api" onclick="showPage('api')">API</div>
+  </div>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark theme">
+    <span id="theme-icon"></span>
+    <span id="theme-label">Light</span>
+  </button>
+</nav>
+
+<main>
+
+  <!-- dashboard -->
+  <div id="page-dashboard" class="page active">
+    <div class="stats" id="stats">
+      <div class="stat-card"><div class="label">Total Backups</div><div class="value">—</div></div>
+      <div class="stat-card"><div class="label">Successful</div><div class="value" style="color:var(--green)">—</div></div>
+      <div class="stat-card"><div class="label">Failed</div><div class="value" style="color:var(--red)">—</div></div>
+      <div class="stat-card"><div class="label">Unique Repos</div><div class="value" style="color:var(--blue)">—</div></div>
+      <div class="stat-card"><div class="label">Sources</div><div class="value" style="color:var(--purple)">—</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <h2>Run Backup</h2>
+        <div class="card-actions">
+          <span id="run-status" class="running-indicator" style="display:none">
+            <span class="spinner"></span> Running…
+          </span>
+        </div>
+      </div>
+      <div class="run-body" id="run-body">
+        <button class="btn btn-run" id="btn-run-all" onclick="triggerRun(-1)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run All
+        </button>
+        <!-- individual config buttons injected here -->
+      </div>
+      <div class="cron-schedule" id="cron-schedule" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Backup History</h2>
+        <div class="card-actions">
+          <span class="last-updated" id="last-updated"></span>
+          <button class="btn btn-secondary btn-icon" onclick="loadStatus()" title="Refresh">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            Refresh
+          </button>
+          <button class="btn btn-danger btn-icon" onclick="clearHistory()" title="Clear history">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input class="filter-input" type="text" id="filter-search" placeholder="Filter by repo, owner, hoster…" oninput="applyFilters()">
+        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+          <option value="">All statuses</option>
+          <option value="success">Success</option>
+          <option value="failed">Failed</option>
+        </select>
+        <select class="filter-select" id="filter-dest" onchange="applyFilters()">
+          <option value="">All destinations</option>
+        </select>
+        <select class="filter-select" id="filter-hoster" onchange="applyFilters()">
+          <option value="">All sources</option>
+        </select>
+      </div>
+
+      <div class="table-wrap" id="table-container">
+        <div class="empty">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">No backup data yet</div>
+          <div class="empty-sub">Backup entries will appear here once a run completes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- config -->
+  <div id="page-config" class="page">
+    <div class="card">
+      <div class="card-header">
+        <h2>Configuration</h2>
+        <div class="card-actions">
+          <span class="save-status" id="save-status"></span>
+        </div>
+      </div>
+      <div class="file-tabs" id="file-tabs"></div>
+      <div class="config-body">
+        <textarea id="config-content" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="Loading configuration…"></textarea>
+        <div class="config-actions">
+          <button class="btn btn-primary" onclick="saveConfig()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save
+          </button>
+          <button class="btn btn-secondary" onclick="loadConfig()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            Reload
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- api -->
+  <div id="page-api" class="page">
+    <div class="card">
+      <div class="card-header"><h2>API Reference</h2></div>
+      <div class="api-list">
+
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method get">GET</span><code>/api/status</code></div>
+          <div class="api-desc">Return all recorded backup entries as a JSON array.</div>
+        </div>
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method delete">DELETE</span><code>/api/status</code></div>
+          <div class="api-desc">Clear all recorded backup entries.</div>
+        </div>
+
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method get">GET</span><code>/api/configs</code></div>
+          <div class="api-desc">Return the list of loaded config blocks (name, sources, destinations, cron spec, next run).</div>
+        </div>
+
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method get">GET</span><code>/api/running</code></div>
+          <div class="api-desc">Returns <code>{"running": true|false}</code> — whether a backup run is currently in progress.</div>
+        </div>
+
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method post">POST</span><code>/api/run</code></div>
+          <div class="api-desc">Trigger an immediate backup run.<br>
+            Body: <code>{"index": -1}</code> — <code>-1</code> runs all configs, <code>≥0</code> runs the config at that index.<br>
+            Returns <code>202 Accepted</code> or <code>409 Conflict</code> if already running.
+          </div>
+        </div>
+
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method get">GET</span><code>/api/config</code></div>
+          <div class="api-desc">Read a config file.<br>
+            <code>?file=0</code> — zero-based file index (default&nbsp;0).<br>
+            <code>?list=1</code> — list all registered config files as JSON instead.
+          </div>
+        </div>
+        <div class="api-entry">
+          <div class="api-sig"><span class="api-method post">POST</span><code>/api/config</code></div>
+          <div class="api-desc">Overwrite a config file with the plain-text request body.<br>
+            <code>?file=0</code> — zero-based file index (default&nbsp;0).
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Theme
+  const SUN  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  const MOON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('gickup-theme', theme);
+    const icon  = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon && label) {
+      icon.innerHTML    = theme === 'dark' ? SUN : MOON;
+      label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    }
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  }
+
+  (function () {
+    const saved = localStorage.getItem('gickup-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+  })();
+
+  // State
+  let allEntries = [];
+  let refreshInterval = null;
+  let runPollInterval = null;
+
+  // Navigation
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'config') loadConfigFileList();
+  }
+
+  // Run 
+  async function loadConfigs() {
+    try {
+      const resp = await fetch('/api/configs');
+      if (!resp.ok) return;
+      const cfgs = await resp.json();
+      const body = document.getElementById('run-body');
+      // Keep the "Run All" button, remove old config buttons
+      body.querySelectorAll('.btn-config').forEach(b => b.remove());
+      body.querySelectorAll('.run-divider').forEach(d => d.remove());
+      if (cfgs && cfgs.length > 1) {
+        const div = document.createElement('span');
+        div.className = 'run-divider';
+        body.appendChild(div);
+        cfgs.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-secondary btn-config';
+          btn.title = `${c.sources} source(s), ${c.dests} destination(s)`;
+          btn.onclick = () => triggerRun(c.index);
+          btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${escHtml(c.name)}`;
+          body.appendChild(btn);
+        });
+      }
+      // Cron schedule section
+      const cronDiv = document.getElementById('cron-schedule');
+      const cronCfgs = cfgs ? cfgs.filter(c => c.cron_spec) : [];
+      if (cronCfgs.length > 0) {
+        cronDiv.innerHTML = cronCfgs.map(c => {
+          const next = c.next_run ? fmtNextRun(c.next_run) : '—';
+          return `<div class="cron-row">
+            <span class="cron-name">${escHtml(c.name)}</span>
+            <span class="cron-spec">${escHtml(c.cron_spec)}</span>
+            <span class="cron-next">next: ${next}</span>
+          </div>`;
+        }).join('');
+        cronDiv.style.display = '';
+      } else {
+        cronDiv.style.display = 'none';
+      }
+    } catch (e) { /* silently ignore */ }
+  }
+
+  function fmtNextRun(iso) {
+    try {
+      const d = new Date(iso);
+      const now = new Date();
+      const diffMs = d - now;
+      const diffMin = Math.round(diffMs / 60000);
+      const diffHr = Math.round(diffMs / 3600000);
+      let rel;
+      if (diffMs < 0) rel = 'overdue';
+      else if (diffMin < 1) rel = 'in <1 min';
+      else if (diffMin < 60) rel = `in ${diffMin} min`;
+      else if (diffHr < 24) rel = `in ${diffHr}h`;
+      else rel = `in ${Math.round(diffHr/24)}d`;
+      return `${d.toLocaleString()} (${rel})`;
+    } catch { return iso; }
+  }
+
+  async function triggerRun(idx) {
+    if (document.getElementById('btn-run-all').disabled) return;
+    try {
+      const resp = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index: idx }),
+      });
+      if (resp.status === 409) { showRunning(true); return; }
+      if (!resp.ok) { console.error('trigger run failed:', await resp.text()); return; }
+      showRunning(true);
+      startRunPoll();
+    } catch (e) { console.error('triggerRun:', e); }
+  }
+
+  function showRunning(on) {
+    document.getElementById('run-status').style.display = on ? 'inline-flex' : 'none';
+    document.querySelectorAll('#run-body .btn').forEach(b => b.disabled = on);
+  }
+
+  function startRunPoll() {
+    if (runPollInterval) return;
+    runPollInterval = setInterval(async () => {
+      try {
+        const resp = await fetch('/api/running');
+        if (!resp.ok) return;
+        const { running } = await resp.json();
+        if (!running) {
+          clearInterval(runPollInterval);
+          runPollInterval = null;
+          showRunning(false);
+          loadStatus(); // refresh results
+        }
+      } catch (e) {}
+    }, 2000);
+  }
+
+  // dashboard
+  async function loadStatus() {
+    try {
+      const resp = await fetch('/api/status');
+      if (!resp.ok) return;
+      allEntries = (await resp.json()) || [];
+      renderStats(allEntries);
+      populateFilters(allEntries);
+      applyFilters();
+      document.getElementById('last-updated').textContent =
+        'Updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      console.error('loadStatus:', e);
+    }
+  }
+
+  function renderStats(entries) {
+    const total   = entries.length;
+    const success = entries.filter(e => e.status === 'success').length;
+    const failed  = entries.filter(e => e.status === 'failed').length;
+    const repos   = new Set(entries.map(e => e.repo_url)).size;
+    const sources = new Set(entries.map(e => e.hoster)).size;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat-card"><div class="label">Total Backups</div><div class="value">${total}</div></div>
+      <div class="stat-card"><div class="label">Successful</div><div class="value" style="color:var(--green)">${success}</div></div>
+      <div class="stat-card"><div class="label">Failed</div><div class="value" style="color:var(--red)">${failed}</div></div>
+      <div class="stat-card"><div class="label">Unique Repos</div><div class="value" style="color:var(--blue)">${repos}</div></div>
+      <div class="stat-card"><div class="label">Sources</div><div class="value" style="color:var(--purple)">${sources}</div></div>
+    `;
+  }
+
+  function populateFilters(entries) {
+    const dests   = [...new Set(entries.map(e => e.dest_type))].sort();
+    const hosters = [...new Set(entries.map(e => e.hoster))].sort();
+
+    const destSel = document.getElementById('filter-dest');
+    const curDest = destSel.value;
+    destSel.innerHTML = '<option value="">All destinations</option>' +
+      dests.map(d => `<option value="${d}">${d}</option>`).join('');
+    if (dests.includes(curDest)) destSel.value = curDest;
+
+    const hosterSel = document.getElementById('filter-hoster');
+    const curHoster = hosterSel.value;
+    hosterSel.innerHTML = '<option value="">All sources</option>' +
+      hosters.map(h => `<option value="${h}">${h}</option>`).join('');
+    if (hosters.includes(curHoster)) hosterSel.value = curHoster;
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('filter-search').value.toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    const dest   = document.getElementById('filter-dest').value;
+    const hoster = document.getElementById('filter-hoster').value;
+
+    const filtered = allEntries.filter(e => {
+      if (status && e.status !== status) return false;
+      if (dest   && e.dest_type !== dest) return false;
+      if (hoster && e.hoster !== hoster) return false;
+      if (search) {
+        const hay = (e.repo_name + e.owner + e.hoster + e.dest_addr).toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+
+    renderTable(filtered);
+  }
+
+  function renderTable(entries) {
+    const container = document.getElementById('table-container');
+    if (!entries.length) {
+      container.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">No entries match</div>
+          <div class="empty-sub">Try adjusting your filters.</div>
+        </div>`;
+      return;
+    }
+
+    const sorted = [...entries].sort((a, b) =>
+      new Date(b.timestamp) - new Date(a.timestamp));
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Repository</th>
+            <th>Owner</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(e => `
+            <tr>
+              <td>
+                ${e.repo_url
+                  ? `<a href="${escHtml(e.repo_url)}" target="_blank" rel="noopener noreferrer">${escHtml(e.repo_name)}</a>`
+                  : escHtml(e.repo_name)}
+              </td>
+              <td style="color:var(--muted)">${escHtml(e.owner)}</td>
+              <td><span class="tag">${escHtml(e.hoster)}</span></td>
+              <td style="color:var(--muted)">
+                <span class="tag">${escHtml(e.dest_type)}</span>
+                ${e.dest_addr ? `<span style="margin-left:4px">${escHtml(e.dest_addr)}</span>` : ''}
+              </td>
+              <td>
+                <span class="badge ${e.status}">
+                  <span class="badge-dot"></span>
+                  ${e.status}
+                </span>
+              </td>
+              <td style="color:var(--muted)">
+                ${e.duration_ms > 0 ? fmtDuration(e.duration_ms) : '—'}
+              </td>
+              <td style="color:var(--muted); white-space:nowrap">
+                ${new Date(e.timestamp).toLocaleString()}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  async function clearHistory() {
+    if (!confirm('Clear all backup history?')) return;
+    await fetch('/api/status', { method: 'DELETE' });
+    allEntries = [];
+    renderStats([]);
+    renderTable([]);
+    document.getElementById('last-updated').textContent = '';
+  }
+
+  // config
+  let activeConfigFile = 0;
+
+  async function loadConfigFileList() {
+    const tabsEl = document.getElementById('file-tabs');
+    try {
+      const resp = await fetch('/api/config?list=1');
+      if (!resp.ok) throw new Error(await resp.text());
+      const files = await resp.json();
+
+      if (files.length <= 1) {
+        tabsEl.style.display = 'none';
+      } else {
+        tabsEl.style.display = 'flex';
+        tabsEl.innerHTML = files.map(f =>
+          `<div class="file-tab${f.index === activeConfigFile ? ' active' : ''}"
+               onclick="selectConfigFile(${f.index})">${escHtml(f.name)}</div>`
+        ).join('');
+      }
+    } catch (e) {
+      tabsEl.style.display = 'none';
+    }
+    loadConfig();
+  }
+
+  function selectConfigFile(idx) {
+    activeConfigFile = idx;
+    document.querySelectorAll('.file-tab').forEach((t, i) =>
+      t.classList.toggle('active', i === idx));
+    document.getElementById('save-status').textContent = '';
+    document.getElementById('save-status').className = 'save-status';
+    loadConfig();
+  }
+
+  async function loadConfig() {
+    const el = document.getElementById('config-content');
+    const st = document.getElementById('save-status');
+    el.value = 'Loading…';
+    st.textContent = '';
+    st.className = 'save-status';
+    try {
+      const resp = await fetch(`/api/config?file=${activeConfigFile}`);
+      if (!resp.ok) throw new Error(await resp.text());
+      el.value = await resp.text();
+    } catch (e) {
+      el.value = '';
+      st.textContent = '✗ ' + e.message;
+      st.className = 'save-status err';
+    }
+  }
+
+  async function saveConfig() {
+    const content = document.getElementById('config-content').value;
+    const st = document.getElementById('save-status');
+    st.textContent = 'Saving…';
+    st.className = 'save-status';
+    try {
+      const resp = await fetch(`/api/config?file=${activeConfigFile}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: content,
+      });
+      if (resp.ok) {
+        st.textContent = '✓ Saved';
+        st.className = 'save-status ok';
+      } else {
+        const msg = await resp.text();
+        st.textContent = '✗ ' + msg;
+        st.className = 'save-status err';
+      }
+    } catch (e) {
+      st.textContent = '✗ ' + e.message;
+      st.className = 'save-status err';
+    }
+  }
+
+  // helpers
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmtDuration(ms) {
+    if (ms < 1000) return ms + 'ms';
+    if (ms < 60000) return (ms / 1000).toFixed(1) + 's';
+    return Math.floor(ms / 60000) + 'm ' + Math.round((ms % 60000) / 1000) + 's';
+  }
+
+  // init
+  loadStatus();
+  loadConfigs();
+  refreshInterval = setInterval(loadStatus, 30000);
+  setInterval(loadConfigs, 60000); // refresh cron next-run times
+
+  // Check if a run was already in progress when page loaded
+  fetch('/api/running').then(r => r.json()).then(({ running }) => {
+    if (running) { showRunning(true); startRunPoll(); }
+  }).catch(() => {});
+
+  // Re-render with no-match state on first load if entries is empty
+  document.getElementById('filter-search').dispatchEvent(new Event('input'));
+</script>
+</body>
+</html>
