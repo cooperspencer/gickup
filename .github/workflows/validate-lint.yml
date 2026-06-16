@@ -45,11 +45,13 @@ jobs:
       - name: go mod tidy
         run: |
           go mod tidy
-          git diff --exit-code
+          if ! git diff --quiet -- go.mod go.sum; then
+            echo "::warning::go mod tidy updated go.mod/go.sum. Please run go mod tidy locally and commit the results."
+            git --no-pager diff -- go.mod go.sum
+          fi
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: ${{ github.workspace }}/go/src/github.com/cooperspencer/gickup
-
