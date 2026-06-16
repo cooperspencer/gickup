@@ -18,14 +18,14 @@ require (
 	github.com/gookit/color v1.6.1
 	github.com/hasura/go-graphql-client v0.16.0
 	github.com/ktrysmt/go-bitbucket v0.10.0
-	github.com/melbahja/goph v1.5.1
-	github.com/minio/minio-go/v7 v7.2.0
+	github.com/melbahja/goph v1.5.0
+	github.com/minio/minio-go/v7 v7.0.100
 	github.com/prometheus/client_golang v1.23.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.35.1
 	github.com/shurcooL/githubv4 v0.0.0-20260209031235-2402fdf4a9ed
 	gitlab.com/gitlab-org/api/client-go v1.46.0
-	golang.org/x/crypto v0.52.0
+	golang.org/x/crypto v0.51.0
 	golang.org/x/oauth2 v0.36.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )

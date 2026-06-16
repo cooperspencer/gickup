@@ -249,6 +249,7 @@ type GenRepo struct {
 	Token             string     `yaml:"token"`
 	TokenFile         string     `yaml:"token_file"`
 	User              string     `yaml:"user"`
+	Email             string     `yaml:"email"`
 	Organization      string     `yaml:"organization"`
 	SSH               bool       `yaml:"ssh"`
 	SSHKey            string     `yaml:"sshkey"`
