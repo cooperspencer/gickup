@@ -249,6 +249,70 @@ func TestSiteGetValuesSSHURL(t *testing.T) {
 	}
 }
 
+func TestHasAppAuthReturnsTrueWhenAllFieldsSet(t *testing.T) {
+	t.Parallel()
+
+	repo := GenRepo{
+		AppID:             12345,
+		AppInstallationID: 67890,
+		AppPrivateKeyFile: "/path/to/key.pem",
+	}
+
+	if !repo.HasAppAuth() {
+		t.Fatal("expected HasAppAuth() = true when all fields are set")
+	}
+}
+
+func TestHasAppAuthReturnsFalseWhenAppIDMissing(t *testing.T) {
+	t.Parallel()
+
+	repo := GenRepo{
+		AppID:             0,
+		AppInstallationID: 67890,
+		AppPrivateKeyFile: "/path/to/key.pem",
+	}
+
+	if repo.HasAppAuth() {
+		t.Fatal("expected HasAppAuth() = false when AppID is zero")
+	}
+}
+
+func TestHasAppAuthReturnsFalseWhenInstallationIDMissing(t *testing.T) {
+	t.Parallel()
+
+	repo := GenRepo{
+		AppID:             12345,
+		AppInstallationID: 0,
+		AppPrivateKeyFile: "/path/to/key.pem",
+	}
+
+	if repo.HasAppAuth() {
+		t.Fatal("expected HasAppAuth() = false when AppInstallationID is zero")
+	}
+}
+
+func TestHasAppAuthReturnsFalseWhenPrivateKeyFileMissing(t *testing.T) {
+	t.Parallel()
+
+	repo := GenRepo{
+		AppID:             12345,
+		AppInstallationID: 67890,
+		AppPrivateKeyFile: "",
+	}
+
+	if repo.HasAppAuth() {
+		t.Fatal("expected HasAppAuth() = false when AppPrivateKeyFile is empty")
+	}
+}
+
+func TestHasAppAuthReturnsFalseForEmptyRepo(t *testing.T) {
+	t.Parallel()
+
+	if (GenRepo{}).HasAppAuth() {
+		t.Fatal("expected HasAppAuth() = false for zero-value GenRepo")
+	}
+}
+
 func TestSiteGetValuesScpStyle(t *testing.T) {
 	t.Parallel()
 

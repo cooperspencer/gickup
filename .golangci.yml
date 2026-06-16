@@ -64,6 +64,9 @@ linters:
         text: "G117:"
       - linters: [gosec]
         text: "G703:"
+      - linters: [gosec]
+        path: github/github_test.go
+        text: "G101:"
       # Global exclusions for staticcheck style suggestions
       - linters: [staticcheck]
         text: "SA1019:"

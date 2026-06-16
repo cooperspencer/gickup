@@ -34,6 +34,23 @@ var (
 	sub  zerolog.Logger
 )
 
+// tokenAuth returns the HTTP basic auth for a repo that authenticates via token.
+func tokenAuth(repo types.Repo) *http.BasicAuth {
+	if repo.Token == "" {
+		return nil
+	}
+	if repo.NoTokenUser {
+		return &http.BasicAuth{
+			Username: "x-access-token",
+			Password: repo.Token,
+		}
+	}
+	return &http.BasicAuth{
+		Username: repo.Origin.User,
+		Password: repo.Token,
+	}
+}
+
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	sub = logger.CreateSubLogger("stage", "locally", "path", l.Path)
@@ -97,16 +114,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 			return false
 		}
 	case repo.Token != "":
-		if repo.NoTokenUser {
-			auth = &http.BasicAuth{
-				Username: repo.Token,
-			}
-		} else {
-			auth = &http.BasicAuth{
-				Username: repo.Origin.User,
-				Password: repo.Token,
-			}
-		}
+		auth = tokenAuth(repo)
 	case repo.Origin.Username != "" && repo.Origin.Password != "":
 		auth = &http.BasicAuth{
 			Username: repo.Origin.Username,
@@ -519,16 +527,7 @@ func TempCloneBare(repo types.Repo, tempdir string) (*git.Repository, error) {
 func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repository, error) {
 	var auth transport.AuthMethod
 	if repo.Token != "" {
-		if repo.NoTokenUser {
-			auth = &http.BasicAuth{
-				Username: repo.Token,
-			}
-		} else {
-			auth = &http.BasicAuth{
-				Username: repo.Origin.User,
-				Password: repo.Token,
-			}
-		}
+		auth = tokenAuth(repo)
 	}
 	if repo.Origin.LFS {
 		g, err := gitcmd.New()

@@ -246,32 +246,35 @@ func (source Source) Count() int {
 
 // GenRepo Generell Repo.
 type GenRepo struct {
-	Token          string     `yaml:"token"`
-	TokenFile      string     `yaml:"token_file"`
-	User           string     `yaml:"user"`
-	Email          string     `yaml:"email"`
-	Organization   string     `yaml:"organization"`
-	SSH            bool       `yaml:"ssh"`
-	SSHKey         string     `yaml:"sshkey"`
-	Username       string     `yaml:"username"`
-	Password       string     `yaml:"password"`
-	URL            string     `yaml:"url"`
-	Exclude        []string   `yaml:"exclude"`
-	ExcludeOrgs    []string   `yaml:"excludeorgs"`
-	Include        []string   `yaml:"include"`
-	IncludeOrgs    []string   `yaml:"includeorgs"`
-	Issues         bool       `yaml:"issues"`
-	Wiki           bool       `yaml:"wiki"`
-	Starred        bool       `yaml:"starred"`
-	CreateOrg      bool       `yaml:"createorg"`
-	Visibility     Visibility `yaml:"visibility"`
-	Filter         Filter     `yaml:"filter"`
-	Force          bool       `yaml:"force"`
-	Contributed    bool       `yaml:"contributed"`
-	MirrorInterval string     `yaml:"mirrorinterval"`
-	LFS            bool       `yaml:"lfs"`
-	Mirror         Mirror     `yaml:"mirror"`
-	Gists          bool       `yaml:"gists"`
+	Token             string     `yaml:"token"`
+	TokenFile         string     `yaml:"token_file"`
+	User              string     `yaml:"user"`
+	Email             string     `yaml:"email"`
+	Organization      string     `yaml:"organization"`
+	SSH               bool       `yaml:"ssh"`
+	SSHKey            string     `yaml:"sshkey"`
+	Username          string     `yaml:"username"`
+	Password          string     `yaml:"password"`
+	URL               string     `yaml:"url"`
+	Exclude           []string   `yaml:"exclude"`
+	ExcludeOrgs       []string   `yaml:"excludeorgs"`
+	Include           []string   `yaml:"include"`
+	IncludeOrgs       []string   `yaml:"includeorgs"`
+	Issues            bool       `yaml:"issues"`
+	Wiki              bool       `yaml:"wiki"`
+	Starred           bool       `yaml:"starred"`
+	CreateOrg         bool       `yaml:"createorg"`
+	Visibility        Visibility `yaml:"visibility"`
+	Filter            Filter     `yaml:"filter"`
+	Force             bool       `yaml:"force"`
+	Contributed       bool       `yaml:"contributed"`
+	MirrorInterval    string     `yaml:"mirrorinterval"`
+	LFS               bool       `yaml:"lfs"`
+	Mirror            Mirror     `yaml:"mirror"`
+	Gists             bool       `yaml:"gists"`
+	AppID             int64      `yaml:"app_id"`
+	AppInstallationID int64      `yaml:"app_installation_id"`
+	AppPrivateKeyFile string     `yaml:"app_private_key_file"`
 }
 
 // Mirror struct
@@ -307,6 +310,11 @@ func (grepo GenRepo) GetToken() string {
 	}
 
 	return token
+}
+
+// HasAppAuth returns true when all GitHub App authentication fields are set.
+func (grepo GenRepo) HasAppAuth() bool {
+	return grepo.AppID > 0 && grepo.AppInstallationID > 0 && grepo.AppPrivateKeyFile != ""
 }
 
 func (f *Filter) ParseDuration() error {
