@@ -92,9 +92,7 @@ func readConfigFile(configfile string) []*types.Conf {
 			continue
 		}
 
-		for i, local := range c.Destination.Local {
-			c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
-		}
+		expandConfigPaths(&c)
 
 		if !reflect.ValueOf(c).IsZero() {
 			if len(conf) > 0 {
@@ -108,6 +106,38 @@ func readConfigFile(configfile string) []*types.Conf {
 	}
 
 	return conf
+}
+
+func expandConfigPaths(c *types.Conf) {
+	c.Log.FileLogging.Dir = substituteHomeForTildeInPath(c.Log.FileLogging.Dir)
+
+	expandGenRepoPaths(c.Source.Gogs)
+	expandGenRepoPaths(c.Source.Gitlab)
+	expandGenRepoPaths(c.Source.Github)
+	expandGenRepoPaths(c.Source.Gitea)
+	expandGenRepoPaths(c.Source.BitBucket)
+	expandGenRepoPaths(c.Source.OneDev)
+	expandGenRepoPaths(c.Source.Sourcehut)
+	expandGenRepoPaths(c.Source.Any)
+
+	expandGenRepoPaths(c.Destination.Gitlab)
+	expandGenRepoPaths(c.Destination.Github)
+	expandGenRepoPaths(c.Destination.Gitea)
+	expandGenRepoPaths(c.Destination.Gogs)
+	expandGenRepoPaths(c.Destination.OneDev)
+	expandGenRepoPaths(c.Destination.Sourcehut)
+
+	for i, local := range c.Destination.Local {
+		c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
+	}
+}
+
+func expandGenRepoPaths(repos []types.GenRepo) {
+	for i := range repos {
+		repos[i].TokenFile = substituteHomeForTildeInPath(repos[i].TokenFile)
+		repos[i].SSHKey = substituteHomeForTildeInPath(repos[i].SSHKey)
+		repos[i].AppPrivateKeyFile = substituteHomeForTildeInPath(repos[i].AppPrivateKeyFile)
+	}
 }
 
 func getUserHome() (string, error) {
