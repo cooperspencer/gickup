@@ -70,6 +70,9 @@
                             "gists": {
                                 "$ref": "#/definitions/source/properties/gists"
                             },
+                            "contributed": {
+                                "$ref": "#/definitions/source/properties/contributed"
+                            },
                             "app_id": {
                                 "$ref": "#/definitions/source/properties/app_id"
                             },
@@ -403,6 +406,12 @@
                             "user": {
                                 "$ref": "#/definitions/source/properties/user"
                             },
+                            "organization": {
+                                "$ref": "#/definitions/source/properties/organization"
+                            },
+                            "email": {
+                                "$ref": "#/definitions/source/properties/email"
+                            },
                             "username": {
                                 "$ref": "#/definitions/source/properties/username"
                             },
@@ -560,6 +569,10 @@
                                 "type": "string",
                                 "description": "The token to authenticate against the S3 server"
                             },
+                            "region": {
+                                "type": "string",
+                                "description": "The S3 region to use"
+                            },
                             "zip": {
                                 "type": "boolean",
                                 "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
@@ -633,6 +646,9 @@
                             "url": {
                                 "$ref": "#/definitions/destination/properties/url"
                             },
+                            "user": {
+                                "$ref": "#/definitions/destination/properties/user"
+                            },
                             "force": {
                                 "$ref": "#/definitions/destination/properties/force"
                             },
@@ -641,6 +657,15 @@
                                 "properties": {
                                     "enabled": {
                                         "$ref": "#/definitions/mirror/properties/enabled"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "visibility": {
+                                "type": "object",
+                                "properties": {
+                                    "repositories": {
+                                        "$ref": "#/definitions/visibility/properties/repositories"
                                     }
                                 },
                                 "additionalProperties": false
@@ -789,6 +814,51 @@
                         },
                         "additionalProperties": false
                     }
+                },
+                "azureblob": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "type": "string",
+                                "description": "The Azure Blob Storage endpoint URL, optionally including a SAS token"
+                            },
+                            "container": {
+                                "type": "string",
+                                "description": "The Azure Blob Storage container to store the backups in"
+                            },
+                            "useclicredential": {
+                                "type": "boolean",
+                                "description": "If true, use Azure CLI credentials to authenticate"
+                            },
+                            "tenantid": {
+                                "type": "string",
+                                "description": "The Azure tenant ID for client secret authentication"
+                            },
+                            "clientid": {
+                                "type": "string",
+                                "description": "The Azure app registration client ID"
+                            },
+                            "clientsecret": {
+                                "type": "string",
+                                "description": "The Azure app registration client secret"
+                            },
+                            "structured": {
+                                "type": "boolean",
+                                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
+                            },
+                            "zip": {
+                                "type": "boolean",
+                                "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
+                            },
+                            "datecreatedir": {
+                                "type": "boolean",
+                                "description": "If true, gickup will create a directory for backup with the creation date"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
                 }
             }
         }
@@ -822,6 +892,11 @@
                     "$id": "#/definitions/source/properties/organization",
                     "type": "string",
                     "description": "The organization to clone the repositories from"
+                },
+                "email": {
+                    "$id": "#/definitions/source/properties/email",
+                    "type": "string",
+                    "description": "The email address to authenticate against the source"
                 },
                 "username": {
                     "$id": "#/definitions/source/properties/username",
@@ -898,6 +973,11 @@
                     "$id": "#/definitions/source/properties/gists",
                     "type": "boolean",
                     "description": "Include the gists in the backup"
+                },
+                "contributed": {
+                    "$id": "#/definitions/source/properties/contributed",
+                    "type": "boolean",
+                    "description": "Include repositories the user contributed to"
                 },
                 "app_id": {
                     "$id": "#/definitions/source/properties/app_id",
