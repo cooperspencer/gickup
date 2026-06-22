@@ -84,6 +84,63 @@ destination:
 	}
 }
 
+func TestReadConfigFile_ExpandsHomeInFileBackedConfigKeys(t *testing.T) {
+	t.Parallel()
+
+	config := `source:
+  github:
+    - token_file: "~/github-token"
+      sshkey: "~/github-ssh"
+      app_private_key_file: "~/github-app.pem"
+destination:
+  gitea:
+    - token_file: "~/gitea-token"
+      sshkey: "~/gitea-ssh"
+      app_private_key_file: "~/gitea-app.pem"
+log:
+  file-logging:
+    dir: "~/gickup-logs"
+    file: "gickup.log"
+`
+	f, err := os.CreateTemp(t.TempDir(), "gickup-test-*.yml")
+	if err != nil {
+		t.Fatalf("create temp file: %v", err)
+	}
+	configPath := f.Name()
+	if _, err := f.WriteString(config); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	f.Close()
+
+	confs := readConfigFile(configPath)
+	if len(confs) != 1 {
+		t.Fatalf("expected 1 config, got %d", len(confs))
+	}
+
+	source := confs[0].Source.Github[0]
+	for name, path := range map[string]string{
+		"source token_file":           source.TokenFile,
+		"source sshkey":               source.SSHKey,
+		"source app_private_key_file": source.AppPrivateKeyFile,
+	} {
+		if strings.HasPrefix(path, "~") {
+			t.Fatalf("%s was not expanded: %q", name, path)
+		}
+	}
+
+	destination := confs[0].Destination.Gitea[0]
+	for name, path := range map[string]string{
+		"destination token_file":           destination.TokenFile,
+		"destination sshkey":               destination.SSHKey,
+		"destination app_private_key_file": destination.AppPrivateKeyFile,
+		"log file-logging dir":             confs[0].Log.FileLogging.Dir,
+	} {
+		if strings.HasPrefix(path, "~") {
+			t.Fatalf("%s was not expanded: %q", name, path)
+		}
+	}
+}
+
 func TestReadConfigFile_S3UseStaticCredsTrue(t *testing.T) {
 	t.Parallel()
 
