@@ -7,6 +7,7 @@ source:
       # token_file: token.txt
       user: some-user # the user you want to clone the repositories from.
       # if you want to get everything from your user, leave out the user parameter and just use the token.
+      # url: https://example.ghe.com # optional: GitHub Enterprise Server base URL; defaults to https://github.com
       # for the clone process, either use:
       # - username + password
       # - sshkey
