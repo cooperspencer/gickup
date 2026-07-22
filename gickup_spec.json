@@ -859,6 +859,37 @@
                         },
                         "additionalProperties": false
                     }
+                },
+                "radicle": {
+                    "type": "array",
+                    "description": "Mirror repositories into the storage of a local Radicle node. Requires the `git`, `rad` and `git-remote-rad` binaries.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "force": {
+                                "type": "boolean",
+                                "description": "overwrite refs on the mirror that have diverged from upstream (non-fast-forward updates)"
+                            },
+                            "prune": {
+                                "type": "boolean",
+                                "description": "delete refs on the mirror that no longer exist upstream"
+                            },
+                            "visibility": {
+                                "type": "string",
+                                "enum": [
+                                    "public",
+                                    "private",
+                                    "source"
+                                ],
+                                "description": "visibility of the mirrored repository, `source` follows the source repository. default: source"
+                            },
+                            "issues": {
+                                "type": "boolean",
+                                "description": "[COMING SOON] recreate the source repository's issues."
+                            }
+                        }
+                    }
                 }
             }
         }

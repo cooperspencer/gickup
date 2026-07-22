@@ -28,6 +28,7 @@ import (
 	"github.com/cooperspencer/gickup/metrics/ntfy"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/onedev"
+	"github.com/cooperspencer/gickup/radicle"
 	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/cooperspencer/gickup/types"
@@ -130,6 +131,7 @@ func expandConfigPaths(c *types.Conf) {
 	for i, local := range c.Destination.Local {
 		c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
 	}
+
 }
 
 func expandGenRepoPaths(repos []types.GenRepo) {
@@ -909,6 +911,69 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					prometheus.DestinationBackupsComplete.WithLabelValues("sourcehut").Inc()
 					os.RemoveAll(tempdir)
 				}
+			}
+		}
+
+		for _, d := range conf.Destination.Radicle {
+			repotime := time.Now()
+			status := 0
+
+			radhome, _ := radicle.Home()
+
+			log.Info().
+				Str("stage", "radicle").
+				Str("home", radhome).
+				Msgf("mirroring %s to %s", types.Blue(r.Name), radhome)
+
+			if !cli.Dry {
+				func() {
+					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("radicle-%x", repotime))
+					if err != nil {
+						log.Error().
+							Str("stage", "tempclone").
+							Str("url", r.URL).
+							Msg(err.Error())
+						return
+					}
+
+					defer os.RemoveAll(tempdir)
+					_, err = local.TempClone(r, tempdir)
+					if err != nil {
+						if errors.Is(err, git.NoErrAlreadyUpToDate) {
+							log.Info().
+								Str("stage", "radicle").
+								Str("url", r.URL).
+								Msg(err.Error())
+						} else {
+							log.Error().
+								Str("stage", "tempclone").
+								Str("url", r.URL).
+								Str("git", "clone").
+								Msg(err.Error())
+							return
+						}
+					}
+
+					rid, err := radicle.Mirror(r, d, tempdir)
+					if err != nil {
+						log.Error().
+							Str("stage", "radicle").
+							Str("url", r.URL).
+							Msg(err.Error())
+						return
+					}
+
+					log.Info().
+						Str("stage", "radicle").
+						Str("rid", fmt.Sprintf("rad:%s", rid)).
+						Msgf("mirrored %s", types.Green(r.Name))
+
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "radicle", radhome).Set(time.Since(repotime).Seconds())
+					status = 1
+				}()
+
+				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "radicle", radhome).Set(float64(status))
+				prometheus.DestinationBackupsComplete.WithLabelValues("radicle").Inc()
 			}
 		}
 
