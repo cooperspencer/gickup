@@ -48,17 +48,56 @@ type V4Repo struct {
 
 var sub zerolog.Logger
 
+// githubInstanceURL returns the canonical base URL for a GitHub instance.
+// Defaults to "https://github.com" if rawURL is empty.
+func githubInstanceURL(rawURL string) string {
+	if rawURL == "" {
+		return "https://github.com"
+	}
+	return strings.TrimRight(rawURL, "/")
+}
+
+// isGHE returns true when the URL refers to a GitHub Enterprise Server instance.
+func isGHE(instanceURL string) bool {
+	u := strings.TrimPrefix(instanceURL, "https://")
+	u = strings.TrimPrefix(u, "http://")
+	return !strings.HasPrefix(u, "github.com")
+}
+
+// hosterFromURL extracts the hostname portion from a GitHub instance URL.
+func hosterFromURL(instanceURL string) string {
+	u := strings.TrimPrefix(instanceURL, "https://")
+	u = strings.TrimPrefix(u, "http://")
+	if idx := strings.Index(u, "/"); idx != -1 {
+		return u[:idx]
+	}
+	return u
+}
+
 // newGithubClient creates an authenticated GitHub client.
 // When App authentication fields are configured it uses a GitHub App installation token;
 // otherwise it falls back to a personal access token or an unauthenticated client.
 // It returns the client, the access token string (for git operations), and any error.
 func newGithubClient(ctx context.Context, repo types.GenRepo) (*github.Client, string, error) {
+	instURL := githubInstanceURL(repo.URL)
+
 	if repo.HasAppAuth() {
 		itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, repo.AppID, repo.AppInstallationID, repo.AppPrivateKeyFile)
 		if err != nil {
 			return nil, "", fmt.Errorf("github app auth: %w", err)
 		}
-		client := github.NewClient(&http.Client{Transport: itr})
+		var client *github.Client
+		if isGHE(instURL) {
+			apiBase := instURL + "/api/v3/"
+			uploadURL := instURL + "/uploads/"
+			itr.BaseURL = apiBase
+			client, err = github.NewEnterpriseClient(apiBase, uploadURL, &http.Client{Transport: itr})
+			if err != nil {
+				return nil, "", fmt.Errorf("github enterprise client: %w", err)
+			}
+		} else {
+			client = github.NewClient(&http.Client{Transport: itr})
+		}
 		token, err := itr.Token(ctx)
 		if err != nil {
 			return nil, "", fmt.Errorf("github app token: %w", err)
@@ -67,22 +106,44 @@ func newGithubClient(ctx context.Context, repo types.GenRepo) (*github.Client, s
 	}
 
 	token := repo.GetToken()
+
+	var tc *http.Client
+	if token != "" {
+		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+		tc = oauth2.NewClient(ctx, ts)
+	}
+
+	if isGHE(instURL) {
+		apiBase := instURL + "/api/v3/"
+		uploadURL := instURL + "/uploads/"
+		client, err := github.NewEnterpriseClient(apiBase, uploadURL, tc)
+		if err != nil {
+			return nil, "", fmt.Errorf("github enterprise client: %w", err)
+		}
+		return client, token, nil
+	}
+
 	if token == "" {
 		return github.NewClient(nil), "", nil
 	}
 
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	tc := oauth2.NewClient(ctx, ts)
 	return github.NewClient(tc), token, nil
 }
 
-func getv4(token, user string) []V4Repo {
+func getv4(token, user, instanceURL string) []V4Repo {
 	repos := []V4Repo{}
 	tokenSource := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
 	oauth2Client := oauth2.NewClient(context.Background(), tokenSource)
-	client := githubv4.NewClient(oauth2Client)
+
+	var client *githubv4.Client
+	if isGHE(instanceURL) {
+		graphqlURL := instanceURL + "/api/graphql"
+		client = githubv4.NewEnterpriseClient(graphqlURL, oauth2Client)
+	} else {
+		client = githubv4.NewClient(oauth2Client)
+	}
 
 	var query Query
 	variables := map[string]interface{}{
@@ -110,7 +171,7 @@ func getv4(token, user string) []V4Repo {
 	return repos
 }
 
-func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
+func addWiki(r github.Repository, repo types.GenRepo, token, hoster string) types.Repo {
 	if !(r.GetHasWiki() && repo.Wiki &&
 		types.StatRemote(r.GetCloneURL(), r.GetSSHURL(), repo)) {
 		return types.Repo{}
@@ -123,7 +184,7 @@ func addWiki(r github.Repository, repo types.GenRepo, token string) types.Repo {
 		Token:       token,
 		Origin:      repo,
 		Owner:       r.GetOwner().GetLogin(),
-		Hoster:      "github.com",
+		Hoster:      hoster,
 		Description: r.GetDescription(),
 		Private:     r.GetPrivate(),
 	}
@@ -134,7 +195,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 	for _, repo := range conf.Source.Github {
-		sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
+		instURL := githubInstanceURL(repo.URL)
+		hoster := hosterFromURL(instURL)
+		sub = logger.CreateSubLogger("stage", "github", "url", instURL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			sub.Warn().
@@ -183,7 +246,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			if repo.HasAppAuth() {
 				sub.Warn().Msg("contributed repos are not supported with GitHub App authentication, skipping")
 			} else {
-				for _, r := range getv4(token, v4user) {
+				for _, r := range getv4(token, v4user, instURL) {
 					githubRepo, _, err := client.Repositories.Get(context.Background(), r.User, r.Repository)
 					if err != nil {
 						sub.Error().
@@ -321,13 +384,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					Token:       token,
 					Origin:      repo,
 					Owner:       r.GetOwner().GetLogin(),
-					Hoster:      "github.com",
+					Hoster:      hoster,
 					Description: r.GetDescription(),
 					Private:     r.GetPrivate(),
 					Issues:      GetIssues(r, client, repo),
 					NoTokenUser: true,
 				})
-				wiki := addWiki(*r, repo, token)
+				wiki := addWiki(*r, repo, token, hoster)
 				if wiki.Name != "" {
 					repos = append(repos, wiki)
 				}
@@ -345,13 +408,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 							Token:       token,
 							Origin:      repo,
 							Owner:       r.GetOwner().GetLogin(),
-							Hoster:      "github.com",
+							Hoster:      hoster,
 							Description: r.GetDescription(),
 							Private:     r.GetPrivate(),
 							Issues:      GetIssues(r, client, repo),
 							NoTokenUser: true,
 						})
-						wiki := addWiki(*r, repo, token)
+						wiki := addWiki(*r, repo, token, hoster)
 						if wiki.Name != "" {
 							repos = append(repos, wiki)
 						}
@@ -364,13 +427,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 						Token:       token,
 						Origin:      repo,
 						Owner:       r.GetOwner().GetLogin(),
-						Hoster:      "github.com",
+						Hoster:      hoster,
 						Description: r.GetDescription(),
 						Private:     r.GetPrivate(),
 						Issues:      GetIssues(r, client, repo),
 						NoTokenUser: true,
 					})
-					wiki := addWiki(*r, repo, token)
+					wiki := addWiki(*r, repo, token, hoster)
 					if wiki.Name != "" {
 						repos = append(repos, wiki)
 					}
@@ -394,14 +457,18 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 				for _, gist := range gists {
 					sub.Debug().Msg(gist.GetHTMLURL())
+					gistSSHURL := fmt.Sprintf("git@gist.github.com:%s.git", gist.GetID())
+					if isGHE(instURL) {
+						gistSSHURL = fmt.Sprintf("git@%s:gist/%s.git", hoster, gist.GetID())
+					}
 					repos = append(repos, types.Repo{
 						Name:        fmt.Sprintf("gists%c%s", os.PathSeparator, gist.GetID()),
 						URL:         gist.GetHTMLURL(),
-						SSHURL:      fmt.Sprintf("git@gist.github.com:%s.git", gist.GetID()),
+						SSHURL:      gistSSHURL,
 						Token:       token,
 						Origin:      repo,
 						Owner:       gist.GetOwner().GetLogin(),
-						Hoster:      "github.com",
+						Hoster:      hoster,
 						Description: gist.GetDescription(),
 						Private:     !gist.GetPublic(),
 						NoTokenUser: true,
@@ -418,7 +485,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 // GetOrCreate Get or create a repository
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
-	sub = logger.CreateSubLogger("stage", "github", "url", "https://github.com")
+	sub = logger.CreateSubLogger("stage", "github", "url", githubInstanceURL(destination.URL))
 	client, _, err := newGithubClient(context.TODO(), destination)
 	if err != nil {
 		return "", err
