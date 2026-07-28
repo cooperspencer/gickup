@@ -4,6 +4,7 @@ package radicle
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -128,7 +129,7 @@ func Home() (string, error) {
 // run executes name with args in dir, returning trimmed stdout. Stderr is
 // folded into the returned error.
 func run(dir string, env []string, name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
+	cmd := exec.CommandContext(context.Background(), name, args...)
 	cmd.Dir = dir
 	cmd.Env = env
 
@@ -161,7 +162,7 @@ func nodeID(env []string) (string, error) {
 	}
 
 	if nid == "" {
-		return "", fmt.Errorf("couldn't determine the node id of the radicle profile.")
+		return "", fmt.Errorf("couldn't determine the node id of the radicle profile")
 	}
 
 	return nid, nil

@@ -67,6 +67,9 @@ linters:
       - linters: [gosec]
         path: github/github_test.go
         text: "G101:"
+      - linters: [gosec]
+        path: radicle/radicle_test.go
+        text: "G101:"
       # Global exclusions for staticcheck style suggestions
       - linters: [staticcheck]
         text: "SA1019:"

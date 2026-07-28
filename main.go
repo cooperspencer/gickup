@@ -131,7 +131,6 @@ func expandConfigPaths(c *types.Conf) {
 	for i, local := range c.Destination.Local {
 		c.Destination.Local[i].Path = substituteHomeForTildeInPath(local.Path)
 	}
-
 }
 
 func expandGenRepoPaths(repos []types.GenRepo) {
