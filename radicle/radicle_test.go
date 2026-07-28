@@ -226,12 +226,12 @@ func TestMarkerStripsCredentials(t *testing.T) {
 		t.Errorf("marker leaks credentials: %s", m)
 	}
 
-	if m != "(gickup mirror of https://github.com/alice/repo.git)" {
+	if m != "(mirror of https://github.com/alice/repo.git)" {
 		t.Errorf("unexpected marker: %s", m)
 	}
 
 	// non-URL remotes pass through untouched
-	if marker("git@github.com:alice/repo.git") != "(gickup mirror of git@github.com:alice/repo.git)" {
+	if marker("git@github.com:alice/repo.git") != "(mirror of git@github.com:alice/repo.git)" {
 		t.Error("scp-style remote was altered")
 	}
 }
