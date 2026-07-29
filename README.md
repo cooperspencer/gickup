@@ -52,6 +52,7 @@ You can clone/mirror repositories to:
 - Gogs
 - OneDev
 - Sourcehut
+- Radicle
 - Local
 - S3
 

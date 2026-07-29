@@ -294,6 +294,14 @@ destination:
       bare: true # clone the repositories as bare
       mirror: true # create mirror clones
       lfs: true # clone lfs repos, !! ATTENTION !! git and git-lfs must be installed on the system!
+  radicle:
+    # rad reads the environment itself: RAD_HOME selects which radicle profile to
+    # mirror into (defaults to ~/.radicle), and RAD_PASSPHRASE unlocks its key if
+    # it has a passphrase. Export them before running gickup.
+    - force: true # if set to true, refs that diverged from upstream are overwritten (non-fast-forward updates)
+      prune: true # if set to true, refs that no longer exist upstream are deleted from the mirror
+      visibility: source # public, private or source, source follows the visibility of the source repository. default: source
+      issues: false # [COMING SOON] recreate the source repo's issues as radicle issues (the source must also have issues: true).
   s3:
    - endpoint: somewhere:9000 # whatever your s3 endpoint is
      structured: true # checks repos out like hostersite/user|organization/repo

@@ -31,6 +31,7 @@ type Destination struct {
 	Sourcehut []GenRepo   `yaml:"sourcehut"`
 	S3        []S3Repo    `yaml:"s3"`
 	AzureBlob []AzureBlob `yaml:"azureblob"`
+	Radicle   []Radicle   `yaml:"radicle"`
 }
 
 // Count TODO.
@@ -43,7 +44,20 @@ func (dest Destination) Count() int {
 		len(dest.OneDev) +
 		len(dest.Sourcehut) +
 		len(dest.S3) +
-		len(dest.AzureBlob)
+		len(dest.AzureBlob) +
+		len(dest.Radicle)
+}
+
+// Radicle : The configuration for mirroring to Radicle.
+// Repositories are initialized with `rad init` and pushed into the local
+// Radicle storage through the git-remote-rad helper, signed with the key of
+// the profile in RAD_HOME. When that key has a passphrase, export it in the
+// RAD_PASSPHRASE environment variable, which rad reads itself.
+type Radicle struct {
+	Force      bool   `yaml:"force"`      // overwrite diverged refs on the mirror (non-fast-forward updates)
+	Prune      bool   `yaml:"prune"`      // delete refs on the mirror that no longer exist upstream
+	Visibility string `yaml:"visibility"` // public, private or source, default: source
+	Issues     bool   `yaml:"issues"`     // [NOT YET SUPPORTED] recreate upstream issues as radicle issues (source must also fetch them with issues: true)
 }
 
 // Local TODO.
