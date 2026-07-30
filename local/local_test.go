@@ -95,6 +95,17 @@ func TestPruneKeepsMultipleGenerations(t *testing.T) {
 	}
 }
 
+func TestPruneKeepsEverythingBelowKeepCount(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t, []string{"1785115111", "1785115111.issues"}, 2)
+
+	want := []string{"1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
 func TestRandomStringLengthAndCharset(t *testing.T) {
 	t.Parallel()
 
