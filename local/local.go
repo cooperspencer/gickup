@@ -268,7 +268,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if l.Keep > 0 {
-			parentdir := path.Dir(filepath.Join(l.Path, repo.Name))
+			parentdir := filepath.Dir(filepath.Join(l.Path, repo.Name))
 			files, err := os.ReadDir(parentdir)
 			if err != nil {
 				sub.Warn().
