@@ -37,6 +37,8 @@ func runPrune(t *testing.T, backups []string, keep int) []string {
 }
 
 func TestPruneKeepsNewestBackup(t *testing.T) {
+	t.Parallel()
+
 	remaining := runPrune(t, []string{"1785061240", "1785115104"}, 1)
 
 	want := []string{"1785115104"}
@@ -46,6 +48,8 @@ func TestPruneKeepsNewestBackup(t *testing.T) {
 }
 
 func TestPruneKeepsIssuesDirWithItsBackup(t *testing.T) {
+	t.Parallel()
+
 	remaining := runPrune(t,
 		[]string{"1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}, 1)
 
@@ -55,7 +59,9 @@ func TestPruneKeepsIssuesDirWithItsBackup(t *testing.T) {
 	}
 }
 
-func TestPruneKeepsOtherDirectorys(t *testing.T) {
+func TestPruneKeepsOtherDirectories(t *testing.T) {
+	t.Parallel()
+
 	remaining := runPrune(t,
 		[]string{"1785061241", "1785061241.issues", "dummy", "dummy.issue", "1785061241x.dummy", "1785115111", "1785115111.issues"}, 1)
 
@@ -65,11 +71,25 @@ func TestPruneKeepsOtherDirectorys(t *testing.T) {
 	}
 }
 
-func TestPruneDeletesOtherTimestampedDirectorys(t *testing.T) {
+func TestPruneDeletesOtherTimestampedDirectories(t *testing.T) {
+	t.Parallel()
+
 	remaining := runPrune(t,
 		[]string{"1785061241", "1785061241.issues", "1785061241.dummy", "1785115111", "1785115111.issues"}, 1)
 
 	want := []string{"1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneKeepsMultipleGenerations(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t,
+		[]string{"1785000000", "1785000000.issues", "1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}, 2)
+
+	want := []string{"1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}
 	if !reflect.DeepEqual(remaining, want) {
 		t.Fatalf("remaining = %v, want %v", remaining, want)
 	}
