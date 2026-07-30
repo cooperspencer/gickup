@@ -289,36 +289,38 @@ func pruneOldBackups(parentdir string, repoName string, l types.Local) error {
 		return err
 	}
 
-	keep := []string{}
+	// A backup generation is the "<timestamp>" directory plus "<timestamp>.<something>"
+	// (like "<timestamp>.issues")
+	// They are grouped by their timestamp so that together they only count as one backup against l.Keep.
+	generations := map[int64][]string{}
 	for _, file := range files {
-		fname := file.Name()
-		if l.Zip {
-			fname = strings.TrimSuffix(file.Name(), ".zip")
-		}
+		stamp, _, _ := strings.Cut(file.Name(), ".")
 
-		fname = strings.TrimSuffix(fname, ".issues")
-
-		_, err := strconv.ParseInt(fname, 10, 64)
+		ts, err := strconv.ParseInt(stamp, 10, 64)
 		if err != nil {
 			sub.Warn().
 				Str("repo", repoName).
 				Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
 			continue
 		}
-		if l.Zip && !strings.HasSuffix(file.Name(), ".zip") {
-			continue
-		}
-		keep = append(keep, file.Name())
+		generations[ts] = append(generations[ts], file.Name())
 	}
 
-	sort.Sort(sort.Reverse(sort.StringSlice(keep)))
+	if len(generations) <= l.Keep {
+		return nil
+	}
 
-	if len(keep) > l.Keep {
-		toremove := keep[l.Keep:]
-		for _, file := range toremove {
+	stamps := make([]int64, 0, len(generations))
+	for ts := range generations {
+		stamps = append(stamps, ts)
+	}
+	sort.Slice(stamps, func(i, j int) bool { return stamps[i] > stamps[j] })
+
+	for _, ts := range stamps[l.Keep:] {
+		for _, file := range generations[ts] {
 			sub.Info().
-				Msgf("removing %s", types.Red(path.Join(parentdir, file)))
-			err := os.RemoveAll(path.Join(parentdir, file))
+				Msgf("removing %s", types.Red(filepath.Join(parentdir, file)))
+			err := os.RemoveAll(filepath.Join(parentdir, file))
 			if err != nil {
 				sub.Warn().
 					Str("repo", repoName).Msg(err.Error())
