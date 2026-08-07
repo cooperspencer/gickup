@@ -1,7 +1,13 @@
 package webdav
 
 import (
+	"bytes"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -46,5 +52,51 @@ func TestParseMultistatus(t *testing.T) {
 	}
 	if !res[1].isCollection() {
 		t.Error("r/ must be a collection")
+	}
+}
+
+// TestRequestRetriesOnTransientFailures asserts that doWithRetry retries 5xx
+// responses, rewinds the PUT body on each attempt, and surfaces the final
+// success status. It is the one runnable check for the retry loop added in
+// this package; backoff sleeps (~1.5s) are accepted to keep production code
+// free of test-only knobs.
+func TestRequestRetriesOnTransientFailures(t *testing.T) {
+	payload := bytes.Repeat([]byte("x"), 1024)
+	var (
+		hits    atomic.Int32
+		lengths []int
+		mu      sync.Mutex
+	)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		mu.Lock()
+		lengths = append(lengths, len(b))
+		mu.Unlock()
+		if hits.Add(1) <= 2 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+	}))
+	defer srv.Close()
+
+	client := newClient()
+	resp, err := request(client, http.MethodPut, srv.URL, "u", "p", int64(len(payload)), bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	defer drainAndClose(resp)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 after retries", resp.StatusCode)
+	}
+	if got := hits.Load(); got != 3 {
+		t.Fatalf("server hits = %d, want 3", got)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	for i, n := range lengths {
+		if n != len(payload) {
+			t.Fatalf("attempt %d body length = %d, want %d (body rewind broken)", i+1, n, len(payload))
+		}
 	}
 }
