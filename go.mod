@@ -24,6 +24,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.35.1
 	github.com/shurcooL/githubv4 v0.0.0-20260209031235-2402fdf4a9ed
+	github.com/studio-b12/gowebdav v0.13.0
 	gitlab.com/gitlab-org/api/client-go v1.46.0
 	golang.org/x/crypto v0.52.0
 	golang.org/x/oauth2 v0.36.0
