@@ -1,11 +1,110 @@
 package local
 
 import (
+	"os"
+	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/cooperspencer/gickup/types"
 )
+
+func runPrune(t *testing.T, backups []string, keep int) []string {
+	t.Helper()
+
+	parentdir := t.TempDir()
+	for _, d := range backups {
+		if err := os.Mkdir(filepath.Join(parentdir, d), 0o777); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := pruneOldBackups(parentdir, "test/repo", types.Local{Keep: keep}); err != nil {
+		t.Fatal(err)
+	}
+
+	files, err := os.ReadDir(parentdir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	remaining := []string{}
+	for _, f := range files {
+		remaining = append(remaining, f.Name())
+	}
+
+	return remaining
+}
+
+func TestPruneKeepsNewestBackup(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t, []string{"1785061240", "1785115104"}, 1)
+
+	want := []string{"1785115104"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneKeepsIssuesDirWithItsBackup(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t,
+		[]string{"1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}, 1)
+
+	want := []string{"1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneKeepsOtherDirectories(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t,
+		[]string{"1785061241", "1785061241.issues", "dummy", "dummy.issue", "1785061241x.dummy", "1785115111", "1785115111.issues"}, 1)
+
+	want := []string{"1785061241x.dummy", "1785115111", "1785115111.issues", "dummy", "dummy.issue"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneDeletesOtherTimestampedDirectories(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t,
+		[]string{"1785061241", "1785061241.issues", "1785061241.dummy", "1785115111", "1785115111.issues"}, 1)
+
+	want := []string{"1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneKeepsMultipleGenerations(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t,
+		[]string{"1785000000", "1785000000.issues", "1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}, 2)
+
+	want := []string{"1785061241", "1785061241.issues", "1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
+
+func TestPruneKeepsEverythingBelowKeepCount(t *testing.T) {
+	t.Parallel()
+
+	remaining := runPrune(t, []string{"1785115111", "1785115111.issues"}, 2)
+
+	want := []string{"1785115111", "1785115111.issues"}
+	if !reflect.DeepEqual(remaining, want) {
+		t.Fatalf("remaining = %v, want %v", remaining, want)
+	}
+}
 
 func TestRandomStringLengthAndCharset(t *testing.T) {
 	t.Parallel()

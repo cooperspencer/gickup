@@ -268,50 +268,11 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 		}
 
 		if l.Keep > 0 {
-			parentdir := filepath.Dir(filepath.Join(l.Path, repo.Name))
-			files, err := os.ReadDir(parentdir)
-			if err != nil {
+			if err := pruneOldBackups(filepath.Dir(filepath.Join(l.Path, repo.Name)), repo.Name, l); err != nil {
 				sub.Warn().
 					Str("repo", repo.Name).Msg(err.Error())
 
 				return false
-			}
-
-			keep := []string{}
-			for _, file := range files {
-				fname := file.Name()
-				if l.Zip {
-					fname = strings.TrimSuffix(file.Name(), ".zip")
-				}
-
-				fname = strings.TrimSuffix(fname, ".issues")
-
-				_, err := strconv.ParseInt(fname, 10, 64)
-				if err != nil {
-					sub.Warn().
-						Str("repo", repo.Name).
-						Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
-					continue
-				}
-				if l.Zip && !strings.HasSuffix(file.Name(), ".zip") {
-					continue
-				}
-				keep = append(keep, file.Name())
-			}
-
-			sort.Sort(sort.Reverse(sort.StringSlice(keep)))
-
-			if len(keep) > l.Keep {
-				toremove := keep[l.Keep:]
-				for _, file := range toremove {
-					sub.Info().
-						Msgf("removing %s", types.Red(path.Join(parentdir, file)))
-					err := os.RemoveAll(path.Join(parentdir, file))
-					if err != nil {
-						sub.Warn().
-							Str("repo", repo.Name).Msg(err.Error())
-					}
-				}
 			}
 		}
 
@@ -319,6 +280,55 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	}
 
 	return true
+}
+
+// pruneOldBackups enforces l.Keep by removing the oldest timestamped backups
+func pruneOldBackups(parentdir string, repoName string, l types.Local) error {
+	files, err := os.ReadDir(parentdir)
+	if err != nil {
+		return err
+	}
+
+	// A backup generation is the "<timestamp>" directory plus "<timestamp>.<something>"
+	// (like "<timestamp>.issues")
+	// They are grouped by their timestamp so that together they only count as one backup against l.Keep.
+	generations := map[int64][]string{}
+	for _, file := range files {
+		stamp, _, _ := strings.Cut(file.Name(), ".")
+
+		ts, err := strconv.ParseInt(stamp, 10, 64)
+		if err != nil {
+			sub.Warn().
+				Str("repo", repoName).
+				Msgf("couldn't parse timestamp! %s", types.Red(file.Name()))
+			continue
+		}
+		generations[ts] = append(generations[ts], file.Name())
+	}
+
+	if len(generations) <= l.Keep {
+		return nil
+	}
+
+	stamps := make([]int64, 0, len(generations))
+	for ts := range generations {
+		stamps = append(stamps, ts)
+	}
+	sort.Slice(stamps, func(i, j int) bool { return stamps[i] > stamps[j] })
+
+	for _, ts := range stamps[l.Keep:] {
+		for _, file := range generations[ts] {
+			sub.Info().
+				Msgf("removing %s", types.Red(filepath.Join(parentdir, file)))
+			err := os.RemoveAll(filepath.Join(parentdir, file))
+			if err != nil {
+				sub.Warn().
+					Str("repo", repoName).Msg(err.Error())
+			}
+		}
+	}
+
+	return nil
 }
 
 func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l types.Local) error {
