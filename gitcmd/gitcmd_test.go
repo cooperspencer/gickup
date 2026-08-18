@@ -32,11 +32,11 @@ func TestAuth_Env_GitHubApp(t *testing.T) {
 
 	auth := &Auth{
 		Username: "x-access-token",
-		Password: "ghs_secretinstallationtoken123",
+		Password: "test-token",
 	}
 
 	env := auth.Env()
-	expectedHeader := "Authorization: Basic " + base64.StdEncoding.EncodeToString([]byte("x-access-token:ghs_secretinstallationtoken123"))
+	expectedHeader := "Authorization: Basic " + base64.StdEncoding.EncodeToString([]byte("x-access-token:test-token"))
 	expectedEnv := []string{
 		"GIT_CONFIG_COUNT=1",
 		"GIT_CONFIG_KEY_0=http.extraHeader",
@@ -177,6 +177,8 @@ func TestGitCmd_CloneCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			args := []string{"clone", tt.url, tt.reponame}
 			if tt.bare {
 				args = append(args, "--bare")
