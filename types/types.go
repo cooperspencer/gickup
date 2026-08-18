@@ -22,16 +22,17 @@ import (
 
 // Destination TODO.
 type Destination struct {
-	Gitlab    []GenRepo   `yaml:"gitlab"`
-	Local     []Local     `yaml:"local"`
-	Github    []GenRepo   `yaml:"github"`
-	Gitea     []GenRepo   `yaml:"gitea"`
-	Gogs      []GenRepo   `yaml:"gogs"`
-	OneDev    []GenRepo   `yaml:"onedev"`
-	Sourcehut []GenRepo   `yaml:"sourcehut"`
-	S3        []S3Repo    `yaml:"s3"`
-	AzureBlob []AzureBlob `yaml:"azureblob"`
-	Radicle   []Radicle   `yaml:"radicle"`
+	Gitlab    []GenRepo    `yaml:"gitlab"`
+	Local     []Local      `yaml:"local"`
+	Github    []GenRepo    `yaml:"github"`
+	Gitea     []GenRepo    `yaml:"gitea"`
+	Gogs      []GenRepo    `yaml:"gogs"`
+	OneDev    []GenRepo    `yaml:"onedev"`
+	Sourcehut []GenRepo    `yaml:"sourcehut"`
+	S3        []S3Repo     `yaml:"s3"`
+	AzureBlob []AzureBlob  `yaml:"azureblob"`
+	WebDAV    []WebDAVRepo `yaml:"webdav"`
+	Radicle   []Radicle    `yaml:"radicle"`
 }
 
 // Count TODO.
@@ -45,6 +46,7 @@ func (dest Destination) Count() int {
 		len(dest.Sourcehut) +
 		len(dest.S3) +
 		len(dest.AzureBlob) +
+		len(dest.WebDAV) +
 		len(dest.Radicle)
 }
 
@@ -613,4 +615,14 @@ type AzureBlob struct {
 	Structured       bool   `yaml:"structured"`
 	Zip              bool   `yaml:"zip"`
 	DateCreateDir    bool   `yaml:"datecreatedir"`
+}
+
+type WebDAVRepo struct {
+	Url           string `yaml:"url"`
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	Path          string `yaml:"path"`
+	Structured    bool   `yaml:"structured"`
+	Zip           bool   `yaml:"zip"`
+	DateCreateDir bool   `yaml:"datecreatedir"`
 }
