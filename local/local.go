@@ -736,11 +736,43 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 
 	err = repo.Push(&pushoptions)
 	if err == nil || errors.Is(err, git.NoErrAlreadyUpToDate) {
-		pushoptions = git.PushOptions{Force: destination.Force, Auth: auth, RemoteName: remote.Config().Name, RefSpecs: []config.RefSpec{"refs/heads/*:refs/heads/*", "refs/tags/*:refs/tags/*"}}
+		refspecs, err := getPushRefSpecs(repo, headref.Name())
+		if err != nil {
+			return err
+		}
 
-		return repo.Push(&pushoptions)
+		var pushErrors []error
+		// Keep valid refs moving when a destination hook rejects one branch or tag.
+		for _, refspec := range refspecs {
+			pushoptions.RefSpecs = []config.RefSpec{refspec}
+			err = repo.Push(&pushoptions)
+			if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+				pushErrors = append(pushErrors, err)
+			}
+		}
+
+		return errors.Join(pushErrors...)
 	}
 	return err
+}
+
+func getPushRefSpecs(repo *git.Repository, skip plumbing.ReferenceName) ([]config.RefSpec, error) {
+	refs, err := repo.References()
+	if err != nil {
+		return nil, err
+	}
+
+	refspecs := []config.RefSpec{}
+	err = refs.ForEach(func(ref *plumbing.Reference) error {
+		name := ref.Name()
+		if name == skip || (!name.IsBranch() && !name.IsTag()) {
+			return nil
+		}
+
+		refspecs = append(refspecs, config.RefSpec(fmt.Sprintf("%s:%s", name, name)))
+		return nil
+	})
+	return refspecs, err
 }
 
 func RandomString(length int) string {

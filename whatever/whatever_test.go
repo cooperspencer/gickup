@@ -32,6 +32,54 @@ func TestGetBuildsRemoteRepo(t *testing.T) {
 	}
 }
 
+func TestGetBuildsSSHRemoteRepo(t *testing.T) {
+	t.Parallel()
+
+	conf := &types.Conf{
+		Source: types.Source{
+			Any: []types.GenRepo{{URL: "ssh://alice%40example.com@git.example.com/org/repo.git"}},
+		},
+	}
+
+	repos, ran := Get(conf)
+	if !ran {
+		t.Fatal("expected adapter to run")
+	}
+
+	if len(repos) != 1 {
+		t.Fatalf("expected 1 repo, got %d", len(repos))
+	}
+
+	repo := repos[0]
+	if repo.Name != "repo" || repo.Hoster != "git.example.com" || repo.Owner != "git" {
+		t.Fatalf("unexpected repo: %#v", repo)
+	}
+}
+
+func TestGetBuildsSCPRemoteRepo(t *testing.T) {
+	t.Parallel()
+
+	conf := &types.Conf{
+		Source: types.Source{
+			Any: []types.GenRepo{{URL: "git@git.example.com:org/repo.git"}},
+		},
+	}
+
+	repos, ran := Get(conf)
+	if !ran {
+		t.Fatal("expected adapter to run")
+	}
+
+	if len(repos) != 1 {
+		t.Fatalf("expected 1 repo, got %d", len(repos))
+	}
+
+	repo := repos[0]
+	if repo.Name != "repo" || repo.Hoster != "git.example.com" || repo.Owner != "git" {
+		t.Fatalf("unexpected repo: %#v", repo)
+	}
+}
+
 func TestGetBuildsLocalRepo(t *testing.T) {
 	t.Parallel()
 
@@ -58,5 +106,23 @@ func TestGetBuildsLocalRepo(t *testing.T) {
 	repo := repos[0]
 	if repo.Name != "repo" || repo.Hoster != "local" || repo.Owner != "alice" {
 		t.Fatalf("unexpected repo: %#v", repo)
+	}
+}
+
+func TestGetSkipsMissingURL(t *testing.T) {
+	t.Parallel()
+
+	conf := &types.Conf{
+		Source: types.Source{
+			Any: []types.GenRepo{{}},
+		},
+	}
+
+	repos, ran := Get(conf)
+	if !ran {
+		t.Fatal("expected adapter to run")
+	}
+	if len(repos) != 0 {
+		t.Fatalf("expected no repositories, got %d", len(repos))
 	}
 }

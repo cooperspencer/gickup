@@ -860,6 +860,44 @@
                         "additionalProperties": false
                     }
                 },
+                "webdav": {
+                    "type": "array",
+                    "description": "Upload bare-cloned repositories to a WebDAV server using HTTP Basic auth. Stale remote files are pruned via PROPFIND/DELETE.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "type": "string",
+                                "description": "The WebDAV endpoint URL to upload the backups to (e.g. a Nextcloud, Apache mod_dav or rclone serve webdav server)"
+                            },
+                            "username": {
+                                "type": "string",
+                                "description": "HTTP Basic auth username"
+                            },
+                            "password": {
+                                "type": "string",
+                                "description": "HTTP Basic auth password"
+                            },
+                            "path": {
+                                "type": "string",
+                                "description": "Subdirectory on the WebDAV server to store the backups under; repositories end up under url/path/<repo>"
+                            },
+                            "structured": {
+                                "type": "boolean",
+                                "description": "if set to `true`, it checks out the repos in a more structured way, like `hoster/user|organization/repository`"
+                            },
+                            "zip": {
+                                "type": "boolean",
+                                "description": "If true, zip the entire Git repo into a single zip file and upload that instead"
+                            },
+                            "datecreatedir": {
+                                "type": "boolean",
+                                "description": "If true, gickup will create a directory for backup with the creation date"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
                 "radicle": {
                     "type": "array",
                     "description": "Mirror repositories into the storage of a local Radicle node. Requires the `git`, `rad` and `git-remote-rad` binaries.",

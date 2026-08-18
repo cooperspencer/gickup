@@ -16,6 +16,20 @@ import (
 
 var sub zerolog.Logger
 
+func getRepoVisibility(visibility string, private bool) gitlab.VisibilityValue {
+	switch strings.ToLower(strings.TrimSpace(visibility)) {
+	case "private":
+		return gitlab.PrivateVisibility
+	case "public":
+		return gitlab.PublicVisibility
+	default:
+		if private {
+			return gitlab.PrivateVisibility
+		}
+		return gitlab.PublicVisibility
+	}
+}
+
 // Backup TODO.
 func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 	var gitlabclient *gitlab.Client
@@ -69,13 +83,7 @@ func Backup(r types.Repo, d types.GenRepo, dry bool) bool {
 			splittedurl[0], r.Owner, r.Token, splittedurl[1])
 	}
 
-	var visibility gitlab.VisibilityValue
-
-	if r.Private {
-		visibility = gitlab.PrivateVisibility
-	} else {
-		visibility = gitlab.PublicVisibility
-	}
+	visibility := getRepoVisibility(d.Visibility.Repositories, r.Private)
 
 	opts := &gitlab.CreateProjectOptions{
 		Mirror:      &True,
@@ -586,11 +594,7 @@ func GetIssues(repo *gitlab.Project, client *gitlab.Client, conf types.GenRepo) 
 
 // GetOrCreate Get or create a repository
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
-	visibility := gitlab.PublicVisibility
-
-	if repo.Private {
-		visibility = gitlab.PrivateVisibility
-	}
+	visibility := getRepoVisibility(destination.Visibility.Repositories, repo.Private)
 
 	sub = logger.CreateSubLogger("stage", "gitlab", "url", destination.URL)
 

@@ -22,16 +22,17 @@ import (
 
 // Destination TODO.
 type Destination struct {
-	Gitlab    []GenRepo   `yaml:"gitlab"`
-	Local     []Local     `yaml:"local"`
-	Github    []GenRepo   `yaml:"github"`
-	Gitea     []GenRepo   `yaml:"gitea"`
-	Gogs      []GenRepo   `yaml:"gogs"`
-	OneDev    []GenRepo   `yaml:"onedev"`
-	Sourcehut []GenRepo   `yaml:"sourcehut"`
-	S3        []S3Repo    `yaml:"s3"`
-	AzureBlob []AzureBlob `yaml:"azureblob"`
-	Radicle   []Radicle   `yaml:"radicle"`
+	Gitlab    []GenRepo    `yaml:"gitlab"`
+	Local     []Local      `yaml:"local"`
+	Github    []GenRepo    `yaml:"github"`
+	Gitea     []GenRepo    `yaml:"gitea"`
+	Gogs      []GenRepo    `yaml:"gogs"`
+	OneDev    []GenRepo    `yaml:"onedev"`
+	Sourcehut []GenRepo    `yaml:"sourcehut"`
+	S3        []S3Repo     `yaml:"s3"`
+	AzureBlob []AzureBlob  `yaml:"azureblob"`
+	WebDAV    []WebDAVRepo `yaml:"webdav"`
+	Radicle   []Radicle    `yaml:"radicle"`
 }
 
 // Count TODO.
@@ -45,6 +46,7 @@ func (dest Destination) Count() int {
 		len(dest.Sourcehut) +
 		len(dest.S3) +
 		len(dest.AzureBlob) +
+		len(dest.WebDAV) +
 		len(dest.Radicle)
 }
 
@@ -452,20 +454,24 @@ type GithubDestination struct {
 }
 
 // GetHost TODO.
-func GetHost(url string) string {
-	if strings.Contains(url, "http://") {
-		url = strings.Split(url, "http://")[1]
+func GetHost(rawURL string) string {
+	if endpoint, err := transport.NewEndpoint(rawURL); err == nil && endpoint.Host != "" {
+		return endpoint.Host
 	}
 
-	if strings.Contains(url, "https://") {
-		url = strings.Split(url, "https://")[1]
+	if strings.Contains(rawURL, "http://") {
+		rawURL = strings.Split(rawURL, "http://")[1]
 	}
 
-	if strings.Contains(url, "/") {
-		url = strings.Split(url, "/")[0]
+	if strings.Contains(rawURL, "https://") {
+		rawURL = strings.Split(rawURL, "https://")[1]
 	}
 
-	return url
+	if strings.Contains(rawURL, "/") {
+		rawURL = strings.Split(rawURL, "/")[0]
+	}
+
+	return rawURL
 }
 
 // GetValues TODO.
@@ -613,4 +619,14 @@ type AzureBlob struct {
 	Structured       bool   `yaml:"structured"`
 	Zip              bool   `yaml:"zip"`
 	DateCreateDir    bool   `yaml:"datecreatedir"`
+}
+
+type WebDAVRepo struct {
+	Url           string `yaml:"url"`
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	Path          string `yaml:"path"`
+	Structured    bool   `yaml:"structured"`
+	Zip           bool   `yaml:"zip"`
+	DateCreateDir bool   `yaml:"datecreatedir"`
 }
