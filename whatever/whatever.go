@@ -1,12 +1,34 @@
 package whatever
 
 import (
-	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/cooperspencer/gickup/types"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/rs/zerolog/log"
 )
+
+func getRepoNameAndHost(rawURL string) (string, string) {
+	endpoint, err := transport.NewEndpoint(rawURL)
+	if err == nil {
+		if endpoint.Protocol == "file" {
+			name := filepath.Base(filepath.Clean(endpoint.Path))
+			return strings.TrimSuffix(name, ".git"), "local"
+		}
+
+		repoPath := endpoint.Path
+		if index := strings.IndexAny(repoPath, "?#"); index >= 0 {
+			repoPath = repoPath[:index]
+		}
+		name := path.Base(strings.TrimRight(repoPath, "/"))
+		return strings.TrimSuffix(name, ".git"), endpoint.Host
+	}
+
+	name := filepath.Base(filepath.Clean(rawURL))
+	return strings.TrimSuffix(name, ".git"), "local"
+}
 
 // Get TODO.
 func Get(conf *types.Conf) ([]types.Repo, bool) {
@@ -22,9 +44,9 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 				log.Error().
 					Str("stage", "whatever").
 					Msg("no url configured")
+				continue
 			}
 
-			hoster := "local"
 			if repo.User == "" {
 				if repo.Username != "" {
 					repo.User = repo.Username
@@ -32,18 +54,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 					repo.User = "git"
 				}
 			}
-			if _, err := os.Stat(repo.URL); os.IsNotExist(err) {
-				hoster = types.GetHost(repo.URL)
-			}
-
-			separator := "/"
-			if hoster == "local" {
-				separator = string(os.PathSeparator)
-			}
-			name := repo.URL[strings.LastIndex(repo.URL, separator)+1:]
-			if strings.HasSuffix(name, ".git") {
-				name = name[:strings.LastIndex(name, ".git")]
-			}
+			name, hoster := getRepoNameAndHost(repo.URL)
 
 			repos = append(repos, types.Repo{
 				Name:   name,

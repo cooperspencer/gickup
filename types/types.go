@@ -454,20 +454,24 @@ type GithubDestination struct {
 }
 
 // GetHost TODO.
-func GetHost(url string) string {
-	if strings.Contains(url, "http://") {
-		url = strings.Split(url, "http://")[1]
+func GetHost(rawURL string) string {
+	if endpoint, err := transport.NewEndpoint(rawURL); err == nil && endpoint.Host != "" {
+		return endpoint.Host
 	}
 
-	if strings.Contains(url, "https://") {
-		url = strings.Split(url, "https://")[1]
+	if strings.Contains(rawURL, "http://") {
+		rawURL = strings.Split(rawURL, "http://")[1]
 	}
 
-	if strings.Contains(url, "/") {
-		url = strings.Split(url, "/")[0]
+	if strings.Contains(rawURL, "https://") {
+		rawURL = strings.Split(rawURL, "https://")[1]
 	}
 
-	return url
+	if strings.Contains(rawURL, "/") {
+		rawURL = strings.Split(rawURL, "/")[0]
+	}
+
+	return rawURL
 }
 
 // GetValues TODO.

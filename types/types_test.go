@@ -223,9 +223,12 @@ func TestGetHost(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]string{
-		"https://example.com/org/repo": "example.com",
-		"http://example.com/org/repo":  "example.com",
-		"example.com/org/repo":         "example.com",
+		"https://example.com/org/repo":                           "example.com",
+		"http://example.com/org/repo":                            "example.com",
+		"ssh://alice%40example.com@git.example.com/org/repo.git": "git.example.com",
+		"ssh://git@example.com:2222/org/repo.git":                "example.com",
+		"git@example.com:org/repo.git":                           "example.com",
+		"example.com/org/repo":                                   "example.com",
 	}
 
 	for input, want := range tests {
