@@ -51,6 +51,16 @@ func tokenAuth(repo types.Repo) *http.BasicAuth {
 	}
 }
 
+func toGitCmdAuth(auth transport.AuthMethod) *gitcmd.Auth {
+	if basicAuth, ok := auth.(*http.BasicAuth); ok && basicAuth != nil {
+		return &gitcmd.Auth{
+			Username: basicAuth.Username,
+			Password: basicAuth.Password,
+		}
+	}
+	return nil
+}
+
 // Locally TODO.
 func Locally(repo types.Repo, l types.Local, dry bool) bool {
 	sub = logger.CreateSubLogger("stage", "locally", "path", l.Path)
@@ -187,7 +197,7 @@ func Locally(repo types.Repo, l types.Local, dry bool) bool {
 				sub.Info().
 					Msgf("opening %s locally", types.Green(repo.Name))
 
-				err := updateRepository(repo.Name, auth, dry, l)
+				err := updateRepository(repo, auth, dry, l)
 				if err != nil {
 					switch {
 					case errors.Is(err, git.NoErrAlreadyUpToDate):
@@ -331,32 +341,63 @@ func pruneOldBackups(parentdir string, repoName string, l types.Local) error {
 	return nil
 }
 
-func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l types.Local) error {
-	r, err := git.PlainOpen(filepath.Join(l.Path, reponame))
+func sanitizeRemote(r *git.Repository, cleanURL string) error {
+	if cleanURL == "" {
+		return nil
+	}
+	cfg, err := r.Config()
+	if err != nil {
+		return err
+	}
+	rem, ok := cfg.Remotes["origin"]
+	if !ok || rem == nil {
+		return nil
+	}
+	changed := false
+	for i, u := range rem.URLs {
+		if (strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://")) && strings.Contains(u, "@") {
+			rem.URLs[i] = cleanURL
+			changed = true
+		}
+	}
+	if changed {
+		return r.SetConfig(cfg)
+	}
+	return nil
+}
+
+func updateRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l types.Local) error {
+	r, err := git.PlainOpen(filepath.Join(l.Path, repo.Name))
 	if err != nil {
 		return err
 	}
 
 	if !dry {
 		if l.LFS {
-			_, err = os.Stat(filepath.Join(l.Path, reponame))
+			_, err = os.Stat(filepath.Join(l.Path, repo.Name))
 			if err != nil {
 				return err
 			}
 
-			sub.Info().
-				Msgf("pulling %s", types.Green(reponame))
+			if !repo.Origin.SSH && repo.URL != "" {
+				if err := sanitizeRemote(r, repo.URL); err != nil {
+					sub.Warn().Str("repo", repo.Name).Msgf("could not sanitize remote: %s", err)
+				}
+			}
 
-			err = gitc.Pull(l.Bare, l.Mirror, filepath.Join(l.Path, reponame))
+			sub.Info().
+				Msgf("pulling %s", types.Green(repo.Name))
+
+			err = gitc.Pull(l.Bare, l.Mirror, filepath.Join(l.Path, repo.Name), toGitCmdAuth(auth))
 			if err != nil {
 				return err
 			}
 
 			if l.Bare || l.Mirror {
 				sub.Info().
-					Msgf("fetching lfs files for %s", types.Green(reponame))
+					Msgf("fetching lfs files for %s", types.Green(repo.Name))
 
-				err = gitc.LFSFetch(filepath.Join(l.Path, reponame))
+				err = gitc.LFSFetch(filepath.Join(l.Path, repo.Name), toGitCmdAuth(auth))
 				if err != nil {
 					return err
 				}
@@ -368,7 +409,7 @@ func updateRepository(reponame string, auth transport.AuthMethod, dry bool, l ty
 				return err
 			}
 			sub.Info().
-				Msgf("pulling %s", types.Green(reponame))
+				Msgf("pulling %s", types.Green(repo.Name))
 			if !l.Bare && !l.Mirror {
 				w, worktreeErr := r.Worktree()
 				if worktreeErr != nil && !errors.Is(worktreeErr, git.NoErrAlreadyUpToDate) {
@@ -428,25 +469,7 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 	}
 
 	if l.LFS {
-		if repo.Token != "" {
-			if strings.HasPrefix(url, "http://") {
-				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token))
-			}
-
-			if strings.HasPrefix(url, "https://") {
-				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token))
-			}
-		} else if repo.Origin.Username != "" && repo.Origin.Password != "" {
-			if strings.HasPrefix(url, "http://") {
-				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://%s:%s@", repo.Origin.Username, repo.Origin.Password))
-			}
-
-			if strings.HasPrefix(url, "https://") {
-				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://%s:%s@", repo.Origin.Username, repo.Origin.Password))
-			}
-		}
-
-		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare, l.Mirror)
+		err = gitc.Clone(url, filepath.Join(l.Path, repo.Name), l.Bare, l.Mirror, toGitCmdAuth(auth))
 		if err != nil {
 			return err
 		}
@@ -455,7 +478,7 @@ func cloneRepository(repo types.Repo, auth transport.AuthMethod, dry bool, l typ
 			sub.Info().
 				Msgf("fetching lfs files for %s", types.Green(repo.Name))
 
-			err = gitc.LFSFetch(filepath.Join(l.Path, repo.Name))
+			err = gitc.LFSFetch(filepath.Join(l.Path, repo.Name), toGitCmdAuth(auth))
 			if err != nil {
 				return err
 			}
@@ -538,6 +561,11 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 	var auth transport.AuthMethod
 	if repo.Token != "" {
 		auth = tokenAuth(repo)
+	} else if repo.Origin.Username != "" && repo.Origin.Password != "" {
+		auth = &http.BasicAuth{
+			Username: repo.Origin.Username,
+			Password: repo.Origin.Password,
+		}
 	}
 	if repo.Origin.LFS {
 		g, err := gitcmd.New()
@@ -546,15 +574,7 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 		}
 		gitc = g
 
-		if strings.HasPrefix(repo.URL, "http://") {
-			repo.URL = strings.ReplaceAll(repo.URL, "http://", fmt.Sprintf("http://xyz:%s@", repo.Token))
-		}
-
-		if strings.HasPrefix(repo.URL, "https://") {
-			repo.URL = strings.ReplaceAll(repo.URL, "https://", fmt.Sprintf("https://xyz:%s@", repo.Token))
-		}
-
-		err = gitc.Clone(repo.URL, tempdir, isBare, false)
+		err = gitc.Clone(repo.URL, tempdir, isBare, false, toGitCmdAuth(auth))
 		if err != nil {
 			return nil, err
 		}
@@ -600,7 +620,7 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 			return nil, err
 		}
 
-		err = gitc.MirrorPull(tempdir)
+		err = gitc.MirrorPull(tempdir, toGitCmdAuth(auth))
 		if err != nil {
 			return nil, err
 		}
@@ -691,20 +711,12 @@ func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url strin
 				return err
 			}
 		} else {
-			if strings.HasPrefix(url, "http://") {
-				url = strings.ReplaceAll(url, "http://", fmt.Sprintf("http://xyz:%s@", token))
-			}
-
-			if strings.HasPrefix(url, "https://") {
-				url = strings.ReplaceAll(url, "https://", fmt.Sprintf("https://xyz:%s@", token))
-			}
-
 			err = gitc.NewRemote(remote, url, worktree.Filesystem.Root())
 			if err != nil {
 				return err
 			}
 
-			err = gitc.Push(worktree.Filesystem.Root(), remote)
+			err = gitc.Push(worktree.Filesystem.Root(), remote, toGitCmdAuth(auth))
 			if err != nil {
 				return err
 			}

@@ -9,7 +9,10 @@ import (
 
 	"github.com/cooperspencer/gickup/types"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
@@ -181,6 +184,191 @@ func TestTokenAuth_WithTokenUser(t *testing.T) {
 	}
 	if got.Password != "mytoken" {
 		t.Errorf("Password = %q, want %q", got.Password, "mytoken")
+	}
+}
+
+func TestToGitCmdAuth_Nil(t *testing.T) {
+	t.Parallel()
+
+	if got := toGitCmdAuth(nil); got != nil {
+		t.Fatalf("toGitCmdAuth(nil) = %v, want nil", got)
+	}
+}
+
+func TestToGitCmdAuth_FromTokenAuth_GitHubApp(t *testing.T) {
+	t.Parallel()
+
+	repo := types.Repo{
+		Token:       "ghs_testtoken123",
+		NoTokenUser: true,
+	}
+	auth := tokenAuth(repo)
+	gitAuth := toGitCmdAuth(auth)
+	if gitAuth == nil {
+		t.Fatal("toGitCmdAuth returned nil, want *gitcmd.Auth")
+	}
+	if gitAuth.Username != "x-access-token" {
+		t.Errorf("Username = %q, want %q", gitAuth.Username, "x-access-token")
+	}
+	if gitAuth.Password != "ghs_testtoken123" {
+		t.Errorf("Password = %q, want %q", gitAuth.Password, "ghs_testtoken123")
+	}
+
+	env := gitAuth.Env()
+	if len(env) != 3 {
+		t.Fatalf("expected 3 env vars, got %d: %v", len(env), env)
+	}
+	if env[0] != "GIT_CONFIG_COUNT=1" || env[1] != "GIT_CONFIG_KEY_0=http.extraHeader" {
+		t.Errorf("unexpected env vars: %v", env)
+	}
+	if !strings.HasPrefix(env[2], "GIT_CONFIG_VALUE_0=Authorization: Basic ") {
+		t.Errorf("unexpected GIT_CONFIG_VALUE_0: %s", env[2])
+	}
+}
+
+func TestToGitCmdAuth_FromUsernamePassword(t *testing.T) {
+	t.Parallel()
+
+	auth := &http.BasicAuth{
+		Username: "myuser",
+		Password: "mypassword",
+	}
+	gitAuth := toGitCmdAuth(auth)
+	if gitAuth == nil {
+		t.Fatal("toGitCmdAuth returned nil, want *gitcmd.Auth")
+	}
+	if gitAuth.Username != "myuser" {
+		t.Errorf("Username = %q, want %q", gitAuth.Username, "myuser")
+	}
+	if gitAuth.Password != "mypassword" {
+		t.Errorf("Password = %q, want %q", gitAuth.Password, "mypassword")
+	}
+}
+
+func TestToGitCmdAuth_SSHAuth(t *testing.T) {
+	t.Parallel()
+
+	auth := &ssh.PublicKeys{}
+	if got := toGitCmdAuth(auth); got != nil {
+		t.Fatalf("toGitCmdAuth(ssh) = %v, want nil", got)
+	}
+}
+
+func TestSanitizeRemote_RewritesCredentialURL(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	r, err := git.PlainInit(dir, true)
+	if err != nil {
+		t.Fatalf("failed to init repo: %v", err)
+	}
+
+	_, err = r.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{"https://xyz:expired-token-123@github.com/owner/repo.git"},
+	})
+	if err != nil {
+		t.Fatalf("failed to create remote: %v", err)
+	}
+
+	err = sanitizeRemote(r, "https://github.com/owner/repo.git")
+	if err != nil {
+		t.Fatalf("sanitizeRemote returned error: %v", err)
+	}
+
+	// Reopen the repository from disk to verify persistence
+	reopened, err := git.PlainOpen(dir)
+	if err != nil {
+		t.Fatalf("failed to reopen repo: %v", err)
+	}
+
+	cfg, err := reopened.Config()
+	if err != nil {
+		t.Fatalf("failed to get config: %v", err)
+	}
+
+	rem, ok := cfg.Remotes["origin"]
+	if !ok {
+		t.Fatal("remote origin not found")
+	}
+
+	wantURLs := []string{"https://github.com/owner/repo.git"}
+	if !reflect.DeepEqual(rem.URLs, wantURLs) {
+		t.Errorf("remote URLs = %v, want %v", rem.URLs, wantURLs)
+	}
+
+	for _, u := range rem.URLs {
+		if strings.Contains(u, "expired-token-123") || strings.Contains(u, "xyz:") || strings.Contains(u, "@") {
+			t.Errorf("token or credentials leaked in remote URL: %s", u)
+		}
+	}
+}
+
+func TestSanitizeRemote_PreservesSSH(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	r, err := git.PlainInit(dir, true)
+	if err != nil {
+		t.Fatalf("failed to init repo: %v", err)
+	}
+
+	_, err = r.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{"git@github.com:owner/repo.git"},
+	})
+	if err != nil {
+		t.Fatalf("failed to create remote: %v", err)
+	}
+
+	err = sanitizeRemote(r, "https://github.com/owner/repo.git")
+	if err != nil {
+		t.Fatalf("sanitizeRemote returned error: %v", err)
+	}
+
+	cfg, err := r.Config()
+	if err != nil {
+		t.Fatalf("failed to get config: %v", err)
+	}
+
+	rem := cfg.Remotes["origin"]
+	wantURLs := []string{"git@github.com:owner/repo.git"}
+	if !reflect.DeepEqual(rem.URLs, wantURLs) {
+		t.Errorf("SSH remote URLs = %v, want %v", rem.URLs, wantURLs)
+	}
+}
+
+func TestSanitizeRemote_PreservesCleanURL(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	r, err := git.PlainInit(dir, true)
+	if err != nil {
+		t.Fatalf("failed to init repo: %v", err)
+	}
+
+	_, err = r.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{"https://github.com/owner/repo.git"},
+	})
+	if err != nil {
+		t.Fatalf("failed to create remote: %v", err)
+	}
+
+	err = sanitizeRemote(r, "https://github.com/owner/repo.git")
+	if err != nil {
+		t.Fatalf("sanitizeRemote returned error: %v", err)
+	}
+
+	cfg, err := r.Config()
+	if err != nil {
+		t.Fatalf("failed to get config: %v", err)
+	}
+
+	rem := cfg.Remotes["origin"]
+	wantURLs := []string{"https://github.com/owner/repo.git"}
+	if !reflect.DeepEqual(rem.URLs, wantURLs) {
+		t.Errorf("clean remote URLs = %v, want %v", rem.URLs, wantURLs)
 	}
 }
 
