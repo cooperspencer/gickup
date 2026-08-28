@@ -443,14 +443,28 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 		if repo.Gists {
 			gistlistoptions := &github.GistListOptions{ListOptions: github.ListOptions{PerPage: 50}}
 			i := 1
+			errorcount := 0
 			for {
 				gistlistoptions.Page = i
 				gists, _, err := client.Gists.List(context.Background(), repo.User, gistlistoptions)
 				if err != nil {
 					sub.Error().
 						Msg(err.Error())
-					continue
+					var rateLimitErr *github.RateLimitError
+					var abuseRateLimitErr *github.AbuseRateLimitError
+					if errors.As(err, &rateLimitErr) || errors.As(err, &abuseRateLimitErr) {
+						sub.Warn().Msg("wait for one hour.")
+						time.Sleep(1 * time.Hour)
+						continue
+					}
+					if errorcount < 5 {
+						errorcount++
+						time.Sleep(5 * time.Second)
+						continue
+					}
+					break
 				}
+				errorcount = 0
 				if len(gists) == 0 {
 					break
 				}
