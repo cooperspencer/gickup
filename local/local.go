@@ -588,8 +588,20 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 			Auth:     auth,
 			Force:    true,
 		})
-		if errors.Is(err, git.NoErrAlreadyUpToDate) {
-			return r, nil
+		if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+			return r, err
+		}
+
+		// A regular clone only downloads the LFS objects needed for the
+		// checked-out branch. Without fetching the rest, objects referenced
+		// by other branches/tags or older commits are missing locally,
+		// which makes the later `git push --all` fail with
+		// "missing or corrupt local objects".
+		sub.Info().
+			Msgf("fetching lfs files for %s", types.Green(repo.Name))
+
+		if lfsErr := gitc.LFSFetch(tempdir, toGitCmdAuth(auth)); lfsErr != nil {
+			return r, lfsErr
 		}
 
 		// Get the symbolic reference for HEAD
