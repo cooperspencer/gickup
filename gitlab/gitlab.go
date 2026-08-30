@@ -221,6 +221,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			subgroups, err := gitlab.ScanAndCollect(func(p gitlab.PaginationOptionFunc) ([]*gitlab.Group, *gitlab.Response, error) {
 				return client.Groups.ListDescendantGroups(group.ID, &gitlab.ListDescendantGroupsOptions{}, p)
 			})
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+				continue
+			}
 
 			for _, sub := range subgroups {
 				includeorgs[sub.FullPath] = true
@@ -238,6 +243,11 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 			subgroups, err := gitlab.ScanAndCollect(func(p gitlab.PaginationOptionFunc) ([]*gitlab.Group, *gitlab.Response, error) {
 				return client.Groups.ListDescendantGroups(group.ID, &gitlab.ListDescendantGroupsOptions{}, p)
 			})
+			if err != nil {
+				sub.Error().
+					Msg(err.Error())
+				continue
+			}
 
 			for _, sub := range subgroups {
 				excludeorgs[sub.FullPath] = true
