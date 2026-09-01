@@ -49,6 +49,7 @@ func newServer(t *testing.T, path string, gists []map[string]interface{}) *httpt
 }
 
 func TestGetOwnGists(t *testing.T) {
+	t.Parallel()
 	srv := newServer(t, "/api/gists", []map[string]interface{}{
 		gistPayload("alpha", "alice", true),
 		gistPayload("beta", "alice", false),
@@ -86,6 +87,7 @@ func TestGetOwnGists(t *testing.T) {
 }
 
 func TestGetPublicGistsAnonymous(t *testing.T) {
+	t.Parallel()
 	srv := newServer(t, "/api/gists/public", []map[string]interface{}{
 		gistPayload("pub", "bob", true),
 	})
@@ -110,6 +112,7 @@ func TestGetPublicGistsAnonymous(t *testing.T) {
 }
 
 func TestGetUserGists(t *testing.T) {
+	t.Parallel()
 	srv := newServer(t, "/api/users/carol/gists", []map[string]interface{}{
 		gistPayload("one", "carol", true),
 	})
@@ -131,12 +134,14 @@ func TestGetUserGists(t *testing.T) {
 }
 
 func TestGetIncludeExclude(t *testing.T) {
+	t.Parallel()
 	gists := []map[string]interface{}{
 		gistPayload("keep", "alice", true),
 		gistPayload("drop", "alice", true),
 	}
 
 	t.Run("include", func(t *testing.T) {
+		t.Parallel()
 		srv := newServer(t, "/api/gists", gists)
 		defer srv.Close()
 		conf := &types.Conf{Source: types.Source{Opengist: []types.GenRepo{{
@@ -149,6 +154,7 @@ func TestGetIncludeExclude(t *testing.T) {
 	})
 
 	t.Run("exclude", func(t *testing.T) {
+		t.Parallel()
 		srv := newServer(t, "/api/gists", gists)
 		defer srv.Close()
 		conf := &types.Conf{Source: types.Source{Opengist: []types.GenRepo{{
@@ -162,6 +168,7 @@ func TestGetIncludeExclude(t *testing.T) {
 }
 
 func TestGetSkipsMissingURL(t *testing.T) {
+	t.Parallel()
 	conf := &types.Conf{Source: types.Source{Opengist: []types.GenRepo{{}}}}
 	repos, ran := Get(conf)
 	if !ran {
@@ -173,6 +180,7 @@ func TestGetSkipsMissingURL(t *testing.T) {
 }
 
 func TestUserAgentTransportRewrites(t *testing.T) {
+	t.Parallel()
 	var got string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got = r.Header.Get("User-Agent")
@@ -180,7 +188,7 @@ func TestUserAgentTransportRewrites(t *testing.T) {
 	defer srv.Close()
 
 	rt := userAgentTransport{base: http.DefaultTransport}
-	req, _ := http.NewRequest(http.MethodGet, srv.URL, nil)
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL, nil)
 	req.Header.Set("User-Agent", "go-git/5.x")
 	resp, err := rt.RoundTrip(req)
 	if err != nil {

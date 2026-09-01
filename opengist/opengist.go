@@ -1,6 +1,7 @@
 package opengist
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,7 +54,7 @@ func (c *client) get(path string, query url.Values) ([]byte, error) {
 		endpoint += "?" + query.Encode()
 	}
 
-	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
