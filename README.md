@@ -42,6 +42,7 @@ You can clone/mirror repositories from:
 - Bitbucket
 - OneDev
 - Sourcehut
+- Opengist
 - Any
 
 You can clone/mirror repositories to:
