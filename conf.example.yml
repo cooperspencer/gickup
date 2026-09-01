@@ -356,6 +356,8 @@ metrics:
     urls:
       - http(s)://url-to-make-request-to
       - http(s)://another-url-to-make-request-to
+    failure_urls: # optional - if the backup run encountered any errors, these URLs are pinged instead of the ones above. Useful with services like healthchecks.io that expose a dedicated failure endpoint (e.g. https://hc-ping.com/uuid/fail)
+      - http(s)://url-to-ping-on-failure
   push:
     ntfy:
     - url: http(s)://url-to-ntfy/your-topic

@@ -42,7 +42,7 @@ func TestNotifySendsExpectedRequest(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.AppriseConfig{
+	err := Notify("Backup done", "backup complete", types.AppriseConfig{
 		Url:    server.URL,
 		Config: "team",
 		Tags:   []string{"backup", "nightly"},
@@ -61,7 +61,7 @@ func TestNotifyReturnsAPIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.AppriseConfig{Url: server.URL})
+	err := Notify("Backup done", "backup complete", types.AppriseConfig{Url: server.URL})
 	if err == nil {
 		t.Fatal("expected apprise error")
 	}
