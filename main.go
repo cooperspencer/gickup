@@ -1133,14 +1133,24 @@ func runBackup(conf *types.Conf, num int) {
 	prometheus.JobsComplete.Inc()
 	prometheus.JobDuration.Observe(duration.Seconds())
 
-	if len(conf.Metrics.Heartbeat.URLs) > 0 {
-		heartbeat.Send(conf.Metrics.Heartbeat)
+	exitCode := logger.GetExitCode()
+	success := exitCode == 0
+
+	title := "Backup done"
+	msg := fmt.Sprintf("backup took %v", duration)
+	if !success {
+		title = "Backup failed"
+		msg = fmt.Sprintf("backup took %v, check the logs for errors", duration)
+	}
+
+	if len(conf.Metrics.Heartbeat.URLs) > 0 || len(conf.Metrics.Heartbeat.FailureURLs) > 0 {
+		heartbeat.Send(conf.Metrics.Heartbeat, success)
 	}
 
 	if len(conf.Metrics.PushConfigs.Ntfy) > 0 {
 		for _, pusher := range conf.Metrics.PushConfigs.Ntfy {
 			pusher.ResolveToken()
-			err := ntfy.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			err := ntfy.Notify(title, msg, *pusher)
 			if err != nil {
 				log.Warn().Str("push", "ntfy").Err(err).Msg("couldn't send message")
 			}
@@ -1150,7 +1160,7 @@ func runBackup(conf *types.Conf, num int) {
 	if len(conf.Metrics.PushConfigs.Gotify) > 0 {
 		for _, pusher := range conf.Metrics.PushConfigs.Gotify {
 			pusher.ResolveToken()
-			err := gotify.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			err := gotify.Notify(title, msg, *pusher)
 			if err != nil {
 				log.Warn().Str("push", "gotify").Err(err).Msg("couldn't send message")
 			}
@@ -1159,14 +1169,14 @@ func runBackup(conf *types.Conf, num int) {
 
 	if len(conf.Metrics.PushConfigs.Apprise) > 0 {
 		for _, pusher := range conf.Metrics.PushConfigs.Apprise {
-			err := apprise.Notify(fmt.Sprintf("backup took %v", duration), *pusher)
+			err := apprise.Notify(title, msg, *pusher)
 			if err != nil {
 				log.Warn().Str("push", "apprise").Err(err).Msg("couldn't send message")
 			}
 		}
 	}
-	exitCode := logger.GetExitCode()
-	if exitCode != 0 {
+
+	if !success {
 		log.Warn().Msgf("Encountered at least one error during the run. Check the logs. Exiting with status=%d", exitCode)
 	}
 

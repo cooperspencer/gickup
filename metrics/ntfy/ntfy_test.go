@@ -47,7 +47,7 @@ func TestNotifyAddsEmailHeader(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup took 2m", types.PushConfig{
+	err := Notify("Backup done", "backup took 2m", types.PushConfig{
 		Url:   server.URL,
 		Token: "my-token",
 		Email: "user@example.com",
@@ -78,7 +78,7 @@ func TestNotifyUsesBasicAuth(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.PushConfig{Url: server.URL, User: "andy", Password: "password"})
+	err := Notify("Backup done", "backup complete", types.PushConfig{Url: server.URL, User: "andy", Password: "password"})
 	if err != nil {
 		t.Fatalf("Notify() error = %v", err)
 	}
@@ -87,7 +87,7 @@ func TestNotifyUsesBasicAuth(t *testing.T) {
 func TestNotifyRequiresCredentials(t *testing.T) {
 	t.Parallel()
 
-	err := Notify("backup complete", types.PushConfig{Url: "https://ntfy.sh/topic"})
+	err := Notify("Backup done", "backup complete", types.PushConfig{Url: "https://ntfy.sh/topic"})
 	if err == nil {
 		t.Fatal("expected credential error")
 	}
@@ -105,7 +105,7 @@ func TestNotifyReturnsStatusError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
+	err := Notify("Backup done", "backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
 	if err == nil {
 		t.Fatal("expected status error")
 	}
