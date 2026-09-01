@@ -182,7 +182,7 @@ func TestGetSkipsMissingURL(t *testing.T) {
 func TestUserAgentTransportRewrites(t *testing.T) {
 	t.Parallel()
 	var got string
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		got = r.Header.Get("User-Agent")
 	}))
 	defer srv.Close()
