@@ -565,7 +565,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							continue
 						}
 
-						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						err = local.CreateRemotePush(temprepo, d, cloneurl, d.GetToken(), r.Origin.LFS)
 						if err != nil {
 							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
@@ -647,7 +647,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							continue
 						}
 
-						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						err = local.CreateRemotePush(temprepo, d, cloneurl, d.GetToken(), r.Origin.LFS)
 						if err != nil {
 							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
@@ -733,7 +733,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 							continue
 						}
 
-						err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+						err = local.CreateRemotePush(temprepo, d, cloneurl, d.GetToken(), r.Origin.LFS)
 						if err != nil {
 							if errors.Is(err, git.NoErrAlreadyUpToDate) {
 								log.Info().
@@ -805,7 +805,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						}
 					}
 
-					cloneurl, err := github.GetOrCreate(d, r)
+					cloneurl, destinationtoken, err := github.GetOrCreate(d, r)
 					if err != nil {
 						log.Error().
 							Str("stage", "github").
@@ -815,7 +815,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, destinationtoken, r.Origin.LFS)
 					if err != nil {
 						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
@@ -893,7 +893,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, d.GetToken(), r.Origin.LFS)
 					if err != nil {
 						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
@@ -972,7 +972,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 						continue
 					}
 
-					err = local.CreateRemotePush(temprepo, d, cloneurl, r.Origin.LFS)
+					err = local.CreateRemotePush(temprepo, d, cloneurl, d.GetToken(), r.Origin.LFS)
 					if err != nil {
 						if errors.Is(err, git.NoErrAlreadyUpToDate) {
 							log.Info().
