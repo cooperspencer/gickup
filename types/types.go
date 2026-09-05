@@ -245,6 +245,7 @@ type Source struct {
 	BitBucket []GenRepo `yaml:"bitbucket"`
 	OneDev    []GenRepo `yaml:"onedev"`
 	Sourcehut []GenRepo `yaml:"sourcehut"`
+	Opengist  []GenRepo `yaml:"opengist"`
 	Any       []GenRepo `yaml:"any"`
 }
 
@@ -257,6 +258,7 @@ func (source Source) Count() int {
 		len(source.Gitlab) +
 		len(source.OneDev) +
 		len(source.Sourcehut) +
+		len(source.Opengist) +
 		len(source.Any)
 }
 
