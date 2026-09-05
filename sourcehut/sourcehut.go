@@ -13,10 +13,7 @@ import (
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/types"
 	graphqlclient "github.com/hasura/go-graphql-client"
-	"github.com/rs/zerolog"
 )
-
-var sub zerolog.Logger
 
 const defaultSourcehutURL = "https://git.sr.ht"
 
@@ -250,7 +247,7 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	for _, repo := range conf.Source.Sourcehut {
 		repo.URL = normalizeURL(repo.URL)
 
-		sub = logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
+		sub := logger.CreateSubLogger("stage", "sourcehut", "url", repo.URL)
 		err := repo.Filter.ParseDuration()
 		if err != nil {
 			sub.Warn().
@@ -373,8 +370,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 
 func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	destination.URL = normalizeURL(destination.URL)
-
-	sub = logger.CreateSubLogger("stage", "sourcehut", "url", destination.URL)
 
 	token := destination.GetToken()
 	endpoint := graphQLEndpoint(destination.URL)
