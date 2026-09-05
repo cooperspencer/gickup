@@ -132,10 +132,6 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	ran := false
 	repos := []types.Repo{}
 
-	if len(conf.Source.Opengist) > 0 {
-		forceGitUserAgent()
-	}
-
 	for _, repo := range conf.Source.Opengist {
 		ran = true
 

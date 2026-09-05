@@ -20,6 +20,7 @@ import (
 	"github.com/cooperspencer/gickup/github"
 	"github.com/cooperspencer/gickup/gitlab"
 	"github.com/cooperspencer/gickup/gogs"
+	"github.com/cooperspencer/gickup/httpClient"
 	"github.com/cooperspencer/gickup/local"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/metrics/apprise"
@@ -1076,6 +1077,8 @@ func runBackup(conf *types.Conf, num int) {
 	startTime := time.Now()
 
 	prometheus.JobsStarted.Inc()
+
+	httpClient.ApplyGickupUserAgent()
 
 	// Github
 	repos, ran := github.Get(conf)
