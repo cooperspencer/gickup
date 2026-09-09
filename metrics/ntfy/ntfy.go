@@ -10,7 +10,7 @@ import (
 	"github.com/cooperspencer/gickup/types"
 )
 
-func Notify(msg string, config types.PushConfig) error {
+func Notify(title, msg string, config types.PushConfig) error {
 	url := config.Url
 
 	payload := strings.NewReader(msg)
@@ -21,7 +21,7 @@ func Notify(msg string, config types.PushConfig) error {
 	}
 
 	req.Header.Add("Content-Type", "text/plain")
-	req.Header.Add("Title", "Backup done")
+	req.Header.Add("Title", title)
 	if config.Email != "" {
 		req.Header.Add("Email", config.Email)
 	}

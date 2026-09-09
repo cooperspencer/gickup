@@ -12,20 +12,22 @@ import (
 )
 
 type Request struct {
-	Body string   `json:"body"`
-	Tags []string `json:"tags,omitempty"`
-	Urls []string `json:"urls,omitempty"`
+	Title string   `json:"title,omitempty"`
+	Body  string   `json:"body"`
+	Tags  []string `json:"tags,omitempty"`
+	Urls  []string `json:"urls,omitempty"`
 }
 
 type ErrorMsg struct {
 	Error string `json:"error"`
 }
 
-func Notify(msg string, config types.AppriseConfig) error {
+func Notify(title, msg string, config types.AppriseConfig) error {
 	payload := Request{
-		Body: msg,
-		Urls: config.Urls,
-		Tags: config.Tags,
+		Title: title,
+		Body:  msg,
+		Urls:  config.Urls,
+		Tags:  config.Tags,
 	}
 
 	jsonData, err := json.Marshal(payload)

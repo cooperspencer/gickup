@@ -11,7 +11,7 @@ import (
 	"github.com/cooperspencer/gickup/types"
 )
 
-func Notify(msg string, config types.PushConfig) error {
+func Notify(title, msg string, config types.PushConfig) error {
 	if !strings.HasSuffix(config.Url, "/") {
 		config.Url += "/"
 	}
@@ -20,7 +20,7 @@ func Notify(msg string, config types.PushConfig) error {
 
 	payload := map[string]string{}
 	payload["message"] = msg
-	payload["title"] = "Backup done"
+	payload["title"] = title
 
 	body, err := json.Marshal(payload)
 	if err != nil {

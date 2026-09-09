@@ -38,7 +38,7 @@ func TestNotifySendsExpectedPayload(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
+	err := Notify("Backup done", "backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
 	if err != nil {
 		t.Fatalf("Notify() error = %v", err)
 	}
@@ -52,7 +52,7 @@ func TestNotifyReturnsStatusError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	err := Notify("backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
+	err := Notify("Backup done", "backup complete", types.PushConfig{Url: server.URL, Token: "secret-token"})
 	if err == nil {
 		t.Fatal("expected status error")
 	}

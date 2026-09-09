@@ -90,7 +90,8 @@ type PrometheusConfig struct {
 
 // HeartbeatConfig TODO.
 type HeartbeatConfig struct {
-	URLs []string `yaml:"urls"`
+	URLs        []string `yaml:"urls"`
+	FailureURLs []string `yaml:"failure_urls"`
 }
 
 // PushConfig TODO.
