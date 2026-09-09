@@ -212,6 +212,19 @@ source:
       wiki: true # includes wiki too
       filter:
         lastactivity: 1y # only clone repos which had activity during the last year
+  opengist:
+    - url: http(s)://url-to-opengist # required, base url of your Opengist instance, e.g. https://gist.example.com
+      token: some-token # Opengist personal access token (og_...); used for the API and to clone private gists
+      # token_file: token.txt # alternatively, specify token in a file
+      # user: some-user # optional: back up this user's gists (GET /api/users/<user>/gists).
+      # leave user out and set a token to back up the token owner's own gists (GET /api/gists).
+      # leave out both user and token to back up only public gists (GET /api/gists/public).
+      # note: Opengist's git-over-http must be enabled on the server to clone (OG_HTTP_GIT_ENABLED=true).
+      exclude: # this excludes the gists with these slugs/ids
+        - foo
+        - bar
+      include: # this only includes the gists with these slugs/ids
+        - foobar
   any:
     - url: url-to-any-repo # can be https, http or ssh
       user: your-preferred-user # the user to want to associate with this repo, default: git

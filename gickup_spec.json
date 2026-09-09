@@ -449,6 +449,36 @@
                         "additionalProperties": false
                     }
                 },
+                "opengist": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "token": {
+                                "$ref": "#/definitions/source/properties/token"
+                            },
+                            "token_file": {
+                                "$ref": "#/definitions/source/properties/token_file"
+                            },
+                            "url": {
+                                "$ref": "#/definitions/source/properties/url"
+                            },
+                            "user": {
+                                "$ref": "#/definitions/source/properties/user"
+                            },
+                            "exclude": {
+                                "$ref": "#/definitions/source/properties/exclude"
+                            },
+                            "include": {
+                                "$ref": "#/definitions/source/properties/include"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "required": [
+                        "url"
+                    ]
+                },
                 "any": {
                     "type": "array",
                     "items": {

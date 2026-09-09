@@ -20,6 +20,7 @@ import (
 	"github.com/cooperspencer/gickup/github"
 	"github.com/cooperspencer/gickup/gitlab"
 	"github.com/cooperspencer/gickup/gogs"
+	"github.com/cooperspencer/gickup/httpclient"
 	"github.com/cooperspencer/gickup/local"
 	"github.com/cooperspencer/gickup/logger"
 	"github.com/cooperspencer/gickup/metrics/apprise"
@@ -28,6 +29,7 @@ import (
 	"github.com/cooperspencer/gickup/metrics/ntfy"
 	"github.com/cooperspencer/gickup/metrics/prometheus"
 	"github.com/cooperspencer/gickup/onedev"
+	"github.com/cooperspencer/gickup/opengist"
 	"github.com/cooperspencer/gickup/radicle"
 	"github.com/cooperspencer/gickup/s3"
 	"github.com/cooperspencer/gickup/sourcehut"
@@ -120,6 +122,7 @@ func expandConfigPaths(c *types.Conf) {
 	expandGenRepoPaths(c.Source.BitBucket)
 	expandGenRepoPaths(c.Source.OneDev)
 	expandGenRepoPaths(c.Source.Sourcehut)
+	expandGenRepoPaths(c.Source.Opengist)
 	expandGenRepoPaths(c.Source.Any)
 
 	expandGenRepoPaths(c.Destination.Gitlab)
@@ -1075,6 +1078,8 @@ func runBackup(conf *types.Conf, num int) {
 
 	prometheus.JobsStarted.Inc()
 
+	httpclient.ApplyGickupUserAgent()
+
 	// Github
 	repos, ran := github.Get(conf)
 	if ran {
@@ -1124,6 +1129,12 @@ func runBackup(conf *types.Conf, num int) {
 	repos, ran = sourcehut.Get(conf)
 	if ran {
 		prometheus.CountReposDiscovered.WithLabelValues("sourcehut", numstring).Set(float64(len(repos)))
+	}
+	backup(repos, conf)
+
+	repos, ran = opengist.Get(conf)
+	if ran {
+		prometheus.CountReposDiscovered.WithLabelValues("opengist", numstring).Set(float64(len(repos)))
 	}
 	backup(repos, conf)
 
