@@ -276,10 +276,12 @@ destination:
         repositories: private # private, public, default: private
       force: false # force push to destination
     # alternatively, authenticate with a GitHub App:
+    # requires Contents: write, plus Administration: write to create repositories
     # - app_id: 123456                              # GitHub App ID (numeric)
-    #   app_installation_id: 78901234               # Installation ID of the App
+    #   app_installation_id: 78901234               # installation on the destination organization, including for enterprise-owned Apps
     #   app_private_key_file: /path/to/private.pem  # path to the App's RSA private key PEM file
-    #   organization: whatever                      # org to back up into (leave empty for personal account)
+    #   organization: whatever                      # destination organization; required for App authentication
+    #   url: https://github.example.com             # GitHub Enterprise Server base URL; omit for github.com
     #   visibility:
     #     repositories: private
     #   force: false

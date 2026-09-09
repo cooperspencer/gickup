@@ -497,12 +497,13 @@ func Get(conf *types.Conf) ([]types.Repo, bool) {
 	return repos, ran
 }
 
-// GetOrCreate Get or create a repository
-func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
+// GetOrCreate returns the destination's clone URL and resolved push token,
+// creating the repository if needed.
+func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, string, error) {
 	sub = logger.CreateSubLogger("stage", "github", "url", githubInstanceURL(destination.URL))
-	client, _, err := newGithubClient(context.TODO(), destination)
+	client, token, err := newGithubClient(context.TODO(), destination)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	dest := types.GithubDestination{}
@@ -510,14 +511,14 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	if destination.Organization == "" {
 		user, _, err := client.Users.Get(context.TODO(), "")
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 		dest.User = user
 		login = *user.Login
 	} else {
 		organization, _, err := client.Organizations.Get(context.TODO(), destination.Organization)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 		dest.Organization = organization
 		login = *organization.Login
@@ -526,12 +527,12 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 	r, _, err := client.Repositories.Get(context.TODO(), login, repo.Name)
 	if err != nil {
 		if !strings.Contains(err.Error(), "404 Not Found") {
-			return "", err
+			return "", "", err
 		}
 		if destination.Organization == "" {
 			r, _, err = client.Repositories.Create(context.TODO(), "", &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Owner: dest.User})
 			if err != nil {
-				return "", err
+				return "", "", err
 			}
 		} else {
 			if destination.Visibility.Repositories == "" {
@@ -539,12 +540,12 @@ func GetOrCreate(destination types.GenRepo, repo types.Repo) (string, error) {
 			}
 			r, _, err = client.Repositories.Create(context.TODO(), *dest.Organization.Login, &github.Repository{Name: github.String(repo.Name), Private: github.Bool(destination.Visibility.Repositories == "private"), Visibility: github.String(destination.Visibility.Repositories), Organization: dest.Organization})
 			if err != nil {
-				return "", err
+				return "", "", err
 			}
 		}
 	}
 
-	return *r.CloneURL, nil
+	return *r.CloneURL, token, nil
 }
 
 // GetIssues get issues

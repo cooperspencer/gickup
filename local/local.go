@@ -659,9 +659,9 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 	return r, err
 }
 
-func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url string, lfs bool) error {
+// CreateRemotePush pushes to url using the caller's resolved token or SSH configuration.
+func CreateRemotePush(repo *git.Repository, destination types.GenRepo, url, token string, lfs bool) error {
 	sub = logger.CreateSubLogger("stage", "tempclone", "url", url)
-	token := destination.GetToken()
 	var auth transport.AuthMethod
 	if destination.SSH {
 		if destination.SSHKey == "" {
