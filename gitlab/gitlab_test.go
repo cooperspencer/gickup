@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetRepoVisibility(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		configured    string
@@ -23,6 +25,8 @@ func TestGetRepoVisibility(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := getRepoVisibility(test.configured, test.sourcePrivate); got != test.want {
 				t.Fatalf("getRepoVisibility(%q, %t) = %q, want %q", test.configured, test.sourcePrivate, got, test.want)
 			}
