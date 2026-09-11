@@ -618,6 +618,10 @@
                             "datecreatedir": {
                                 "type": "boolean",
                                 "description": "If true, gickup will create a directory for backup with the creation date"
+                            },
+                            "lfs": {
+                                "type": "boolean",
+                                "description": "uses lfs to clone repositories"
                             }
                         },
                         "additionalProperties": false

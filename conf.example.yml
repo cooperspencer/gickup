@@ -331,6 +331,7 @@ destination:
      storageclass: "" # storage class for all repos to be uploaded to this S3 bucket. E.g. for AWS: STANDARD, STANDARD_IA, GLACIER, etc.
      src_repo_url_tag_key: "" # if set, tag each uploaded object with this key and the source repo URL as value. Leave unset to disable tagging.
      datecreatedir: false # if true, gickup will create a directory for backup with the creation date
+     lfs: true # clone lfs repos, !! ATTENTION !! git and git-lfs must be installed on the system!
   azureblob:
     - url: https://yourstorageaccount.blob.core.windows.net # blob storage endpoint for your storage account, can be a SAS url
       container: name of your blob container
