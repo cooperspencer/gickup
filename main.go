@@ -256,6 +256,7 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				}
 
 				defer os.RemoveAll(tempdir)
+				r.Origin.LFS = d.LFS
 				tempClonePath := path.Join(tempdir, r.Name)
 				_, err = local.TempCloneBare(r, tempClonePath)
 				if err != nil {

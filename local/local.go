@@ -604,6 +604,12 @@ func tempCloneBase(repo types.Repo, tempdir string, isBare bool) (*git.Repositor
 			return r, lfsErr
 		}
 
+		// Bare backups already contain all refs and LFS objects.
+		// Checkout and pull require a working tree and must not run for these clones.
+		if isBare {
+			return r, nil
+		}
+
 		// Get the symbolic reference for HEAD
 		headRef, err := r.Head()
 		if err != nil {
