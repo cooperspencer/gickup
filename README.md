@@ -99,6 +99,7 @@ https://github.com/cooperspencer/gickup/discussions
 |Homebrew|[gickup](https://formulae.brew.sh/formula/gickup#default)||
 |Fedora|[gickup](https://copr.fedorainfracloud.org/coprs/frostyx/gickup/)|[FrostyX](https://github.com/FrostyX)|
 |Scoop|[gickup](https://scoop.sh/#/apps?q=gickup&id=493e856707843828b4491004edfb6ddedc4bd1e1)||
+|Winget|[gickup](https://github.com/microsoft/winget-pkgs/tree/master/manifests/c/cooperspencer/gickup)||
 
 ## Issues
 The mirroring to Gitlab doesn't work, or at least I can't test it properly because I have no access to a Gitlab EE instance.
