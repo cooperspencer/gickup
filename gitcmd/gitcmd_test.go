@@ -265,6 +265,22 @@ func TestGitCmd_LFSFetchCommand(t *testing.T) {
 	}
 }
 
+func TestGitCmd_CheckoutCommand(t *testing.T) {
+	t.Parallel()
+
+	g := GitCmd{CMD: "git"}
+
+	// Checkout must scope the command to the repo path with -C, otherwise
+	// git runs against the process's cwd instead of the cloned repo.
+	checkoutArgs := []string{"-C", "/tmp/repo", "checkout", "main"}
+	cmd := g.Command(context.Background(), nil, checkoutArgs...)
+	wantArgs := []string{"git", "-C", "/tmp/repo", "checkout", "main"}
+
+	if !reflect.DeepEqual(cmd.Args, wantArgs) {
+		t.Errorf("cmd.Args = %v, want %v", cmd.Args, wantArgs)
+	}
+}
+
 func TestGitCmd_LocalCommandsHaveNoAuth(t *testing.T) {
 	t.Parallel()
 
