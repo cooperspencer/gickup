@@ -137,7 +137,7 @@ func (g GitCmd) Checkout(path, branch string) error {
 	if err != nil {
 		return err
 	}
-	args := []string{"checkout", branch}
+	args := []string{"-C", path, "checkout", branch}
 	cmd := g.Command(context.Background(), nil, args...)
 
 	output, err := cmd.CombinedOutput()
