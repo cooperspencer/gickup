@@ -2,7 +2,6 @@ package gitcmd
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -15,15 +14,28 @@ type Auth struct {
 	Password string
 }
 
+// envAuthHelper answers git's credential "get" request from the environment,
+// so credentials never end up in URLs, command arguments or git config files.
+const envAuthHelper = `!f() { test "$1" = get || return 0; echo "username=${GICKUP_GIT_USERNAME}"; echo "password=${GICKUP_GIT_PASSWORD}"; }; f`
+
+// Env passes the credentials through a credential helper instead of
+// http.extraHeader. git lfs adds extra headers to object downloads as well,
+// where the LFS server already provides its own Authorization header, and
+// servers like gitlab.com reject the duplicate header with 400 Bad Request.
 func (a *Auth) Env() []string {
 	if a == nil || (a.Username == "" && a.Password == "") {
 		return nil
 	}
-	encoded := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password)))
 	return []string{
-		"GIT_CONFIG_COUNT=1",
-		"GIT_CONFIG_KEY_0=http.extraHeader",
-		fmt.Sprintf("GIT_CONFIG_VALUE_0=Authorization: Basic %s", encoded),
+		"GICKUP_GIT_USERNAME=" + a.Username,
+		"GICKUP_GIT_PASSWORD=" + a.Password,
+		"GIT_CONFIG_COUNT=2",
+		// The empty value resets helpers from system or global config,
+		// so no other helper stores these credentials.
+		"GIT_CONFIG_KEY_0=credential.helper",
+		"GIT_CONFIG_VALUE_0=",
+		"GIT_CONFIG_KEY_1=credential.helper",
+		"GIT_CONFIG_VALUE_1=" + envAuthHelper,
 	}
 }
 
