@@ -215,14 +215,23 @@ func TestToGitCmdAuth_FromTokenAuth_GitHubApp(t *testing.T) {
 	}
 
 	env := gitAuth.Env()
-	if len(env) != 3 {
-		t.Fatalf("expected 3 env vars, got %d: %v", len(env), env)
+	want := map[string]bool{
+		"GICKUP_GIT_USERNAME=x-access-token":   false,
+		"GICKUP_GIT_PASSWORD=ghs_testtoken123": false,
+		"GIT_CONFIG_KEY_1=credential.helper":   false,
 	}
-	if env[0] != "GIT_CONFIG_COUNT=1" || env[1] != "GIT_CONFIG_KEY_0=http.extraHeader" {
-		t.Errorf("unexpected env vars: %v", env)
+	for _, e := range env {
+		if _, ok := want[e]; ok {
+			want[e] = true
+		}
+		if strings.Contains(e, "http.extraHeader") {
+			t.Errorf("unexpected http.extraHeader in env: %s", e)
+		}
 	}
-	if !strings.HasPrefix(env[2], "GIT_CONFIG_VALUE_0=Authorization: Basic ") {
-		t.Errorf("unexpected GIT_CONFIG_VALUE_0: %s", env[2])
+	for e, found := range want {
+		if !found {
+			t.Errorf("env missing %q: %v", e, env)
+		}
 	}
 }
 

@@ -2,12 +2,22 @@ package gitcmd
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 )
+
+func expectedAuthEnv(username, password string) []string {
+	return []string{
+		"GICKUP_GIT_USERNAME=" + username,
+		"GICKUP_GIT_PASSWORD=" + password,
+		"GIT_CONFIG_COUNT=2",
+		"GIT_CONFIG_KEY_0=credential.helper",
+		"GIT_CONFIG_VALUE_0=",
+		"GIT_CONFIG_KEY_1=credential.helper",
+		"GIT_CONFIG_VALUE_1=" + envAuthHelper,
+	}
+}
 
 func TestAuth_Env_Nil(t *testing.T) {
 	t.Parallel()
@@ -36,12 +46,7 @@ func TestAuth_Env_GitHubApp(t *testing.T) {
 	}
 
 	env := auth.Env()
-	expectedHeader := "Authorization: Basic " + base64.StdEncoding.EncodeToString([]byte("x-access-token:test-token"))
-	expectedEnv := []string{
-		"GIT_CONFIG_COUNT=1",
-		"GIT_CONFIG_KEY_0=http.extraHeader",
-		"GIT_CONFIG_VALUE_0=" + expectedHeader,
-	}
+	expectedEnv := expectedAuthEnv("x-access-token", "test-token")
 
 	if !reflect.DeepEqual(env, expectedEnv) {
 		t.Fatalf("auth.Env() = %v, want %v", env, expectedEnv)
@@ -57,12 +62,7 @@ func TestAuth_Env_UserPassword(t *testing.T) {
 	}
 
 	env := auth.Env()
-	expectedHeader := "Authorization: Basic " + base64.StdEncoding.EncodeToString([]byte("octocat:secretpassword456"))
-	expectedEnv := []string{
-		"GIT_CONFIG_COUNT=1",
-		"GIT_CONFIG_KEY_0=http.extraHeader",
-		"GIT_CONFIG_VALUE_0=" + expectedHeader,
-	}
+	expectedEnv := expectedAuthEnv("octocat", "secretpassword456")
 
 	if !reflect.DeepEqual(env, expectedEnv) {
 		t.Fatalf("auth.Env() = %v, want %v", env, expectedEnv)
@@ -97,27 +97,14 @@ func TestGitCmd_Command_WithAuth(t *testing.T) {
 		t.Fatal("cmd.Env is nil, want environment variables with auth config")
 	}
 
-	hasConfigCount := false
-	hasConfigKey := false
-	hasConfigValue := false
-
-	expectedValue := fmt.Sprintf("GIT_CONFIG_VALUE_0=Authorization: Basic %s",
-		base64.StdEncoding.EncodeToString([]byte("x-access-token:test-token")))
-
+	present := make(map[string]bool, len(cmd.Env))
 	for _, e := range cmd.Env {
-		if e == "GIT_CONFIG_COUNT=1" {
-			hasConfigCount = true
-		}
-		if e == "GIT_CONFIG_KEY_0=http.extraHeader" {
-			hasConfigKey = true
-		}
-		if e == expectedValue {
-			hasConfigValue = true
-		}
+		present[e] = true
 	}
-
-	if !hasConfigCount || !hasConfigKey || !hasConfigValue {
-		t.Errorf("cmd.Env missing required GIT_CONFIG variables, env = %v", cmd.Env)
+	for _, want := range expectedAuthEnv("x-access-token", "test-token") {
+		if !present[want] {
+			t.Errorf("cmd.Env missing %q, env = %v", want, cmd.Env)
+		}
 	}
 
 	// Verify the URL in cmd.Args does NOT contain token
@@ -254,14 +241,19 @@ func TestGitCmd_LFSFetchCommand(t *testing.T) {
 		t.Fatal("cmd.Env is nil, want auth environment for LFS fetch")
 	}
 
-	foundExtraHeader := false
+	foundHelper := false
 	for _, e := range cmd.Env {
-		if e == "GIT_CONFIG_KEY_0=http.extraHeader" {
-			foundExtraHeader = true
+		if e == "GIT_CONFIG_VALUE_1="+envAuthHelper {
+			foundHelper = true
+		}
+		// git lfs would add an extra header to object downloads next to the
+		// Authorization header from the LFS batch response.
+		if strings.Contains(e, "http.extraHeader") {
+			t.Errorf("cmd.Env sets http.extraHeader, which breaks LFS object downloads: %q", e)
 		}
 	}
-	if !foundExtraHeader {
-		t.Error("cmd.Env does not contain GIT_CONFIG_KEY_0=http.extraHeader for LFS fetch")
+	if !foundHelper {
+		t.Error("cmd.Env does not contain the credential helper for LFS fetch")
 	}
 }
 
