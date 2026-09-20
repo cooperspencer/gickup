@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -35,6 +36,7 @@ import (
 	"github.com/cooperspencer/gickup/sourcehut"
 	"github.com/cooperspencer/gickup/types"
 	"github.com/cooperspencer/gickup/webdav"
+	"github.com/cooperspencer/gickup/webui"
 	"github.com/cooperspencer/gickup/whatever"
 	"github.com/cooperspencer/gickup/zip"
 	"github.com/go-git/go-git/v5"
@@ -48,6 +50,7 @@ import (
 )
 
 var cli struct {
+	WebUI       string   `flag name:"webui" placeholder:"ADDR" help:"Start the web interface at this address, even without a configuration file (e.g. :8080; overrides webui.addr)."`
 	Configfiles []string `arg name:"conf" help:"Path to the configfile." default:"conf.yml"`
 	Version     bool     `flag name:"version" help:"Show version."`
 	Dry         bool     `flag name:"dryrun" help:"Make a dry-run."`
@@ -59,13 +62,18 @@ var cli struct {
 var version = "unknown"
 
 func readConfigFile(configfile string) []*types.Conf {
+	confs, err := loadConfigFile(configfile)
+	if err != nil {
+		log.Fatal().Err(err).Str("file", configfile).Msg("Cannot read configuration")
+	}
+	return confs
+}
+
+func loadConfigFile(configfile string) ([]*types.Conf, error) {
 	conf := []*types.Conf{}
 	cfgdata, err := os.Open(filepath.Clean(configfile))
 	if err != nil {
-		log.Fatal().
-			Str("stage", "readconfig").
-			Str("file", configfile).
-			Msgf("Cannot open config file from %s", types.Red(configfile))
+		return nil, err
 	}
 	defer cfgdata.Close()
 
@@ -79,17 +87,7 @@ func readConfigFile(configfile string) []*types.Conf {
 		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
-			if len(conf) > 0 {
-				log.Fatal().
-					Str("stage", "readconfig").
-					Str("file", configfile).
-					Msgf("an error occurred in the %d place of %s", i, configfile)
-			} else {
-				log.Fatal().
-					Str("stage", "readconfig").
-					Str("file", configfile).
-					Msg(err.Error())
-			}
+			return nil, fmt.Errorf("config document %d: %w", i+1, err)
 		}
 
 		if reflect.ValueOf(c).IsZero() {
@@ -109,7 +107,7 @@ func readConfigFile(configfile string) []*types.Conf {
 		}
 	}
 
-	return conf
+	return conf, nil
 }
 
 func expandConfigPaths(c *types.Conf) {
@@ -221,6 +219,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 			prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "local", d.Path).Set(float64(status))
 			prometheus.DestinationBackupsComplete.WithLabelValues("local").Inc()
+			webui.Global.Record(webui.BackupEntry{
+				Timestamp:  repotime,
+				RepoName:   r.Name,
+				RepoURL:    r.URL,
+				Owner:      r.Owner,
+				Hoster:     r.Hoster,
+				DestType:   "local",
+				DestAddr:   d.Path,
+				Status:     webui.StatusFromInt(status),
+				DurationMs: time.Since(repotime).Milliseconds(),
+			})
 		}
 
 		for _, d := range conf.Destination.S3 {
@@ -335,6 +344,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "s3", d.Endpoint).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("s3").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "s3",
+					DestAddr:   d.Endpoint,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -426,6 +446,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "azureblob", d.Container).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("azureblob").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "azureblob",
+					DestAddr:   d.Container,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -443,74 +474,86 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				Msgf("%s %s to %s", logOp, types.Blue(r.Name), d.Url)
 
 			if !cli.Dry {
-				tempname := fmt.Sprintf("webdav-%x", repotime)
-				tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
-				if err != nil {
-					log.Error().
-						Str("stage", "tempclone").
-						Str("url", r.URL).
-						Msg(err.Error())
-					continue
-				}
-
-				if d.Structured {
-					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
-				}
-
-				if d.DateCreateDir {
-					r.Name = currentDateDir + r.Name
-				}
-
-				defer os.RemoveAll(tempdir)
-				tempClonePath := path.Join(tempdir, r.Name)
-				_, err = local.TempCloneBare(r, tempClonePath)
-				if err != nil {
-					switch {
-					case errors.Is(err, git.NoErrAlreadyUpToDate):
-						log.Info().
-							Str("stage", "webdav").
-							Msg(err.Error())
-					case errors.Is(err, transport.ErrEmptyRemoteRepository):
-						log.Warn().
-							Str("repo", r.Name).
-							Msgf("%s - Skipping backup", err.Error())
-						continue
-					default:
-						log.Error().
-							Str("stage", "tempclone").
-							Str("git", "clone").
-							Msg(err.Error())
-						os.RemoveAll(tempdir)
-						continue
-					}
-				}
-
-				if d.Zip {
-					log.Info().
-						Msgf("zipping %s", types.Green(r.Name))
-					err := zip.Zip(tempClonePath, []string{tempClonePath})
+				func() {
+					defer func() {
+						webui.Global.Record(webui.BackupEntry{
+							Timestamp: repotime, RepoName: r.Name, RepoURL: r.URL,
+							Owner: r.Owner, Hoster: r.Hoster, DestType: "webdav",
+							DestAddr: d.Url, Status: webui.StatusFromInt(status),
+							DurationMs: time.Since(repotime).Milliseconds(),
+						})
+					}()
+					tempname := fmt.Sprintf("webdav-%x", repotime)
+					tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
 					if err != nil {
 						log.Error().
-							Str("stage", "zip").
-							Str("repo", r.Name).
+							Str("stage", "tempclone").
+							Str("url", r.URL).
 							Msg(err.Error())
-						log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
-						continue
+						return
 					}
-				}
-				err = webdav.UploadDirToWebDAV(tempdir, d)
-				if err != nil {
-					log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
-				}
-				err = webdav.DeleteObjectsNotInRepo(tempdir, r.Name, d)
-				if err != nil {
-					log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
-				}
-				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(time.Since(repotime).Seconds())
-				status = 1
 
-				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(float64(status))
-				prometheus.DestinationBackupsComplete.WithLabelValues("webdav").Inc()
+					if d.Structured {
+						r.Name = path.Join(r.Hoster, r.Owner, r.Name)
+					}
+
+					if d.DateCreateDir {
+						r.Name = currentDateDir + r.Name
+					}
+
+					defer os.RemoveAll(tempdir)
+					tempClonePath := path.Join(tempdir, r.Name)
+					_, err = local.TempCloneBare(r, tempClonePath)
+					if err != nil {
+						switch {
+						case errors.Is(err, git.NoErrAlreadyUpToDate):
+							log.Info().
+								Str("stage", "webdav").
+								Msg(err.Error())
+						case errors.Is(err, transport.ErrEmptyRemoteRepository):
+							log.Warn().
+								Str("repo", r.Name).
+								Msgf("%s - Skipping backup", err.Error())
+							return
+						default:
+							log.Error().
+								Str("stage", "tempclone").
+								Str("git", "clone").
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							return
+						}
+					}
+
+					if d.Zip {
+						log.Info().
+							Msgf("zipping %s", types.Green(r.Name))
+						err := zip.Zip(tempClonePath, []string{tempClonePath})
+						if err != nil {
+							log.Error().
+								Str("stage", "zip").
+								Str("repo", r.Name).
+								Msg(err.Error())
+							log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
+							return
+						}
+					}
+					err = webdav.UploadDirToWebDAV(tempdir, d)
+					if err != nil {
+						log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
+						return
+					}
+					err = webdav.DeleteObjectsNotInRepo(tempdir, r.Name, d)
+					if err != nil {
+						log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
+						return
+					}
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(time.Since(repotime).Seconds())
+					status = 1
+
+					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(float64(status))
+					prometheus.DestinationBackupsComplete.WithLabelValues("webdav").Inc()
+				}()
 			}
 		}
 
@@ -599,6 +642,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitea", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitea").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gitea",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -681,6 +735,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gogs", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gogs").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gogs",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -767,6 +832,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "gitlab", d.URL).Set(float64(status))
 				prometheus.DestinationBackupsComplete.WithLabelValues("gitlab").Inc()
+				webui.Global.Record(webui.BackupEntry{
+					Timestamp:  repotime,
+					RepoName:   r.Name,
+					RepoURL:    r.URL,
+					Owner:      r.Owner,
+					Hoster:     r.Hoster,
+					DestType:   "gitlab",
+					DestAddr:   d.URL,
+					Status:     webui.StatusFromInt(status),
+					DurationMs: time.Since(repotime).Milliseconds(),
+				})
 			}
 		}
 
@@ -842,6 +918,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "github", "https://github.com").Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("github").Inc()
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "github",
+						DestAddr:   "https://github.com",
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -920,6 +1007,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "onedev", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("onedev").Inc()
 					os.RemoveAll(tempdir)
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "onedev",
+						DestAddr:   d.URL,
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -999,6 +1097,17 @@ func backup(repos []types.Repo, conf *types.Conf) {
 					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "sourcehut", d.URL).Set(float64(status))
 					prometheus.DestinationBackupsComplete.WithLabelValues("sourcehut").Inc()
 					os.RemoveAll(tempdir)
+					webui.Global.Record(webui.BackupEntry{
+						Timestamp:  repotime,
+						RepoName:   r.Name,
+						RepoURL:    r.URL,
+						Owner:      r.Owner,
+						Hoster:     r.Hoster,
+						DestType:   "sourcehut",
+						DestAddr:   d.URL,
+						Status:     webui.StatusFromInt(status),
+						DurationMs: time.Since(repotime).Milliseconds(),
+					})
 				}
 			}
 		}
@@ -1016,6 +1125,14 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 			if !cli.Dry {
 				func() {
+					defer func() {
+						webui.Global.Record(webui.BackupEntry{
+							Timestamp: repotime, RepoName: r.Name, RepoURL: r.URL,
+							Owner: r.Owner, Hoster: r.Hoster, DestType: "radicle",
+							DestAddr: radhome, Status: webui.StatusFromInt(status),
+							DurationMs: time.Since(repotime).Milliseconds(),
+						})
+					}()
 					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("radicle-%x", repotime))
 					if err != nil {
 						log.Error().
@@ -1071,6 +1188,8 @@ func backup(repos []types.Repo, conf *types.Conf) {
 }
 
 func runBackup(conf *types.Conf, num int) {
+	webui.Global.BeginRun()
+	defer webui.Global.EndRun()
 	log.Info().Msg("Backup run starting")
 
 	numstring := strconv.Itoa(num)
@@ -1204,11 +1323,25 @@ func runBackup(conf *types.Conf, num int) {
 func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 	for {
 		checkconfigs := []*types.Conf{}
+		valid := true
 		for _, f := range conffiles {
-			checkconfigs = append(checkconfigs, readConfigFile(f)...)
+			loaded, err := loadConfigFile(f)
+			if errors.Is(err, os.ErrNotExist) && cli.WebUI != "" {
+				continue
+			}
+			if err != nil {
+				log.Error().Err(err).Str("file", f).Msg("Cannot reload configuration; keeping current configuration")
+				valid = false
+				break
+			}
+			checkconfigs = append(checkconfigs, loaded...)
+		}
+		if !valid {
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
-		if checkconfigs[0].HasValidCronSpec() {
+		if len(checkconfigs) > 0 && checkconfigs[0].HasValidCronSpec() {
 			for num, config := range checkconfigs {
 				if !config.HasValidCronSpec() {
 					checkconfigs[num].Cron = checkconfigs[0].Cron
@@ -1219,8 +1352,10 @@ func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 		if !cmp.Equal(confs, checkconfigs) {
 			log.Info().Msg("config changed")
 			log.Debug().Msg(cmp.Diff(confs, checkconfigs))
-			for _, entry := range c.Entries() {
-				c.Remove(entry.ID)
+			if c != nil {
+				for _, entry := range c.Entries() {
+					c.Remove(entry.ID)
+				}
 			}
 			return true
 		}
@@ -1269,10 +1404,17 @@ func main() {
 			Msgf("this is a %s", types.Blue("dry run"))
 	}
 
+	var webuiOnce sync.Once
+	var webuiAddr string
+	if cli.WebUI != "" {
+		webuiAddr = cli.WebUI
+	}
+
 	init := true
 	for {
 		reload := false
 		confs := []*types.Conf{}
+		confNames := []string{}
 		for i, f := range cli.Configfiles {
 			log.Info().Str("file", f).
 				Msgf("Reading %s", types.Green(f))
@@ -1281,7 +1423,41 @@ func main() {
 				log.Panic().Err(err).Msgf("there is an issue with %s", f)
 			}
 			cli.Configfiles[i] = absf
-			confs = append(confs, readConfigFile(absf)...)
+			base := filepath.Base(absf)
+			before := len(confs)
+			loaded, err := loadConfigFile(absf)
+			if err != nil {
+				if cli.WebUI == "" {
+					log.Fatal().Err(err).Str("file", absf).Msg("Cannot read configuration")
+				}
+				if !errors.Is(err, os.ErrNotExist) {
+					log.Error().Err(err).Str("file", absf).Msg("Repair configuration in the web interface")
+				}
+			} else {
+				confs = append(confs, loaded...)
+			}
+			added := len(confs) - before
+			for j := range added {
+				if added > 1 {
+					confNames = append(confNames, fmt.Sprintf("%s #%d", base, j+1))
+				} else {
+					confNames = append(confNames, base)
+				}
+			}
+		}
+
+		if cli.WebUI != "" {
+			webui.Global.SetConfigFiles(cli.Configfiles)
+			webuiOnce.Do(func() { go webui.Serve(webuiAddr) })
+		}
+		if len(confs) == 0 {
+			if cli.WebUI == "" {
+				log.Fatal().Msg("No configuration found; use --webui :8080 to create one in the browser")
+			}
+			webui.Global.SetConfigs(nil)
+			webui.Global.SetRunFunc(nil)
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
 		logConf := confs[0].Log
@@ -1291,6 +1467,46 @@ func main() {
 		}
 
 		log.Logger = logger.CreateLogger(logConf)
+
+		// Determine webUI address from config file.
+		if webuiAddr == "" && confs[0].WebUI.Addr != "" {
+			webuiAddr = confs[0].WebUI.Addr
+		}
+
+		// Register config summaries and run callback; start server once.
+		if webuiAddr != "" {
+			infos := make([]webui.ConfigInfo, len(confs))
+			for i, c := range confs {
+				info := webui.ConfigInfo{
+					Index:   i,
+					Name:    confNames[i],
+					Sources: c.Source.Count(),
+					Dests:   c.Destination.Count(),
+				}
+				if c.HasValidCronSpec() {
+					info.CronSpec = c.Cron
+					if next, err := c.GetNextRun(); err == nil {
+						info.NextRun = next.Format(time.RFC3339)
+					}
+				}
+				infos[i] = info
+			}
+			webui.Global.SetConfigFiles(cli.Configfiles)
+			webui.Global.SetConfigs(infos)
+			currentConfs := confs
+			webui.Global.SetRunFunc(func(idx int) {
+				if idx < 0 {
+					for i, c := range currentConfs {
+						runBackup(c, i)
+					}
+				} else if idx < len(currentConfs) {
+					runBackup(currentConfs[idx], idx)
+				}
+			})
+			webuiOnce.Do(func() {
+				go webui.Serve(webuiAddr)
+			})
+		}
 
 		validcron := confs[0].HasValidCronSpec()
 
@@ -1350,6 +1566,12 @@ func main() {
 			}
 			reload = playsForever(c, cli.Configfiles, confs)
 			log.Info().Msg("reloading config...")
+		} else if webuiAddr != "" {
+			// No cron but web UI is active: stay alive and watch for config changes.
+			reload = playsForever(nil, cli.Configfiles, confs)
+			if reload {
+				log.Info().Msg("reloading config...")
+			}
 		}
 		if !reload {
 			break
