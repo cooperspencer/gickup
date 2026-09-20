@@ -1,12 +1,15 @@
 package webui
 
 import (
+	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -271,6 +274,10 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		data, err := os.ReadFile(files[idx])
+		if errors.Is(err, os.ErrNotExist) {
+			data = []byte{}
+			err = nil
+		}
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -279,15 +286,34 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(data)
 
 	case http.MethodPost:
-		body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+		body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		// Validate that the submitted content parses as a known config shape.
-		var conf types.Conf
-		if err := yaml.Unmarshal(body, &conf); err != nil {
-			http.Error(w, "invalid YAML: "+err.Error(), http.StatusBadRequest)
+		// Check every YAML document before replacing the file.
+		dec := yaml.NewDecoder(bytes.NewReader(body))
+		count := 0
+		for {
+			var conf types.Conf
+			err := dec.Decode(&conf)
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				http.Error(w, "invalid YAML: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			if !reflect.ValueOf(conf).IsZero() {
+				count++
+			}
+		}
+		if count == 0 {
+			http.Error(w, "configuration must contain at least one non-empty configuration block", http.StatusBadRequest)
+			return
+		}
+		if err := os.MkdirAll(filepath.Dir(files[idx]), 0o700); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if err := os.WriteFile(files[idx], body, 0o600); err != nil {

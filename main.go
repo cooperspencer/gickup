@@ -50,6 +50,7 @@ import (
 )
 
 var cli struct {
+	WebUI       string   `flag name:"webui" placeholder:"ADDR" help:"Start the web interface at this address, even without a configuration file (e.g. :8080; overrides webui.addr)."`
 	Configfiles []string `arg name:"conf" help:"Path to the configfile." default:"conf.yml"`
 	Version     bool     `flag name:"version" help:"Show version."`
 	Dry         bool     `flag name:"dryrun" help:"Make a dry-run."`
@@ -61,13 +62,18 @@ var cli struct {
 var version = "unknown"
 
 func readConfigFile(configfile string) []*types.Conf {
+	confs, err := loadConfigFile(configfile)
+	if err != nil {
+		log.Fatal().Err(err).Str("file", configfile).Msg("Cannot read configuration")
+	}
+	return confs
+}
+
+func loadConfigFile(configfile string) ([]*types.Conf, error) {
 	conf := []*types.Conf{}
 	cfgdata, err := os.Open(filepath.Clean(configfile))
 	if err != nil {
-		log.Fatal().
-			Str("stage", "readconfig").
-			Str("file", configfile).
-			Msgf("Cannot open config file from %s", types.Red(configfile))
+		return nil, err
 	}
 	defer cfgdata.Close()
 
@@ -81,17 +87,7 @@ func readConfigFile(configfile string) []*types.Conf {
 		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
-			if len(conf) > 0 {
-				log.Fatal().
-					Str("stage", "readconfig").
-					Str("file", configfile).
-					Msgf("an error occurred in the %d place of %s", i, configfile)
-			} else {
-				log.Fatal().
-					Str("stage", "readconfig").
-					Str("file", configfile).
-					Msg(err.Error())
-			}
+			return nil, fmt.Errorf("config document %d: %w", i+1, err)
 		}
 
 		if reflect.ValueOf(c).IsZero() {
@@ -111,7 +107,7 @@ func readConfigFile(configfile string) []*types.Conf {
 		}
 	}
 
-	return conf
+	return conf, nil
 }
 
 func expandConfigPaths(c *types.Conf) {
@@ -1327,11 +1323,25 @@ func runBackup(conf *types.Conf, num int) {
 func playsForever(c *cron.Cron, conffiles []string, confs []*types.Conf) bool {
 	for {
 		checkconfigs := []*types.Conf{}
+		valid := true
 		for _, f := range conffiles {
-			checkconfigs = append(checkconfigs, readConfigFile(f)...)
+			loaded, err := loadConfigFile(f)
+			if errors.Is(err, os.ErrNotExist) && cli.WebUI != "" {
+				continue
+			}
+			if err != nil {
+				log.Error().Err(err).Str("file", f).Msg("Cannot reload configuration; keeping current configuration")
+				valid = false
+				break
+			}
+			checkconfigs = append(checkconfigs, loaded...)
+		}
+		if !valid {
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
-		if checkconfigs[0].HasValidCronSpec() {
+		if len(checkconfigs) > 0 && checkconfigs[0].HasValidCronSpec() {
 			for num, config := range checkconfigs {
 				if !config.HasValidCronSpec() {
 					checkconfigs[num].Cron = checkconfigs[0].Cron
@@ -1396,7 +1406,9 @@ func main() {
 
 	var webuiOnce sync.Once
 	var webuiAddr string
-	_ = webuiAddr // will be set from config
+	if cli.WebUI != "" {
+		webuiAddr = cli.WebUI
+	}
 
 	init := true
 	for {
@@ -1413,7 +1425,17 @@ func main() {
 			cli.Configfiles[i] = absf
 			base := filepath.Base(absf)
 			before := len(confs)
-			confs = append(confs, readConfigFile(absf)...)
+			loaded, err := loadConfigFile(absf)
+			if err != nil {
+				if cli.WebUI == "" {
+					log.Fatal().Err(err).Str("file", absf).Msg("Cannot read configuration")
+				}
+				if !errors.Is(err, os.ErrNotExist) {
+					log.Error().Err(err).Str("file", absf).Msg("Repair configuration in the web interface")
+				}
+			} else {
+				confs = append(confs, loaded...)
+			}
 			added := len(confs) - before
 			for j := 0; j < added; j++ {
 				if added > 1 {
@@ -1422,6 +1444,20 @@ func main() {
 					confNames = append(confNames, base)
 				}
 			}
+		}
+
+		if cli.WebUI != "" {
+			webui.Global.SetConfigFiles(cli.Configfiles)
+			webuiOnce.Do(func() { go webui.Serve(webuiAddr) })
+		}
+		if len(confs) == 0 {
+			if cli.WebUI == "" {
+				log.Fatal().Msg("No configuration found; use --webui :8080 to create one in the browser")
+			}
+			webui.Global.SetConfigs(nil)
+			webui.Global.SetRunFunc(nil)
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
 		logConf := confs[0].Log

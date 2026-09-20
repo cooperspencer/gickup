@@ -460,6 +460,11 @@
 </nav>
 
 <main>
+  <div id="setup-notice" class="card" style="display:none; padding:20px; margin-bottom:20px">
+    <h2>Set up Gickup</h2>
+    <p>No configuration is loaded yet. Add your source and destination settings in the Configuration tab and save. Gickup checks for changes every five seconds.</p>
+    <button class="btn btn-primary" onclick="showPage('config')">Add configuration</button>
+  </div>
 
   <!-- dashboard -->
   <div id="page-dashboard" class="page active">
@@ -549,6 +554,22 @@
       </div>
       <div class="file-tabs" id="file-tabs"></div>
       <div class="config-body">
+        <p id="config-path" style="color:var(--muted); margin-bottom:12px"></p>
+        <details style="margin-bottom:12px">
+          <summary>Configuration example and supported providers</summary>
+          <p>Sources: GitHub, GitLab, Gitea/Forgejo, Gogs, Bitbucket, OneDev, SourceHut, Opengist, or any Git URL.</p>
+          <p>Destinations: local, GitHub, GitLab, Gitea/Forgejo, Gogs, OneDev, SourceHut, S3, Azure Blob, WebDAV, or Radicle.</p>
+          <p>Copy this example into the editor and replace the repository URL and backup path. Without a cron schedule, saving starts a backup after the configuration is loaded.</p>
+          <pre style="overflow-x:auto; padding:12px">source:
+  any:
+    - url: https://github.com/OWNER/REPOSITORY.git
+destination:
+  local:
+    - path: /backups
+      bare: true
+# Optional daily schedule (UTC unless TZ is set):
+# cron: "0 0 * * *"</pre>
+        </details>
         <p style="color:var(--muted); margin-bottom:12px">Edit configuration as YAML. Reload reads the file from disk and discards edits. Saved changes are picked up automatically; without a schedule, reloading the configuration starts a backup.</p>
         <textarea id="config-content" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="Loading configuration…"></textarea>
         <div class="config-actions">
@@ -655,6 +676,9 @@
   let allEntries = [];
   let refreshInterval = null;
   let runPollInterval = null;
+  let hasConfigs = false;
+  let backupRunning = false;
+  let setupShown = false;
 
   // Navigation
   function showPage(name) {
@@ -671,6 +695,13 @@
       const resp = await fetch('/api/configs');
       if (!resp.ok) return;
       const cfgs = await resp.json();
+      hasConfigs = cfgs.length > 0;
+      document.getElementById('setup-notice').style.display = hasConfigs ? 'none' : '';
+      showRunning(backupRunning);
+      if (!hasConfigs && !setupShown) {
+        setupShown = true;
+        showPage('config');
+      }
       const body = document.getElementById('run-body');
       // Keep the "Run All" button, remove old config buttons
       body.querySelectorAll('.btn-config').forEach(b => b.remove());
@@ -741,8 +772,9 @@
   }
 
   function showRunning(on) {
+    backupRunning = on;
     document.getElementById('run-status').style.display = on ? 'inline-flex' : 'none';
-    document.querySelectorAll('#run-body .btn').forEach(b => b.disabled = on);
+    document.querySelectorAll('#run-body .btn').forEach(b => b.disabled = on || !hasConfigs);
   }
 
   async function pollRunning() {
@@ -750,7 +782,7 @@
       const resp = await fetch('/api/running');
       if (!resp.ok) return;
       const { running } = await resp.json();
-      const wasRunning = document.getElementById('btn-run-all').disabled;
+      const wasRunning = backupRunning;
       showRunning(running);
       if (wasRunning && !running) loadStatus();
     } catch (e) { console.error('pollRunning:', e); }
@@ -900,6 +932,7 @@
 
   // config
   let activeConfigFile = 0;
+  let configFiles = [];
   let configLoaded = false;
   let savedConfigContent = '';
   let configLoading = false;
@@ -922,6 +955,7 @@
       const resp = await fetch('/api/config?list=1');
       if (!resp.ok) throw new Error(await resp.text());
       const files = await resp.json();
+      configFiles = files;
 
       if (files.length <= 1) {
         tabsEl.style.display = 'none';
@@ -954,6 +988,8 @@
     if (configLoading || configSaving) return;
     if (configDirty() && !confirm('Discard unsaved configuration changes and reload from disk?')) return;
     configLoading = true;
+    const file = configFiles.find(f => f.index === activeConfigFile);
+    document.getElementById('config-path').textContent = file ? 'Configuration file: ' + file.path : '';
     const el = document.getElementById('config-content');
     const st = document.getElementById('save-status');
     el.disabled = true;
@@ -964,6 +1000,7 @@
       const resp = await fetch(`/api/config?file=${activeConfigFile}`);
       if (!resp.ok) throw new Error(await resp.text());
       el.value = await resp.text();
+      el.placeholder = "Paste your configuration YAML here, or copy the example above.";
       savedConfigContent = el.value;
       configLoaded = true;
     } catch (e) {
@@ -994,7 +1031,8 @@
       if (resp.ok) {
         if (fileIndex !== activeConfigFile) return;
         savedConfigContent = content;
-        st.textContent = '✓ Saved to disk';
+        st.textContent = '✓ Saved — Gickup will reload automatically';
+        loadConfigs();
         st.className = 'save-status ok';
       } else {
         const msg = await resp.text();
@@ -1028,7 +1066,7 @@
   loadStatus();
   loadConfigs();
   refreshInterval = setInterval(loadStatus, 30000);
-  setInterval(loadConfigs, 60000); // refresh cron next-run times
+  setInterval(loadConfigs, 5000); // detect newly saved configuration and refresh schedules
 
   // Keep checking so scheduled and startup runs also appear in the UI.
   pollRunning();

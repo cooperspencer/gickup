@@ -68,6 +68,42 @@ If your hoster is not listed, feel free to open an issue and I will add it.
 ## How to run the binary version
 `./gickup path-to-conf.yml`
 
+## Start with the web interface
+
+```bash
+./gickup --webui :8080 /path/to/conf.yml
+```
+
+Open http://localhost:8080. If the file is missing or empty, the interface opens
+configuration setup. Paste your YAML and save; Gickup creates the file and its
+parent directory, then loads it within about five seconds. Without a cron schedule,
+loading a configuration starts a backup. With a schedule, backups wait for that schedule.
+The configuration path defaults to `conf.yml` in the working directory.
+
+Pass the listen address directly to `--webui`, for example `--webui :8080`
+or `--webui 127.0.0.1:9090`.
+When `--webui` is supplied, this address takes precedence over `webui.addr` in YAML.
+Without the flag, the existing YAML setting still works.
+The interface has no authentication; restrict access to trusted users.
+
+For Docker, mount a **directory** so the interface can create the configuration file:
+
+```yaml
+services:
+  gickup:
+    build: .
+    command: ["--webui", ":8080", "/config/conf.yml"]
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./config:/config
+      - ./backups:/backups
+```
+
+Run `mkdir -p config backups` and `docker compose up --build`, then open
+http://localhost:8080. The saved configuration persists in `./config/conf.yml`.
+Use `/backups` as the local destination path to persist backups on the host.
+
 ## How to run the Docker image
 ```bash
 mkdir gickup
