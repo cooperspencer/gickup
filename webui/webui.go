@@ -138,12 +138,12 @@ func Serve(addr string) {
 	}
 }
 
-func handleIndex(w http.ResponseWriter, r *http.Request) {
+func handleIndex(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, _ = w.Write(indexHTML)
 }
 
-func handleLogo(w http.ResponseWriter, r *http.Request) {
+func handleLogo(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	_, _ = w.Write(logoPNG)
 }
@@ -159,11 +159,13 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	copy(entries, Global.entries)
 	Global.mu.RUnlock()
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(entries)
+	if err := json.NewEncoder(w).Encode(entries); err != nil {
+		log.Error().Err(err).Msg("Failed to write JSON response")
+	}
 }
 
 // handleConfigs returns the list of loaded configuration blocks.
-func handleConfigs(w http.ResponseWriter, r *http.Request) {
+func handleConfigs(w http.ResponseWriter, _ *http.Request) {
 	Global.mu.RLock()
 	cfgs := make([]ConfigInfo, len(Global.configs))
 	copy(cfgs, Global.configs)
@@ -183,14 +185,18 @@ func handleConfigs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(cfgs)
+	if err := json.NewEncoder(w).Encode(cfgs); err != nil {
+		log.Error().Err(err).Msg("Failed to write JSON response")
+	}
 }
 
 // handleRunning reports whether a backup run is currently in progress.
-func handleRunning(w http.ResponseWriter, r *http.Request) {
+func handleRunning(w http.ResponseWriter, _ *http.Request) {
 	running := atomic.LoadInt32(&Global.running) != 0
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]bool{"running": running})
+	if err := json.NewEncoder(w).Encode(map[string]bool{"running": running}); err != nil {
+		log.Error().Err(err).Msg("Failed to write JSON response")
+	}
 }
 
 // handleRun triggers an immediate backup run.
@@ -228,7 +234,9 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	_ = json.NewEncoder(w).Encode(map[string]bool{"running": true})
+	if err := json.NewEncoder(w).Encode(map[string]bool{"running": true}); err != nil {
+		log.Error().Err(err).Msg("Failed to write JSON response")
+	}
 }
 
 func handleConfig(w http.ResponseWriter, r *http.Request) {
@@ -256,7 +264,9 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 			list[i] = fileInfo{Index: i, Name: filepath.Base(f), Path: f}
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(list)
+		if err := json.NewEncoder(w).Encode(list); err != nil {
+			log.Error().Err(err).Msg("Failed to write JSON response")
+		}
 		return
 	}
 

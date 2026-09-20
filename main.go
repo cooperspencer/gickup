@@ -1437,7 +1437,7 @@ func main() {
 				confs = append(confs, loaded...)
 			}
 			added := len(confs) - before
-			for j := 0; j < added; j++ {
+			for j := range added {
 				if added > 1 {
 					confNames = append(confNames, fmt.Sprintf("%s #%d", base, j+1))
 				} else {

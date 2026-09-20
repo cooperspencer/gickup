@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+//nolint:paralleltest // These handlers use Global, which each test temporarily replaces.
 func TestRunningTracksOverlappingRuns(t *testing.T) {
 	old := Global
 	Global = &store{}
@@ -37,6 +38,7 @@ func TestRunningTracksOverlappingRuns(t *testing.T) {
 	check(`{"running":false}`)
 }
 
+//nolint:paralleltest // These handlers use Global, which each test temporarily replaces.
 func TestAPIRunReservationDoesNotClearScheduledRun(t *testing.T) {
 	old := Global
 	Global = &store{}
@@ -72,6 +74,7 @@ func TestAPIRunReservationDoesNotClearScheduledRun(t *testing.T) {
 	Global.EndRun()
 }
 
+//nolint:paralleltest // These handlers use Global, which each test temporarily replaces.
 func TestConfigCreatesMissingFileAndRejectsInvalidDocuments(t *testing.T) {
 	old := Global
 	Global = &store{}

@@ -288,12 +288,14 @@ func TestReadConfigFile_S3UseStaticCredsAbsentSkipsKeyResolution(t *testing.T) {
 }
 
 func TestLoadConfigFileSetupStates(t *testing.T) {
+	t.Parallel()
+
 	file := t.TempDir() + "/conf.yml"
 	if _, err := loadConfigFile(file); !os.IsNotExist(err) {
 		t.Fatalf("missing config: %v", err)
 	}
 	for _, content := range []string{"", "# empty config\n", "{}"} {
-		if err := os.WriteFile(file, []byte(content), 0600); err != nil {
+		if err := os.WriteFile(file, []byte(content), 0o600); err != nil {
 			t.Fatal(err)
 		}
 		confs, err := loadConfigFile(file)
@@ -301,7 +303,7 @@ func TestLoadConfigFileSetupStates(t *testing.T) {
 			t.Fatalf("empty config: %v, %v", confs, err)
 		}
 	}
-	if err := os.WriteFile(file, []byte("source: ["), 0600); err != nil {
+	if err := os.WriteFile(file, []byte("source: ["), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := loadConfigFile(file); err == nil {
