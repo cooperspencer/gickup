@@ -63,11 +63,17 @@ type store struct {
 	configFiles []string
 	configs     []ConfigInfo
 	runFunc     func(int)
-	running     int32 // atomic: 1 = a run is in progress
+	running     int32 // atomic count of active runs and API reservations
 }
 
 // Global is the shared store used across the application.
 var Global = &store{}
+
+// BeginRun tracks startup, scheduled, and manually triggered backup work.
+func (s *store) BeginRun() { atomic.AddInt32(&s.running, 1) }
+
+// EndRun releases one active run or API reservation.
+func (s *store) EndRun() { atomic.AddInt32(&s.running, -1) }
 
 // SetConfigFiles registers the config file paths with the store.
 func (s *store) SetConfigFiles(files []string) {
@@ -207,13 +213,13 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	Global.mu.RUnlock()
 
 	if fn == nil {
-		atomic.StoreInt32(&Global.running, 0)
+		Global.EndRun()
 		http.Error(w, "not ready", http.StatusServiceUnavailable)
 		return
 	}
 
 	go func() {
-		defer atomic.StoreInt32(&Global.running, 0)
+		defer Global.EndRun()
 		fn(req.Index)
 	}()
 

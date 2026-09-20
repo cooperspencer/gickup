@@ -468,7 +468,7 @@
       <div class="stat-card"><div class="label">Successful</div><div class="value" style="color:var(--green)">—</div></div>
       <div class="stat-card"><div class="label">Failed</div><div class="value" style="color:var(--red)">—</div></div>
       <div class="stat-card"><div class="label">Unique Repos</div><div class="value" style="color:var(--blue)">—</div></div>
-      <div class="stat-card"><div class="label">Sources</div><div class="value" style="color:var(--purple)">—</div></div>
+      <div class="stat-card"><div class="label">Source Hosts</div><div class="value" style="color:var(--purple)">—</div></div>
     </div>
 
     <div class="card" style="margin-bottom:20px">
@@ -512,18 +512,19 @@
         </div>
       </div>
 
+      <p style="padding:12px 20px; color:var(--muted)">Counts and filters reflect recorded backups since startup or the last history clear.</p>
       <div class="filter-bar">
-        <input class="filter-input" type="text" id="filter-search" placeholder="Filter by repo, owner, hoster…" oninput="applyFilters()">
+        <input class="filter-input" type="text" id="filter-search" placeholder="Filter by repo, owner, source host…" oninput="applyFilters()">
         <select class="filter-select" id="filter-status" onchange="applyFilters()">
           <option value="">All statuses</option>
           <option value="success">Success</option>
           <option value="failed">Failed</option>
         </select>
         <select class="filter-select" id="filter-dest" onchange="applyFilters()">
-          <option value="">All destinations</option>
+          <option value="">All recorded destination types</option>
         </select>
         <select class="filter-select" id="filter-hoster" onchange="applyFilters()">
-          <option value="">All sources</option>
+          <option value="">All recorded source hosts</option>
         </select>
       </div>
 
@@ -548,6 +549,7 @@
       </div>
       <div class="file-tabs" id="file-tabs"></div>
       <div class="config-body">
+        <p style="color:var(--muted); margin-bottom:12px">Edit configuration as YAML. Reload reads the file from disk and discards edits. Saved changes are picked up automatically; without a schedule, reloading the configuration starts a backup.</p>
         <textarea id="config-content" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="Loading configuration…"></textarea>
         <div class="config-actions">
           <button class="btn btn-primary" onclick="saveConfig()">
@@ -660,7 +662,7 @@
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('page-' + name).classList.add('active');
     document.getElementById('tab-' + name).classList.add('active');
-    if (name === 'config') loadConfigFileList();
+    if (name === 'config' && !configLoaded) loadConfigFileList();
   }
 
   // Run 
@@ -680,6 +682,7 @@
         cfgs.forEach(c => {
           const btn = document.createElement('button');
           btn.className = 'btn btn-secondary btn-config';
+          btn.disabled = document.getElementById('btn-run-all').disabled;
           btn.title = `${c.sources} source(s), ${c.dests} destination(s)`;
           btn.onclick = () => triggerRun(c.index);
           btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> ${escHtml(c.name)}`;
@@ -730,7 +733,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ index: idx }),
       });
-      if (resp.status === 409) { showRunning(true); return; }
+      if (resp.status === 409) { showRunning(true); startRunPoll(); return; }
       if (!resp.ok) { console.error('trigger run failed:', await resp.text()); return; }
       showRunning(true);
       startRunPoll();
@@ -742,21 +745,19 @@
     document.querySelectorAll('#run-body .btn').forEach(b => b.disabled = on);
   }
 
+  async function pollRunning() {
+    try {
+      const resp = await fetch('/api/running');
+      if (!resp.ok) return;
+      const { running } = await resp.json();
+      const wasRunning = document.getElementById('btn-run-all').disabled;
+      showRunning(running);
+      if (wasRunning && !running) loadStatus();
+    } catch (e) { console.error('pollRunning:', e); }
+  }
+
   function startRunPoll() {
-    if (runPollInterval) return;
-    runPollInterval = setInterval(async () => {
-      try {
-        const resp = await fetch('/api/running');
-        if (!resp.ok) return;
-        const { running } = await resp.json();
-        if (!running) {
-          clearInterval(runPollInterval);
-          runPollInterval = null;
-          showRunning(false);
-          loadStatus(); // refresh results
-        }
-      } catch (e) {}
-    }, 2000);
+    if (!runPollInterval) runPollInterval = setInterval(pollRunning, 2000);
   }
 
   // dashboard
@@ -787,7 +788,7 @@
       <div class="stat-card"><div class="label">Successful</div><div class="value" style="color:var(--green)">${success}</div></div>
       <div class="stat-card"><div class="label">Failed</div><div class="value" style="color:var(--red)">${failed}</div></div>
       <div class="stat-card"><div class="label">Unique Repos</div><div class="value" style="color:var(--blue)">${repos}</div></div>
-      <div class="stat-card"><div class="label">Sources</div><div class="value" style="color:var(--purple)">${sources}</div></div>
+      <div class="stat-card"><div class="label">Source Hosts</div><div class="value" style="color:var(--purple)">${sources}</div></div>
     `;
   }
 
@@ -797,13 +798,13 @@
 
     const destSel = document.getElementById('filter-dest');
     const curDest = destSel.value;
-    destSel.innerHTML = '<option value="">All destinations</option>' +
+    destSel.innerHTML = '<option value="">All recorded destination types</option>' +
       dests.map(d => `<option value="${d}">${d}</option>`).join('');
     if (dests.includes(curDest)) destSel.value = curDest;
 
     const hosterSel = document.getElementById('filter-hoster');
     const curHoster = hosterSel.value;
-    hosterSel.innerHTML = '<option value="">All sources</option>' +
+    hosterSel.innerHTML = '<option value="">All recorded source hosts</option>' +
       hosters.map(h => `<option value="${h}">${h}</option>`).join('');
     if (hosters.includes(curHoster)) hosterSel.value = curHoster;
   }
@@ -834,8 +835,8 @@
       container.innerHTML = `
         <div class="empty">
           <div class="empty-icon">📦</div>
-          <div class="empty-title">No entries match</div>
-          <div class="empty-sub">Try adjusting your filters.</div>
+          <div class="empty-title">${allEntries.length ? 'No entries match' : 'No backup data yet'}</div>
+          <div class="empty-sub">${allEntries.length ? 'Try adjusting your filters.' : 'Backup entries will appear here as repositories are backed up.'}</div>
         </div>`;
       return;
     }
@@ -849,7 +850,7 @@
           <tr>
             <th>Repository</th>
             <th>Owner</th>
-            <th>Source</th>
+            <th>Source Host</th>
             <th>Destination</th>
             <th>Status</th>
             <th>Duration</th>
@@ -892,12 +893,28 @@
     await fetch('/api/status', { method: 'DELETE' });
     allEntries = [];
     renderStats([]);
+    populateFilters([]);
     renderTable([]);
     document.getElementById('last-updated').textContent = '';
   }
 
   // config
   let activeConfigFile = 0;
+  let configLoaded = false;
+  let savedConfigContent = '';
+  let configLoading = false;
+  let configSaving = false;
+
+  function configDirty() {
+    return configLoaded && document.getElementById('config-content').value !== savedConfigContent;
+  }
+
+  window.addEventListener('beforeunload', event => {
+    if (configDirty()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
 
   async function loadConfigFileList() {
     const tabsEl = document.getElementById('file-tabs');
@@ -922,6 +939,9 @@
   }
 
   function selectConfigFile(idx) {
+    if (configLoading || configSaving || idx === activeConfigFile) return;
+    if (configDirty() && !confirm('Discard unsaved configuration changes?')) return;
+    configLoaded = false;
     activeConfigFile = idx;
     document.querySelectorAll('.file-tab').forEach((t, i) =>
       t.classList.toggle('active', i === idx));
@@ -931,8 +951,12 @@
   }
 
   async function loadConfig() {
+    if (configLoading || configSaving) return;
+    if (configDirty() && !confirm('Discard unsaved configuration changes and reload from disk?')) return;
+    configLoading = true;
     const el = document.getElementById('config-content');
     const st = document.getElementById('save-status');
+    el.disabled = true;
     el.value = 'Loading…';
     st.textContent = '';
     st.className = 'save-status';
@@ -940,26 +964,37 @@
       const resp = await fetch(`/api/config?file=${activeConfigFile}`);
       if (!resp.ok) throw new Error(await resp.text());
       el.value = await resp.text();
+      savedConfigContent = el.value;
+      configLoaded = true;
     } catch (e) {
       el.value = '';
       st.textContent = '✗ ' + e.message;
       st.className = 'save-status err';
+      configLoaded = false;
+    } finally {
+      configLoading = false;
+      el.disabled = false;
     }
   }
 
   async function saveConfig() {
+    if (configLoading || configSaving || !configLoaded) return;
+    configSaving = true;
+    const fileIndex = activeConfigFile;
     const content = document.getElementById('config-content').value;
     const st = document.getElementById('save-status');
     st.textContent = 'Saving…';
     st.className = 'save-status';
     try {
-      const resp = await fetch(`/api/config?file=${activeConfigFile}`, {
+      const resp = await fetch(`/api/config?file=${fileIndex}`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: content,
       });
       if (resp.ok) {
-        st.textContent = '✓ Saved';
+        if (fileIndex !== activeConfigFile) return;
+        savedConfigContent = content;
+        st.textContent = '✓ Saved to disk';
         st.className = 'save-status ok';
       } else {
         const msg = await resp.text();
@@ -969,6 +1004,8 @@
     } catch (e) {
       st.textContent = '✗ ' + e.message;
       st.className = 'save-status err';
+    } finally {
+      configSaving = false;
     }
   }
 
@@ -993,13 +1030,9 @@
   refreshInterval = setInterval(loadStatus, 30000);
   setInterval(loadConfigs, 60000); // refresh cron next-run times
 
-  // Check if a run was already in progress when page loaded
-  fetch('/api/running').then(r => r.json()).then(({ running }) => {
-    if (running) { showRunning(true); startRunPoll(); }
-  }).catch(() => {});
-
-  // Re-render with no-match state on first load if entries is empty
-  document.getElementById('filter-search').dispatchEvent(new Event('input'));
+  // Keep checking so scheduled and startup runs also appear in the UI.
+  pollRunning();
+  startRunPoll();
 </script>
 </body>
 </html>

@@ -478,74 +478,86 @@ func backup(repos []types.Repo, conf *types.Conf) {
 				Msgf("%s %s to %s", logOp, types.Blue(r.Name), d.Url)
 
 			if !cli.Dry {
-				tempname := fmt.Sprintf("webdav-%x", repotime)
-				tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
-				if err != nil {
-					log.Error().
-						Str("stage", "tempclone").
-						Str("url", r.URL).
-						Msg(err.Error())
-					continue
-				}
-
-				if d.Structured {
-					r.Name = path.Join(r.Hoster, r.Owner, r.Name)
-				}
-
-				if d.DateCreateDir {
-					r.Name = currentDateDir + r.Name
-				}
-
-				defer os.RemoveAll(tempdir)
-				tempClonePath := path.Join(tempdir, r.Name)
-				_, err = local.TempCloneBare(r, tempClonePath)
-				if err != nil {
-					switch {
-					case errors.Is(err, git.NoErrAlreadyUpToDate):
-						log.Info().
-							Str("stage", "webdav").
-							Msg(err.Error())
-					case errors.Is(err, transport.ErrEmptyRemoteRepository):
-						log.Warn().
-							Str("repo", r.Name).
-							Msgf("%s - Skipping backup", err.Error())
-						continue
-					default:
-						log.Error().
-							Str("stage", "tempclone").
-							Str("git", "clone").
-							Msg(err.Error())
-						os.RemoveAll(tempdir)
-						continue
-					}
-				}
-
-				if d.Zip {
-					log.Info().
-						Msgf("zipping %s", types.Green(r.Name))
-					err := zip.Zip(tempClonePath, []string{tempClonePath})
+				func() {
+					defer func() {
+						webui.Global.Record(webui.BackupEntry{
+							Timestamp: repotime, RepoName: r.Name, RepoURL: r.URL,
+							Owner: r.Owner, Hoster: r.Hoster, DestType: "webdav",
+							DestAddr: d.Url, Status: webui.StatusFromInt(status),
+							DurationMs: time.Since(repotime).Milliseconds(),
+						})
+					}()
+					tempname := fmt.Sprintf("webdav-%x", repotime)
+					tempdir, err := os.MkdirTemp(os.TempDir(), tempname)
 					if err != nil {
 						log.Error().
-							Str("stage", "zip").
-							Str("repo", r.Name).
+							Str("stage", "tempclone").
+							Str("url", r.URL).
 							Msg(err.Error())
-						log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
-						continue
+						return
 					}
-				}
-				err = webdav.UploadDirToWebDAV(tempdir, d)
-				if err != nil {
-					log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
-				}
-				err = webdav.DeleteObjectsNotInRepo(tempdir, r.Name, d)
-				if err != nil {
-					log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
-				}
-				prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(time.Since(repotime).Seconds())
-				status = 1
 
-				prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(float64(status))
-				prometheus.DestinationBackupsComplete.WithLabelValues("webdav").Inc()
+					if d.Structured {
+						r.Name = path.Join(r.Hoster, r.Owner, r.Name)
+					}
+
+					if d.DateCreateDir {
+						r.Name = currentDateDir + r.Name
+					}
+
+					defer os.RemoveAll(tempdir)
+					tempClonePath := path.Join(tempdir, r.Name)
+					_, err = local.TempCloneBare(r, tempClonePath)
+					if err != nil {
+						switch {
+						case errors.Is(err, git.NoErrAlreadyUpToDate):
+							log.Info().
+								Str("stage", "webdav").
+								Msg(err.Error())
+						case errors.Is(err, transport.ErrEmptyRemoteRepository):
+							log.Warn().
+								Str("repo", r.Name).
+								Msgf("%s - Skipping backup", err.Error())
+							return
+						default:
+							log.Error().
+								Str("stage", "tempclone").
+								Str("git", "clone").
+								Msg(err.Error())
+							os.RemoveAll(tempdir)
+							return
+						}
+					}
+
+					if d.Zip {
+						log.Info().
+							Msgf("zipping %s", types.Green(r.Name))
+						err := zip.Zip(tempClonePath, []string{tempClonePath})
+						if err != nil {
+							log.Error().
+								Str("stage", "zip").
+								Str("repo", r.Name).
+								Msg(err.Error())
+							log.Error().Msgf("Skipping backup of %s due to error while zipping", r.Name)
+							return
+						}
+					}
+					err = webdav.UploadDirToWebDAV(tempdir, d)
+					if err != nil {
+						log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
+						return
+					}
+					err = webdav.DeleteObjectsNotInRepo(tempdir, r.Name, d)
+					if err != nil {
+						log.Error().Str("stage", "webdav").Str("url", d.Url).Msg(err.Error())
+						return
+					}
+					prometheus.RepoTime.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(time.Since(repotime).Seconds())
+					status = 1
+
+					prometheus.RepoSuccess.WithLabelValues(r.Hoster, r.Name, r.Owner, "webdav", d.Url).Set(float64(status))
+					prometheus.DestinationBackupsComplete.WithLabelValues("webdav").Inc()
+				}()
 			}
 		}
 
@@ -1117,6 +1129,14 @@ func backup(repos []types.Repo, conf *types.Conf) {
 
 			if !cli.Dry {
 				func() {
+					defer func() {
+						webui.Global.Record(webui.BackupEntry{
+							Timestamp: repotime, RepoName: r.Name, RepoURL: r.URL,
+							Owner: r.Owner, Hoster: r.Hoster, DestType: "radicle",
+							DestAddr: radhome, Status: webui.StatusFromInt(status),
+							DurationMs: time.Since(repotime).Milliseconds(),
+						})
+					}()
 					tempdir, err := os.MkdirTemp(os.TempDir(), fmt.Sprintf("radicle-%x", repotime))
 					if err != nil {
 						log.Error().
@@ -1172,6 +1192,8 @@ func backup(repos []types.Repo, conf *types.Conf) {
 }
 
 func runBackup(conf *types.Conf, num int) {
+	webui.Global.BeginRun()
+	defer webui.Global.EndRun()
 	log.Info().Msg("Backup run starting")
 
 	numstring := strconv.Itoa(num)
