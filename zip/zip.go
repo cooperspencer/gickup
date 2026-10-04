@@ -30,19 +30,24 @@ func Zip(repository string, tozip []string) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() {
-			return nil
+		abspath, err := filepath.Rel(parentDir, path)
+		if err != nil {
+			return err
 		}
+		abspath = filepath.ToSlash(abspath)
+		if info.IsDir() {
+			// Packed refs can leave refs/ empty, but Git still requires the
+			// directory to recognize an extracted bare repository.
+			_, err := w.Create(abspath + "/")
+			return err
+		}
+
 		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
 		defer file.Close()
 
-		abspath, err := filepath.Rel(parentDir, path)
-		if err != nil {
-			return err
-		}
 		f, err := w.Create(abspath)
 		if err != nil {
 			return err
