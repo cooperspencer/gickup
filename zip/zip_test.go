@@ -2,6 +2,7 @@ package zip
 
 import (
 	archivezip "archive/zip"
+	"context"
 	"io"
 	"os"
 	"os/exec"
@@ -93,7 +94,7 @@ func TestZipRestoresBareRepositoryWithPackedRefs(t *testing.T) {
 	root := t.TempDir()
 	runGit := func(args ...string) string {
 		t.Helper()
-		cmd := exec.Command("git", args...)
+		cmd := exec.CommandContext(context.TODO(), "git", args...)
 		cmd.Env = append(os.Environ(), "GIT_CONFIG_NOSYSTEM=1", "GIT_CONFIG_GLOBAL="+os.DevNull)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
